@@ -226,10 +226,9 @@ const Storage = (function() {
             total: cases.length,
             bestaetigt: 0,
             abgelehnt: 0,
-            offen: 0
+            offen: 0,
+            exportiert: 0
         };
-
-        const closedStatuses = ['bestaetigt', 'abgelehnt'];
 
         cases.forEach(c => {
             if (c.status === 'bestaetigt') {
@@ -239,9 +238,132 @@ const Storage = (function() {
             } else {
                 stats.offen++;
             }
+
+            // Exportiert zählen
+            if (c.exported && c.exported.date) {
+                stats.exportiert++;
+            }
         });
 
         return stats;
+    }
+
+    /**
+     * Detail-Statistiken für Dashboard
+     */
+    function getDetailedStats() {
+        const cases = getCasesArray();
+        const stats = {
+            total: cases.length,
+            byStatus: {
+                neu: 0,
+                angefragt: 0,
+                'in-bearbeitung': 0,
+                bestaetigt: 0,
+                abgelehnt: 0
+            },
+            exportiert: 0,
+            exportReady: 0
+        };
+
+        cases.forEach(c => {
+            // Status zählen
+            if (stats.byStatus.hasOwnProperty(c.status)) {
+                stats.byStatus[c.status]++;
+            }
+
+            // Exportiert zählen
+            if (c.exported && c.exported.date) {
+                stats.exportiert++;
+            }
+
+            // Export-bereit: bestätigt oder abgelehnt, aber noch nicht exportiert
+            if ((c.status === 'bestaetigt' || c.status === 'abgelehnt') && (!c.exported || !c.exported.date)) {
+                stats.exportReady++;
+            }
+        });
+
+        return stats;
+    }
+
+    /**
+     * Vorgänge die für Export bereit sind (bestätigt/abgelehnt, nicht exportiert)
+     */
+    function getExportReadyCases() {
+        const cases = getCasesArray();
+        return cases.filter(c =>
+            (c.status === 'bestaetigt' || c.status === 'abgelehnt') &&
+            (!c.exported || !c.exported.date)
+        );
+    }
+
+    /**
+     * Vorgänge als exportiert markieren
+     */
+    function markCasesExported(caseIds, exporterName) {
+        const cases = getCases();
+        const exportDate = new Date().toISOString();
+        let count = 0;
+
+        caseIds.forEach(id => {
+            if (cases[id]) {
+                cases[id].exported = {
+                    date: exportDate,
+                    by: exporterName
+                };
+                cases[id].updatedAt = exportDate;
+                count++;
+            }
+        });
+
+        saveCases(cases);
+        return count;
+    }
+
+    /**
+     * Sparten-Statistiken
+     */
+    function getSpartenStats() {
+        const cases = getCasesArray();
+        const spartenMap = {};
+
+        cases.forEach(c => {
+            const sparte = c.sparte || 'Unbekannt';
+            spartenMap[sparte] = (spartenMap[sparte] || 0) + 1;
+        });
+
+        return Object.entries(spartenMap)
+            .map(([sparte, count]) => ({ sparte, count }))
+            .sort((a, b) => b.count - a.count);
+    }
+
+    /**
+     * Letzte Aktivitäten (Status-Änderungen)
+     */
+    function getRecentActivity(limit = 10) {
+        const cases = getCasesArray();
+        const activities = [];
+
+        cases.forEach(c => {
+            if (c.statusHistory && c.statusHistory.length > 0) {
+                c.statusHistory.forEach(h => {
+                    activities.push({
+                        caseId: c.id,
+                        kundeName: c.kunde?.name || 'Unbekannt',
+                        maklerName: c.makler?.name || '-',
+                        date: h.date,
+                        from: h.from,
+                        to: h.to,
+                        note: h.note
+                    });
+                });
+            }
+        });
+
+        // Nach Datum sortieren (neueste zuerst) und limitieren
+        return activities
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, limit);
     }
 
     /**
@@ -492,8 +614,15 @@ const Storage = (function() {
 
         // Statistiken
         getStats,
+        getDetailedStats,
         getMaklerStats,
+        getSpartenStats,
         getAllEmails,
+        getRecentActivity,
+
+        // Export
+        getExportReadyCases,
+        markCasesExported,
 
         // Utilities
         generateId,

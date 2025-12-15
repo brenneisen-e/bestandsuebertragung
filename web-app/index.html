@@ -23,57 +23,142 @@
                 <span class="icon">↓</span> JSON Import
                 <input type="file" id="fileInput" accept=".json" hidden>
             </label>
-            <button class="btn btn-primary" id="exportCsvBtn">
-                <span class="icon">↑</span> CSV Export
+            <button class="btn btn-secondary" id="resetDemoBtn" title="Demo-Daten zurücksetzen">
+                <span class="icon">↻</span>
             </button>
         </div>
     </header>
 
-    <!-- Statistik-Leiste -->
-    <section class="stats-bar">
-        <div class="stat-main">
-            <span class="stat-number" id="statTotal">0</span>
-            <span class="stat-label">Vorgänge gesamt</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-group">
-            <div class="stat-item stat-bestaetigt">
-                <span class="stat-number" id="statBestaetigt">0</span>
-                <span class="stat-label">bestätigt</span>
-            </div>
-            <div class="stat-item stat-abgelehnt">
-                <span class="stat-number" id="statAbgelehnt">0</span>
-                <span class="stat-label">abgelehnt</span>
-            </div>
-            <div class="stat-item stat-offen">
-                <span class="stat-number" id="statOffen">0</span>
-                <span class="stat-label">offen</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- Tab-Navigation -->
-    <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="kunden">
-            Kunden
-            <span class="tab-count" id="kundenCount">0</span>
+    <!-- Haupt-Navigation -->
+    <nav class="main-nav">
+        <button class="nav-btn active" data-view="dashboard">
+            Dashboard
         </button>
-        <button class="tab-btn" data-tab="makler">
+        <button class="nav-btn" data-view="vorgaenge">
+            Vorgänge
+            <span class="nav-count" id="vorgaengeCount">0</span>
+        </button>
+        <button class="nav-btn" data-view="makler">
             Makler
-            <span class="tab-count" id="maklerCount">0</span>
+            <span class="nav-count" id="maklerNavCount">0</span>
         </button>
-        <button class="tab-btn" data-tab="emails">
+        <button class="nav-btn" data-view="emails">
             E-Mails
-            <span class="tab-count" id="emailsCount">0</span>
+            <span class="nav-count" id="emailsNavCount">0</span>
         </button>
     </nav>
 
-    <!-- Tab: Kunden -->
-    <section class="tab-content active" id="tab-kunden">
+    <!-- ============================================ -->
+    <!-- VIEW: Dashboard -->
+    <!-- ============================================ -->
+    <section class="view active" id="view-dashboard">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card kpi-total">
+                <div class="kpi-icon">◉</div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiTotal">0</div>
+                    <div class="kpi-label">Vorgänge gesamt</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-bestaetigt">
+                <div class="kpi-icon">●</div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiBestaetigt">0</div>
+                    <div class="kpi-label">Bestätigt</div>
+                    <div class="kpi-percent" id="kpiBestaetPct">0%</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-abgelehnt">
+                <div class="kpi-icon">✕</div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiAbgelehnt">0</div>
+                    <div class="kpi-label">Abgelehnt</div>
+                    <div class="kpi-percent" id="kpiAbgelehntPct">0%</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-offen">
+                <div class="kpi-icon">◐</div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiOffen">0</div>
+                    <div class="kpi-label">Offen</div>
+                    <div class="kpi-percent" id="kpiOffenPct">0%</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-exportiert">
+                <div class="kpi-icon">↑</div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiExportiert">0</div>
+                    <div class="kpi-label">Exportiert</div>
+                    <div class="kpi-percent" id="kpiExportiertPct">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Status-Verteilung -->
+            <div class="dashboard-card">
+                <h3>Status-Verteilung</h3>
+                <div class="status-bars" id="statusBars">
+                    <!-- Dynamisch gefüllt -->
+                </div>
+            </div>
+
+            <!-- Top Makler -->
+            <div class="dashboard-card">
+                <h3>Top Makler</h3>
+                <div class="top-list" id="topMaklerList">
+                    <!-- Dynamisch gefüllt -->
+                </div>
+            </div>
+
+            <!-- Sparten-Verteilung -->
+            <div class="dashboard-card">
+                <h3>Nach Sparte</h3>
+                <div class="sparten-list" id="spartenList">
+                    <!-- Dynamisch gefüllt -->
+                </div>
+            </div>
+
+            <!-- Export-Bereit -->
+            <div class="dashboard-card card-highlight">
+                <h3>Export-Bereit</h3>
+                <p class="card-description">Vorgänge mit Status "Bestätigt" oder "Abgelehnt" die noch nicht exportiert wurden.</p>
+                <div class="export-ready-count" id="exportReadyCount">0</div>
+                <button class="btn btn-primary btn-large" id="exportReadyBtn">
+                    <span class="icon">↑</span> Für Robotics exportieren
+                </button>
+            </div>
+        </div>
+
+        <!-- Letzte Aktivitäten -->
+        <div class="dashboard-card dashboard-wide">
+            <h3>Letzte Aktivitäten</h3>
+            <table class="data-table compact">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Kunde</th>
+                        <th>Makler</th>
+                        <th>Aktion</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="recentActivityBody">
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- VIEW: Vorgänge -->
+    <!-- ============================================ -->
+    <section class="view" id="view-vorgaenge">
         <div class="toolbar">
             <div class="search-box">
                 <span class="search-icon">⌕</span>
-                <input type="text" id="kundenSearch" placeholder="Kunde oder VS-Nr suchen...">
+                <input type="text" id="vorgaengeSearch" placeholder="Kunde, VS-Nr oder Makler suchen...">
             </div>
             <select id="filterStatus">
                 <option value="">Alle Status</option>
@@ -96,11 +181,16 @@
                 <option value="Wohngebäude">Wohngebäude</option>
                 <option value="Rente">Rente</option>
             </select>
+            <select id="filterExport">
+                <option value="">Alle</option>
+                <option value="not-exported">Nicht exportiert</option>
+                <option value="exported">Bereits exportiert</option>
+            </select>
             <button class="btn btn-primary" id="newCaseBtn">+ Neuer Vorgang</button>
         </div>
 
         <div class="table-container">
-            <table class="data-table" id="kundenTable">
+            <table class="data-table" id="vorgaengeTable">
                 <thead>
                     <tr>
                         <th class="col-status">Status</th>
@@ -110,20 +200,22 @@
                         <th class="col-makler sortable" data-sort="makler">Makler</th>
                         <th class="col-datum">Gültig ab</th>
                         <th class="col-aktivitaet sortable active" data-sort="updatedAt">Letzte Aktivität ↓</th>
-                        <th class="col-mails">Mails</th>
+                        <th class="col-export">Export</th>
                     </tr>
                 </thead>
-                <tbody id="kundenTableBody">
+                <tbody id="vorgaengeTableBody">
                 </tbody>
             </table>
-            <div class="empty-state" id="kundenEmpty" style="display: none;">
+            <div class="empty-state" id="vorgaengeEmpty" style="display: none;">
                 <p>Keine Vorgänge gefunden</p>
             </div>
         </div>
     </section>
 
-    <!-- Tab: Makler -->
-    <section class="tab-content" id="tab-makler">
+    <!-- ============================================ -->
+    <!-- VIEW: Makler -->
+    <!-- ============================================ -->
+    <section class="view" id="view-makler">
         <div class="toolbar">
             <div class="search-box">
                 <span class="search-icon">⌕</span>
@@ -152,8 +244,10 @@
         </div>
     </section>
 
-    <!-- Tab: E-Mails -->
-    <section class="tab-content" id="tab-emails">
+    <!-- ============================================ -->
+    <!-- VIEW: E-Mails -->
+    <!-- ============================================ -->
+    <section class="view" id="view-emails">
         <div class="toolbar">
             <div class="search-box">
                 <span class="search-icon">⌕</span>
@@ -170,7 +264,7 @@
                 <thead>
                     <tr>
                         <th class="col-direction"></th>
-                        <th class="col-datum sortable active" data-sort="date">Datum ↓</th>
+                        <th class="col-datum">Datum</th>
                         <th class="col-sender">Von / An</th>
                         <th class="col-subject">Betreff</th>
                         <th class="col-kunde">Kunde</th>
@@ -186,6 +280,10 @@
         </div>
     </section>
 
+    <!-- ============================================ -->
+    <!-- MODALS -->
+    <!-- ============================================ -->
+
     <!-- Modal: Vorgang Detail -->
     <div class="modal-overlay" id="caseModal" style="display: none;">
         <div class="modal">
@@ -196,6 +294,12 @@
             <div class="modal-body">
                 <form id="caseForm">
                     <input type="hidden" id="caseId">
+
+                    <!-- Export-Info Banner -->
+                    <div class="export-info" id="exportInfo" style="display: none;">
+                        <span class="export-icon">↑</span>
+                        <span class="export-text" id="exportInfoText"></span>
+                    </div>
 
                     <div class="form-section">
                         <h3>Kunde (Versicherungsnehmer)</h3>
@@ -309,6 +413,30 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="closeMaklerModal">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Export Dialog -->
+    <div class="modal-overlay" id="exportModal" style="display: none;">
+        <div class="modal modal-small">
+            <div class="modal-header">
+                <h2>Robotics Export</h2>
+                <button class="modal-close" id="exportModalClose">×</button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="exportCaseCount">0</strong> Vorgänge werden exportiert.</p>
+                <div class="form-group">
+                    <label for="exporterName">Bearbeiter</label>
+                    <input type="text" id="exporterName" placeholder="Ihr Name" required>
+                </div>
+                <p class="text-muted">Die exportierten Vorgänge werden als "exportiert" markiert.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelExport">Abbrechen</button>
+                <button class="btn btn-primary" id="confirmExport">
+                    <span class="icon">↑</span> Exportieren
+                </button>
             </div>
         </div>
     </div>

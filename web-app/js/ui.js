@@ -36,23 +36,36 @@ const UI = (function() {
             toastContainer: document.getElementById('toastContainer'),
             dropOverlay: document.getElementById('dropOverlay'),
 
-            // Statistik
-            statTotal: document.getElementById('statTotal'),
-            statBestaetigt: document.getElementById('statBestaetigt'),
-            statAbgelehnt: document.getElementById('statAbgelehnt'),
-            statOffen: document.getElementById('statOffen'),
+            // Navigation Counts
+            vorgaengeCount: document.getElementById('vorgaengeCount'),
+            maklerNavCount: document.getElementById('maklerNavCount'),
+            emailsNavCount: document.getElementById('emailsNavCount'),
 
-            // Tab Counts
-            kundenCount: document.getElementById('kundenCount'),
-            maklerCount: document.getElementById('maklerCount'),
-            emailsCount: document.getElementById('emailsCount'),
+            // Dashboard KPIs
+            kpiTotal: document.getElementById('kpiTotal'),
+            kpiBestaetigt: document.getElementById('kpiBestaetigt'),
+            kpiAbgelehnt: document.getElementById('kpiAbgelehnt'),
+            kpiOffen: document.getElementById('kpiOffen'),
+            kpiExportiert: document.getElementById('kpiExportiert'),
+            kpiBestaetPct: document.getElementById('kpiBestaetPct'),
+            kpiAbgelehntPct: document.getElementById('kpiAbgelehntPct'),
+            kpiOffenPct: document.getElementById('kpiOffenPct'),
+            kpiExportiertPct: document.getElementById('kpiExportiertPct'),
 
-            // Kunden Tab
-            kundenSearch: document.getElementById('kundenSearch'),
+            // Dashboard Charts
+            statusBars: document.getElementById('statusBars'),
+            topMaklerList: document.getElementById('topMaklerList'),
+            spartenList: document.getElementById('spartenList'),
+            exportReadyCount: document.getElementById('exportReadyCount'),
+            recentActivityBody: document.getElementById('recentActivityBody'),
+
+            // Vorgänge Tab
+            vorgaengeSearch: document.getElementById('vorgaengeSearch'),
             filterStatus: document.getElementById('filterStatus'),
             filterSparte: document.getElementById('filterSparte'),
-            kundenTableBody: document.getElementById('kundenTableBody'),
-            kundenEmpty: document.getElementById('kundenEmpty'),
+            filterExport: document.getElementById('filterExport'),
+            vorgaengeTableBody: document.getElementById('vorgaengeTableBody'),
+            vorgaengeEmpty: document.getElementById('vorgaengeEmpty'),
 
             // Makler Tab
             maklerSearch: document.getElementById('maklerSearch'),
@@ -80,56 +93,188 @@ const UI = (function() {
             caseNotes: document.getElementById('caseNotes'),
             emailTimeline: document.getElementById('emailTimeline'),
             modalMailCount: document.getElementById('modalMailCount'),
+            exportInfo: document.getElementById('exportInfo'),
+            exportInfoText: document.getElementById('exportInfoText'),
 
             // Makler Modal
             maklerModal: document.getElementById('maklerModal'),
             maklerModalTitle: document.getElementById('maklerModalTitle'),
             maklerInfo: document.getElementById('maklerInfo'),
-            maklerCasesBody: document.getElementById('maklerCasesBody')
+            maklerCasesBody: document.getElementById('maklerCasesBody'),
+
+            // Export Modal
+            exportModal: document.getElementById('exportModal'),
+            exportCaseCount: document.getElementById('exportCaseCount'),
+            exporterName: document.getElementById('exporterName')
         };
     }
 
     /**
-     * Statistiken aktualisieren
+     * Dashboard KPIs rendern
      */
-    function renderStats(stats) {
-        if (elements.statTotal) elements.statTotal.textContent = stats.total;
-        if (elements.statBestaetigt) elements.statBestaetigt.textContent = stats.bestaetigt;
-        if (elements.statAbgelehnt) elements.statAbgelehnt.textContent = stats.abgelehnt;
-        if (elements.statOffen) elements.statOffen.textContent = stats.offen;
+    function renderDashboardKPIs(stats) {
+        if (!stats) return;
+
+        const total = stats.total || 0;
+
+        // KPI Werte
+        if (elements.kpiTotal) elements.kpiTotal.textContent = total;
+        if (elements.kpiBestaetigt) elements.kpiBestaetigt.textContent = stats.byStatus?.bestaetigt || 0;
+        if (elements.kpiAbgelehnt) elements.kpiAbgelehnt.textContent = stats.byStatus?.abgelehnt || 0;
+        if (elements.kpiOffen) {
+            const offen = (stats.byStatus?.neu || 0) + (stats.byStatus?.angefragt || 0) + (stats.byStatus?.['in-bearbeitung'] || 0);
+            elements.kpiOffen.textContent = offen;
+        }
+        if (elements.kpiExportiert) elements.kpiExportiert.textContent = stats.exportiert || 0;
+
+        // Prozente
+        if (total > 0) {
+            if (elements.kpiBestaetPct) elements.kpiBestaetPct.textContent = Math.round((stats.byStatus?.bestaetigt || 0) / total * 100) + '%';
+            if (elements.kpiAbgelehntPct) elements.kpiAbgelehntPct.textContent = Math.round((stats.byStatus?.abgelehnt || 0) / total * 100) + '%';
+            if (elements.kpiOffenPct) {
+                const offen = (stats.byStatus?.neu || 0) + (stats.byStatus?.angefragt || 0) + (stats.byStatus?.['in-bearbeitung'] || 0);
+                elements.kpiOffenPct.textContent = Math.round(offen / total * 100) + '%';
+            }
+            if (elements.kpiExportiertPct) elements.kpiExportiertPct.textContent = Math.round((stats.exportiert || 0) / total * 100) + '%';
+        }
+
+        // Export-bereit Count
+        if (elements.exportReadyCount) {
+            elements.exportReadyCount.textContent = stats.exportReady || 0;
+        }
     }
 
     /**
-     * Tab Counts aktualisieren
+     * Status-Balken rendern
      */
-    function updateTabCounts(kundenCount, maklerCount, emailsCount) {
-        if (elements.kundenCount) elements.kundenCount.textContent = kundenCount;
-        if (elements.maklerCount) elements.maklerCount.textContent = maklerCount;
-        if (elements.emailsCount) elements.emailsCount.textContent = emailsCount;
+    function renderStatusBars(stats) {
+        if (!elements.statusBars || !stats.byStatus) return;
+
+        const total = stats.total || 1;
+        const statusOrder = ['neu', 'angefragt', 'in-bearbeitung', 'bestaetigt', 'abgelehnt'];
+
+        elements.statusBars.innerHTML = statusOrder.map(status => {
+            const count = stats.byStatus[status] || 0;
+            const pct = Math.round(count / total * 100);
+            return `
+                <div class="status-bar-item">
+                    <span class="status-bar-label">${STATUS_LABELS[status]}</span>
+                    <div class="status-bar-track">
+                        <div class="status-bar-fill ${status}" style="width: ${pct}%"></div>
+                    </div>
+                    <span class="status-bar-count">${count}</span>
+                </div>
+            `;
+        }).join('');
     }
 
     /**
-     * Kunden-Tabelle rendern
+     * Top-Makler Liste rendern
      */
-    function renderKundenTable(cases) {
-        if (!elements.kundenTableBody) return;
+    function renderTopMaklerList(maklerStats) {
+        if (!elements.topMaklerList) return;
 
-        if (!cases || cases.length === 0) {
-            elements.kundenTableBody.innerHTML = '';
-            if (elements.kundenEmpty) elements.kundenEmpty.style.display = 'block';
+        const top5 = maklerStats.slice(0, 5);
+
+        if (top5.length === 0) {
+            elements.topMaklerList.innerHTML = '<p class="text-muted">Keine Makler vorhanden</p>';
             return;
         }
 
-        if (elements.kundenEmpty) elements.kundenEmpty.style.display = 'none';
+        elements.topMaklerList.innerHTML = top5.map(m => `
+            <div class="top-list-item">
+                <span class="top-list-name" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
+                <span class="top-list-count">${m.total}</span>
+            </div>
+        `).join('');
+    }
 
-        elements.kundenTableBody.innerHTML = cases.map(c => {
+    /**
+     * Sparten-Liste rendern
+     */
+    function renderSpartenList(spartenStats) {
+        if (!elements.spartenList) return;
+
+        if (spartenStats.length === 0) {
+            elements.spartenList.innerHTML = '<p class="text-muted">Keine Sparten vorhanden</p>';
+            return;
+        }
+
+        elements.spartenList.innerHTML = spartenStats.map(s => `
+            <span class="sparten-tag">
+                ${escapeHtml(s.sparte)}
+                <span class="count">${s.count}</span>
+            </span>
+        `).join('');
+    }
+
+    /**
+     * Letzte Aktivitäten rendern
+     */
+    function renderRecentActivity(activities) {
+        if (!elements.recentActivityBody) return;
+
+        if (!activities || activities.length === 0) {
+            elements.recentActivityBody.innerHTML = '<tr><td colspan="5" class="text-muted">Keine Aktivitäten</td></tr>';
+            return;
+        }
+
+        elements.recentActivityBody.innerHTML = activities.map(a => {
+            const action = a.from
+                ? `${STATUS_ICONS[a.from] || ''} → ${STATUS_ICONS[a.to] || ''} ${STATUS_LABELS[a.to] || a.to}`
+                : `${STATUS_ICONS[a.to] || ''} ${STATUS_LABELS[a.to] || a.to}`;
+
+            return `
+                <tr class="clickable-row" data-case-id="${a.caseId}">
+                    <td>${formatDate(a.date)}</td>
+                    <td>${escapeHtml(a.kundeName)}</td>
+                    <td>${escapeHtml(a.maklerName)}</td>
+                    <td>${action}</td>
+                    <td><span class="status-badge status-${a.to}">${STATUS_ICONS[a.to] || ''}</span></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Navigation Counts aktualisieren
+     */
+    function updateNavCounts(vorgaenge, makler, emails) {
+        if (elements.vorgaengeCount) elements.vorgaengeCount.textContent = vorgaenge;
+        if (elements.maklerNavCount) elements.maklerNavCount.textContent = makler;
+        if (elements.emailsNavCount) elements.emailsNavCount.textContent = emails;
+    }
+
+    /**
+     * Vorgänge-Tabelle rendern
+     */
+    function renderVorgaengeTable(cases) {
+        if (!elements.vorgaengeTableBody) return;
+
+        if (!cases || cases.length === 0) {
+            elements.vorgaengeTableBody.innerHTML = '';
+            if (elements.vorgaengeEmpty) elements.vorgaengeEmpty.style.display = 'block';
+            return;
+        }
+
+        if (elements.vorgaengeEmpty) elements.vorgaengeEmpty.style.display = 'none';
+
+        elements.vorgaengeTableBody.innerHTML = cases.map(c => {
             const kunde = c.kunde?.name || 'Unbekannt';
             const vsNr = c.versicherungsnummer?.value || '-';
             const sparte = c.sparte || '-';
             const makler = c.makler?.name || '-';
             const datum = c.gueltigkeitsdatum?.value || '-';
             const updatedAt = formatDate(c.updatedAt);
-            const messageCount = c.messages?.length || 0;
+
+            // Export Status
+            let exportBadge;
+            if (c.exported && c.exported.date) {
+                const exportDate = formatDate(c.exported.date);
+                exportBadge = `<span class="export-badge" title="Exportiert von ${escapeHtml(c.exported.by)}">↑ ${exportDate}</span>`;
+            } else {
+                exportBadge = '<span class="export-badge not-exported">–</span>';
+            }
 
             return `
                 <tr class="clickable-row" data-case-id="${c.id}">
@@ -142,7 +287,7 @@ const UI = (function() {
                     <td class="col-makler">${escapeHtml(makler)}</td>
                     <td class="col-datum">${escapeHtml(datum)}</td>
                     <td class="col-aktivitaet">${updatedAt}</td>
-                    <td class="col-mails">${messageCount > 0 ? `<span class="mail-badge">${messageCount}</span>` : '-'}</td>
+                    <td class="col-export">${exportBadge}</td>
                 </tr>
             `;
         }).join('');
@@ -216,17 +361,17 @@ const UI = (function() {
     }
 
     /**
-     * Tab wechseln
+     * View wechseln
      */
-    function switchTab(tabName) {
-        // Tab-Buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
+    function switchView(viewName) {
+        // Nav-Buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === viewName);
         });
 
-        // Tab-Content
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.toggle('active', content.id === `tab-${tabName}`);
+        // Views
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.toggle('active', view.id === `view-${viewName}`);
         });
     }
 
@@ -242,6 +387,11 @@ const UI = (function() {
         // Formular zurücksetzen
         elements.caseForm.reset();
 
+        // Export-Info verstecken
+        if (elements.exportInfo) {
+            elements.exportInfo.style.display = 'none';
+        }
+
         if (caseData) {
             elements.caseId.value = caseData.id;
             elements.caseKunde.value = caseData.kunde?.name || '';
@@ -252,6 +402,12 @@ const UI = (function() {
             elements.caseMaklerEmail.value = caseData.makler?.email || '';
             elements.caseStatus.value = caseData.status || 'neu';
             elements.caseNotes.value = caseData.notes || '';
+
+            // Export-Info anzeigen falls exportiert
+            if (caseData.exported && caseData.exported.date && elements.exportInfo) {
+                elements.exportInfo.style.display = 'flex';
+                elements.exportInfoText.textContent = `Exportiert am ${formatDateTime(caseData.exported.date)} von ${caseData.exported.by}`;
+            }
 
             // E-Mail Timeline rendern
             renderEmailTimeline(caseData.messages || []);
@@ -379,6 +535,33 @@ const UI = (function() {
     }
 
     /**
+     * Export Modal öffnen
+     */
+    function openExportModal(caseCount) {
+        if (!elements.exportModal) return;
+
+        elements.exportCaseCount.textContent = caseCount;
+        elements.exporterName.value = '';
+        elements.exportModal.style.display = 'flex';
+    }
+
+    /**
+     * Export Modal schließen
+     */
+    function closeExportModal() {
+        if (elements.exportModal) {
+            elements.exportModal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Exporter-Name holen
+     */
+    function getExporterName() {
+        return elements.exporterName?.value.trim() || '';
+    }
+
+    /**
      * Toast-Benachrichtigung anzeigen
      */
     function showToast(message, type = 'info', duration = 4000) {
@@ -448,13 +631,14 @@ const UI = (function() {
     }
 
     /**
-     * Filter-Werte auslesen (Kunden Tab)
+     * Filter-Werte auslesen (Vorgänge View)
      */
-    function getKundenFilterValues() {
+    function getVorgaengeFilterValues() {
         return {
-            search: elements.kundenSearch?.value.trim().toLowerCase() || '',
+            search: elements.vorgaengeSearch?.value.trim().toLowerCase() || '',
             status: elements.filterStatus?.value || '',
-            sparte: elements.filterSparte?.value || ''
+            sparte: elements.filterSparte?.value || '',
+            exportFilter: elements.filterExport?.value || ''
         };
     }
 
@@ -535,10 +719,19 @@ const UI = (function() {
         init,
         elements,
 
+        // Dashboard
+        renderDashboardKPIs,
+        renderStatusBars,
+        renderTopMaklerList,
+        renderSpartenList,
+        renderRecentActivity,
+
+        // Navigation
+        updateNavCounts,
+        switchView,
+
         // Rendering
-        renderStats,
-        updateTabCounts,
-        renderKundenTable,
+        renderVorgaengeTable,
         renderMaklerTable,
         renderEmailsTable,
 
@@ -547,9 +740,9 @@ const UI = (function() {
         closeCaseModal,
         openMaklerModal,
         closeMaklerModal,
-
-        // Tabs
-        switchTab,
+        openExportModal,
+        closeExportModal,
+        getExporterName,
 
         // Notifications
         showToast,
@@ -557,7 +750,7 @@ const UI = (function() {
 
         // Formulare
         getCaseFormData,
-        getKundenFilterValues,
+        getVorgaengeFilterValues,
         getMaklerSearchValue,
         getEmailFilterValues,
 

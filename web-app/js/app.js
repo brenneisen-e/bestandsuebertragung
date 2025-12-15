@@ -1,15 +1,15 @@
 /**
  * App Modul - Hauptapplikation für Bestandsübertragung Tool
- * Initialisiert die Anwendung und verbindet alle Module
+ * Version 2.0 mit Dashboard Landing Page
  */
 
 const App = (function() {
     'use strict';
 
     // Aktueller Zustand
-    let currentTab = 'kunden';
-    let kundenSortField = 'updatedAt';
-    let kundenSortDir = 'desc';
+    let currentView = 'dashboard';
+    let vorgaengeSortField = 'updatedAt';
+    let vorgaengeSortDir = 'desc';
     let maklerSortField = 'total';
     let maklerSortDir = 'desc';
 
@@ -43,45 +43,48 @@ const App = (function() {
     function setupEventListeners() {
         // Header Buttons
         document.getElementById('fileInput')?.addEventListener('change', handleFileImport);
-        document.getElementById('exportCsvBtn')?.addEventListener('click', handleCsvExport);
-        document.getElementById('newCaseBtn')?.addEventListener('click', () => openCaseModal(null));
+        document.getElementById('resetDemoBtn')?.addEventListener('click', handleResetDemo);
 
-        // Tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        // Main Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                currentTab = btn.dataset.tab;
-                UI.switchTab(currentTab);
-                refreshCurrentTab();
+                currentView = btn.dataset.view;
+                UI.switchView(currentView);
+                refreshCurrentView();
             });
         });
 
-        // Kunden Tab - Filter und Suche
-        document.getElementById('kundenSearch')?.addEventListener('input', debounce(refreshKundenTab, 300));
-        document.getElementById('filterStatus')?.addEventListener('change', refreshKundenTab);
-        document.getElementById('filterSparte')?.addEventListener('change', refreshKundenTab);
+        // Dashboard: Export Ready Button
+        document.getElementById('exportReadyBtn')?.addEventListener('click', handleExportReady);
 
-        // Kunden Tab - Sortierbare Spalten
-        document.querySelectorAll('#tab-kunden th.sortable').forEach(th => {
-            th.addEventListener('click', () => handleKundenSort(th.dataset.sort));
+        // Dashboard: Recent Activity Clicks
+        document.getElementById('recentActivityBody')?.addEventListener('click', handleActivityRowClick);
+
+        // Vorgänge View
+        document.getElementById('newCaseBtn')?.addEventListener('click', () => openCaseModal(null));
+        document.getElementById('vorgaengeSearch')?.addEventListener('input', debounce(refreshVorgaengeView, 300));
+        document.getElementById('filterStatus')?.addEventListener('change', refreshVorgaengeView);
+        document.getElementById('filterSparte')?.addEventListener('change', refreshVorgaengeView);
+        document.getElementById('filterExport')?.addEventListener('change', refreshVorgaengeView);
+
+        // Vorgänge: Sortierbare Spalten
+        document.querySelectorAll('#view-vorgaenge th.sortable').forEach(th => {
+            th.addEventListener('click', () => handleVorgaengeSort(th.dataset.sort));
         });
 
-        // Makler Tab - Suche und Sortierung
-        document.getElementById('maklerSearch')?.addEventListener('input', debounce(refreshMaklerTab, 300));
-        document.querySelectorAll('#tab-makler th.sortable').forEach(th => {
+        // Vorgänge-Tabelle Klick
+        document.getElementById('vorgaengeTableBody')?.addEventListener('click', handleVorgaengeRowClick);
+
+        // Makler View
+        document.getElementById('maklerSearch')?.addEventListener('input', debounce(refreshMaklerView, 300));
+        document.querySelectorAll('#view-makler th.sortable').forEach(th => {
             th.addEventListener('click', () => handleMaklerSort(th.dataset.sort));
         });
-
-        // E-Mails Tab - Suche und Sortierung
-        document.getElementById('emailSearch')?.addEventListener('input', debounce(refreshEmailsTab, 300));
-        document.getElementById('emailSort')?.addEventListener('change', refreshEmailsTab);
-
-        // Kunden-Tabelle Klick
-        document.getElementById('kundenTableBody')?.addEventListener('click', handleKundenRowClick);
-
-        // Makler-Tabelle Klick
         document.getElementById('maklerTableBody')?.addEventListener('click', handleMaklerRowClick);
 
-        // E-Mails-Tabelle Klick
+        // E-Mails View
+        document.getElementById('emailSearch')?.addEventListener('input', debounce(refreshEmailsView, 300));
+        document.getElementById('emailSort')?.addEventListener('change', refreshEmailsView);
         document.getElementById('emailsTableBody')?.addEventListener('click', handleEmailRowClick);
 
         // Makler Modal - Vorgang Klick
@@ -97,6 +100,11 @@ const App = (function() {
         document.getElementById('maklerModalClose')?.addEventListener('click', () => UI.closeMaklerModal());
         document.getElementById('closeMaklerModal')?.addEventListener('click', () => UI.closeMaklerModal());
 
+        // Export Modal
+        document.getElementById('exportModalClose')?.addEventListener('click', () => UI.closeExportModal());
+        document.getElementById('cancelExport')?.addEventListener('click', () => UI.closeExportModal());
+        document.getElementById('confirmExport')?.addEventListener('click', handleConfirmExport);
+
         // Drag & Drop
         setupDragAndDrop();
 
@@ -107,12 +115,16 @@ const App = (function() {
         document.getElementById('maklerModal')?.addEventListener('click', (e) => {
             if (e.target.id === 'maklerModal') UI.closeMaklerModal();
         });
+        document.getElementById('exportModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'exportModal') UI.closeExportModal();
+        });
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 UI.closeCaseModal();
                 UI.closeMaklerModal();
+                UI.closeExportModal();
             }
         });
     }
@@ -152,65 +164,76 @@ const App = (function() {
     }
 
     /**
-     * Daten aktualisieren
+     * Alle Daten aktualisieren
      */
     function refreshData() {
-        // Statistiken aktualisieren
-        const stats = Storage.getStats();
-        UI.renderStats(stats);
-
-        // Tab Counts aktualisieren
+        // Navigation Counts
         const cases = Storage.getCasesArray();
         const maklerStats = Storage.getMaklerStats();
         const emails = Storage.getAllEmails();
-        UI.updateTabCounts(cases.length, maklerStats.length, emails.length);
+        UI.updateNavCounts(cases.length, maklerStats.length, emails.length);
 
-        // Aktuellen Tab aktualisieren
-        refreshCurrentTab();
+        // Aktuellen View aktualisieren
+        refreshCurrentView();
     }
 
     /**
-     * Aktuellen Tab aktualisieren
+     * Aktuellen View aktualisieren
      */
-    function refreshCurrentTab() {
-        switch (currentTab) {
-            case 'kunden':
-                refreshKundenTab();
+    function refreshCurrentView() {
+        switch (currentView) {
+            case 'dashboard':
+                refreshDashboard();
+                break;
+            case 'vorgaenge':
+                refreshVorgaengeView();
                 break;
             case 'makler':
-                refreshMaklerTab();
+                refreshMaklerView();
                 break;
             case 'emails':
-                refreshEmailsTab();
+                refreshEmailsView();
                 break;
         }
     }
 
     /**
-     * Kunden Tab aktualisieren
+     * Dashboard aktualisieren
      */
-    function refreshKundenTab() {
-        const filters = UI.getKundenFilterValues();
-        let cases = Storage.getCasesArray();
+    function refreshDashboard() {
+        const stats = Storage.getDetailedStats();
+        const maklerStats = Storage.getMaklerStats();
+        const spartenStats = Storage.getSpartenStats();
+        const recentActivity = Storage.getRecentActivity(10);
 
-        // Filtern
-        cases = filterKunden(cases, filters);
-
-        // Sortieren
-        cases = sortKunden(cases, kundenSortField, kundenSortDir);
-
-        // Rendern
-        UI.renderKundenTable(cases);
-
-        // Stats aktualisieren
-        const stats = Storage.getStats();
-        UI.renderStats(stats);
+        UI.renderDashboardKPIs(stats);
+        UI.renderStatusBars(stats);
+        UI.renderTopMaklerList(maklerStats);
+        UI.renderSpartenList(spartenStats);
+        UI.renderRecentActivity(recentActivity);
     }
 
     /**
-     * Kunden filtern
+     * Vorgänge View aktualisieren
      */
-    function filterKunden(cases, filters) {
+    function refreshVorgaengeView() {
+        const filters = UI.getVorgaengeFilterValues();
+        let cases = Storage.getCasesArray();
+
+        // Filtern
+        cases = filterVorgaenge(cases, filters);
+
+        // Sortieren
+        cases = sortVorgaenge(cases, vorgaengeSortField, vorgaengeSortDir);
+
+        // Rendern
+        UI.renderVorgaengeTable(cases);
+    }
+
+    /**
+     * Vorgänge filtern
+     */
+    function filterVorgaenge(cases, filters) {
         return cases.filter(c => {
             // Textsuche
             if (filters.search) {
@@ -238,14 +261,22 @@ const App = (function() {
                 return false;
             }
 
+            // Export-Filter
+            if (filters.exportFilter === 'exported' && (!c.exported || !c.exported.date)) {
+                return false;
+            }
+            if (filters.exportFilter === 'not-exported' && c.exported && c.exported.date) {
+                return false;
+            }
+
             return true;
         });
     }
 
     /**
-     * Kunden sortieren
+     * Vorgänge sortieren
      */
-    function sortKunden(cases, field, direction) {
+    function sortVorgaenge(cases, field, direction) {
         const multiplier = direction === 'desc' ? -1 : 1;
 
         return cases.sort((a, b) => {
@@ -275,26 +306,24 @@ const App = (function() {
     }
 
     /**
-     * Kunden-Sortierung Handler
+     * Vorgänge-Sortierung Handler
      */
-    function handleKundenSort(field) {
-        if (kundenSortField === field) {
-            kundenSortDir = kundenSortDir === 'desc' ? 'asc' : 'desc';
+    function handleVorgaengeSort(field) {
+        if (vorgaengeSortField === field) {
+            vorgaengeSortDir = vorgaengeSortDir === 'desc' ? 'asc' : 'desc';
         } else {
-            kundenSortField = field;
-            kundenSortDir = 'desc';
+            vorgaengeSortField = field;
+            vorgaengeSortDir = 'desc';
         }
 
-        // Sortier-Indikatoren aktualisieren
-        updateSortIndicators('#tab-kunden', field, kundenSortDir);
-
-        refreshKundenTab();
+        updateSortIndicators('#view-vorgaenge', field, vorgaengeSortDir);
+        refreshVorgaengeView();
     }
 
     /**
-     * Makler Tab aktualisieren
+     * Makler View aktualisieren
      */
-    function refreshMaklerTab() {
+    function refreshMaklerView() {
         const search = UI.getMaklerSearchValue();
         let maklerStats = Storage.getMaklerStats();
 
@@ -364,16 +393,14 @@ const App = (function() {
             maklerSortDir = 'desc';
         }
 
-        // Sortier-Indikatoren aktualisieren
-        updateSortIndicators('#tab-makler', field, maklerSortDir);
-
-        refreshMaklerTab();
+        updateSortIndicators('#view-makler', field, maklerSortDir);
+        refreshMaklerView();
     }
 
     /**
-     * E-Mails Tab aktualisieren
+     * E-Mails View aktualisieren
      */
-    function refreshEmailsTab() {
+    function refreshEmailsView() {
         const filters = UI.getEmailFilterValues();
         let emails = Storage.getAllEmails();
 
@@ -423,9 +450,24 @@ const App = (function() {
     }
 
     /**
-     * Klick auf Kunden-Zeile
+     * Klick auf Activity-Zeile
      */
-    function handleKundenRowClick(e) {
+    function handleActivityRowClick(e) {
+        const row = e.target.closest('tr.clickable-row');
+        if (!row) return;
+
+        const caseId = row.dataset.caseId;
+        const caseData = Storage.getCase(caseId);
+
+        if (caseData) {
+            openCaseModal(caseData);
+        }
+    }
+
+    /**
+     * Klick auf Vorgänge-Zeile
+     */
+    function handleVorgaengeRowClick(e) {
         const row = e.target.closest('tr.clickable-row');
         if (!row) return;
 
@@ -581,6 +623,57 @@ const App = (function() {
     }
 
     /**
+     * Export-bereit Button Handler
+     */
+    function handleExportReady() {
+        const exportReadyCases = Storage.getExportReadyCases();
+
+        if (exportReadyCases.length === 0) {
+            UI.showToast('Keine Vorgänge zum Exportieren', 'info');
+            return;
+        }
+
+        UI.openExportModal(exportReadyCases.length);
+    }
+
+    /**
+     * Export bestätigen
+     */
+    function handleConfirmExport() {
+        const exporterName = UI.getExporterName();
+
+        if (!exporterName) {
+            UI.showToast('Bitte Namen eingeben', 'warning');
+            return;
+        }
+
+        const exportReadyCases = Storage.getExportReadyCases();
+        const caseIds = exportReadyCases.map(c => c.id);
+
+        // CSV exportieren
+        Export.exportToCSV(exportReadyCases, `ergo_robotics_export_${Export.formatDateForFilename(new Date())}.csv`);
+
+        // Als exportiert markieren
+        const count = Storage.markCasesExported(caseIds, exporterName);
+
+        UI.closeExportModal();
+        UI.showToast(`${count} Vorgänge exportiert und als "exportiert" markiert`, 'success');
+        refreshData();
+    }
+
+    /**
+     * Demo-Daten zurücksetzen
+     */
+    function handleResetDemo() {
+        if (confirm('Alle Daten zurücksetzen und Demo-Daten neu laden?')) {
+            Storage.clearAll();
+            DemoData.loadDemoData(true);
+            UI.showToast('Demo-Daten wurden neu geladen', 'success');
+            refreshData();
+        }
+    }
+
+    /**
      * Datei-Import Handler
      */
     function handleFileImport(e) {
@@ -620,24 +713,6 @@ const App = (function() {
             console.error('Import-Fehler:', error);
             UI.showToast(error.message, 'error');
         }
-    }
-
-    /**
-     * CSV Export Handler
-     */
-    function handleCsvExport() {
-        const filters = UI.getKundenFilterValues();
-        let cases = Storage.getCasesArray();
-        cases = filterKunden(cases, filters);
-        cases = sortKunden(cases, kundenSortField, kundenSortDir);
-
-        if (cases.length === 0) {
-            UI.showToast('Keine Daten zum Exportieren', 'warning');
-            return;
-        }
-
-        Export.exportToCSV(cases);
-        UI.showToast(`${cases.length} Vorgänge exportiert`, 'success');
     }
 
     /**
