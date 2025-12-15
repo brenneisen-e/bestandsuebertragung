@@ -285,8 +285,8 @@ const Storage = (function() {
                 stats.exportiert++;
             }
 
-            // Export-bereit: PV validiert, aber noch nicht exportiert
-            if (c.workflow && c.workflow.pvValidated && (!c.exported || !c.exported.date)) {
+            // Export-bereit: Status ist 'export-bereit' UND noch nicht exportiert
+            if (c.status === 'export-bereit' && (!c.exported || !c.exported.date)) {
                 stats.exportReady++;
             }
 

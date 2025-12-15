@@ -1340,6 +1340,32 @@ Versicherungsmaklerin`
     }
 
     /**
+     * Demo Import/Export Historie generieren
+     */
+    function generateDemoImportExportHistory() {
+        return [
+            {
+                date: daysAgo(0),
+                type: 'import',
+                count: 6,
+                user: 'Max Mustermann'
+            },
+            {
+                date: daysAgo(15),
+                type: 'export',
+                count: 4,
+                user: 'Lisa Schmidt'
+            },
+            {
+                date: daysAgo(30),
+                type: 'import',
+                count: 20,
+                user: 'Max Mustermann'
+            }
+        ];
+    }
+
+    /**
      * Demo-Daten laden (falls erster Start oder force=true)
      */
     function loadDemoData(force = false) {
@@ -1355,6 +1381,10 @@ Versicherungsmaklerin`
         // Speichern
         Storage.saveCases(demoCases);
         Storage.saveSettings({ demoLoaded: true });
+
+        // Import/Export Historie speichern
+        const demoHistory = generateDemoImportExportHistory();
+        localStorage.setItem('importExportHistory', JSON.stringify(demoHistory));
 
         return true;
     }

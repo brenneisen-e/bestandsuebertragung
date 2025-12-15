@@ -22,6 +22,16 @@
     --status-abgelehnt: #ef4444;
     --status-wiedervorlage: #f59e0b;
 
+    /* Workflow Timeline Farben */
+    --workflow-completed: #22c55e;
+    --workflow-active: #3b82f6;
+    --workflow-exportiert: #8b5cf6;
+
+    /* Legacy Status-Variablen (Aliase für Kompatibilität) */
+    --status-bestaetigt: #22c55e;
+    --status-bearbeitung: #f59e0b;
+    --status-exportiert: #8b5cf6;
+
     /* Grautöne */
     --gray-50: #f9fafb;
     --gray-100: #f3f4f6;
@@ -1702,14 +1712,14 @@ body {
 }
 
 .workflow-step.completed .step-icon {
-    background: var(--status-bestaetigt);
-    border-color: var(--status-bestaetigt);
+    background: var(--workflow-completed);
+    border-color: var(--workflow-completed);
     color: white;
 }
 
 .workflow-step.active .step-icon {
-    background: var(--status-bearbeitung);
-    border-color: var(--status-bearbeitung);
+    background: var(--workflow-active);
+    border-color: var(--workflow-active);
     color: white;
     animation: pulse 1.5s infinite;
 }
@@ -1731,7 +1741,7 @@ body {
 }
 
 .workflow-step.completed .step-label {
-    color: var(--status-bestaetigt);
+    color: var(--workflow-completed);
 }
 
 .workflow-step.completed .step-date {
@@ -1747,7 +1757,7 @@ body {
 }
 
 .workflow-connector.completed {
-    background: var(--status-bestaetigt);
+    background: var(--workflow-completed);
 }
 
 /* ========================================

@@ -104,6 +104,7 @@ const App = (function() {
         document.getElementById('cancelCase')?.addEventListener('click', () => UI.closeCaseModal());
         document.getElementById('saveCase')?.addEventListener('click', handleSaveCase);
         document.getElementById('deleteCase')?.addEventListener('click', handleDeleteCase);
+        document.getElementById('validateCaseBtn')?.addEventListener('click', handleValidateSingleCase);
 
         // Makler Modal
         document.getElementById('maklerModalClose')?.addEventListener('click', () => UI.closeMaklerModal());
@@ -119,6 +120,7 @@ const App = (function() {
         document.getElementById('validationSkip')?.addEventListener('click', handleValidationSkip);
         document.getElementById('validationConfirm')?.addEventListener('click', handleValidationConfirm);
         document.getElementById('validationReject')?.addEventListener('click', handleValidationReject);
+        document.getElementById('validationWiedervorlage')?.addEventListener('click', handleValidationWiedervorlage);
 
         // Email Templates Modal
         document.getElementById('emailTemplatesBtn')?.addEventListener('click', openEmailTemplatesModal);
@@ -587,6 +589,16 @@ const App = (function() {
      */
     function openCaseModal(caseData) {
         UI.openCaseModal(caseData);
+
+        // Validieren-Button anzeigen wenn Status 'zu-validieren'
+        const validateBtn = document.getElementById('validateCaseBtn');
+        if (validateBtn) {
+            if (caseData && caseData.status === 'zu-validieren') {
+                validateBtn.style.display = 'inline-flex';
+            } else {
+                validateBtn.style.display = 'none';
+            }
+        }
     }
 
     /**
@@ -730,6 +742,34 @@ const App = (function() {
     }
 
     /**
+     * Einzelnen Vorgang aus Case-Modal validieren
+     */
+    function handleValidateSingleCase() {
+        const caseId = document.getElementById('caseId')?.value;
+        if (!caseId) {
+            UI.showToast('Kein Vorgang ausgewählt', 'warning');
+            return;
+        }
+
+        const caseData = Storage.getCase(caseId);
+        if (!caseData) {
+            UI.showToast('Vorgang nicht gefunden', 'error');
+            return;
+        }
+
+        if (caseData.status !== 'zu-validieren') {
+            UI.showToast('Vorgang hat nicht den Status "Zu Validieren"', 'warning');
+            return;
+        }
+
+        // Case Modal schließen
+        UI.closeCaseModal();
+
+        // Validation Modal mit nur diesem Vorgang öffnen
+        UI.openValidationModal([caseData]);
+    }
+
+    /**
      * Validation Modal: Überspringen
      */
     function handleValidationSkip() {
@@ -822,6 +862,82 @@ const App = (function() {
         if (UI.hasMoreValidationCases()) {
             UI.nextValidationCase();
             UI.showToast('Vorgang validiert', 'success');
+        } else {
+            UI.closeValidationModal();
+            UI.showToast('Alle Vorgänge validiert', 'success');
+            refreshData();
+        }
+    }
+
+    /**
+     * Validation Modal: Wiedervorlage
+     * Setzt Wiedervorlage-Datum auf +14 Tage und speichert mit Status 'wiedervorlage'
+     */
+    function handleValidationWiedervorlage() {
+        const currentCase = UI.getCurrentValidationCase();
+
+        if (currentCase) {
+            // Formulardaten lesen
+            const formData = UI.getValidationFormData();
+
+            // Alle Formularänderungen anwenden
+            if (!currentCase.kunde) currentCase.kunde = {};
+            currentCase.kunde.name = formData.kunde;
+
+            if (!currentCase.versicherungsnummer) currentCase.versicherungsnummer = {};
+            currentCase.versicherungsnummer.value = formData.vsNr;
+
+            currentCase.sparte = formData.sparte;
+
+            if (!currentCase.gueltigkeitsdatum) currentCase.gueltigkeitsdatum = {};
+            currentCase.gueltigkeitsdatum.value = formData.datum;
+
+            if (!currentCase.makler) currentCase.makler = {};
+            currentCase.makler.name = formData.makler;
+
+            // Wiedervorlage-Datum: wenn gesetzt nutzen, sonst +14 Tage
+            let wiedervorlageDate = formData.wiedervorlage;
+            if (!wiedervorlageDate) {
+                const futureDate = new Date();
+                futureDate.setDate(futureDate.getDate() + 14);
+                wiedervorlageDate = futureDate.toISOString().split('T')[0];
+            }
+
+            currentCase.wiedervorlage = wiedervorlageDate;
+            currentCase.status = 'wiedervorlage';
+            currentCase.updatedAt = new Date().toISOString();
+
+            // Als validiert markieren (Workflow-Schritt)
+            if (!currentCase.workflow) currentCase.workflow = {};
+            currentCase.workflow.pvValidated = new Date().toISOString();
+
+            // Status-History
+            if (!currentCase.statusHistory) currentCase.statusHistory = [];
+            currentCase.statusHistory.push({
+                date: new Date().toISOString().split('T')[0],
+                from: 'zu-validieren',
+                to: 'wiedervorlage',
+                note: 'PV-Validierung: Wiedervorlage bis ' + wiedervorlageDate
+            });
+
+            // Validation History
+            if (!currentCase.validationHistory) currentCase.validationHistory = [];
+            currentCase.validationHistory.push({
+                date: new Date().toISOString(),
+                user: 'PV-Bearbeiter',
+                action: 'wiedervorlage',
+                wiedervorlageDate: wiedervorlageDate
+            });
+
+            // Speichern
+            Storage.saveCase(currentCase);
+            Storage.markCaseValidated(currentCase.id);
+        }
+
+        // Nächsten Vorgang
+        if (UI.hasMoreValidationCases()) {
+            UI.nextValidationCase();
+            UI.showToast('Wiedervorlage gesetzt', 'success');
         } else {
             UI.closeValidationModal();
             UI.showToast('Alle Vorgänge validiert', 'success');
