@@ -373,21 +373,21 @@ Function BuildJSON(emails, mailboxName)
     BuildJSON = json
 End Function
 
-' Datei schreiben
+' Datei schreiben (UTF-8 mit BOM)
 Function WriteFile(filePath, content)
-    Dim f
+    Dim stream
 
     On Error Resume Next
-    Set f = fso.CreateTextFile(filePath, True, False)
 
-    If Err.Number <> 0 Then
-        WriteFile = False
-        Exit Function
-    End If
-
-    f.Write content
-    f.Close
-    Set f = Nothing
+    ' ADODB.Stream fuer UTF-8 Encoding verwenden
+    Set stream = CreateObject("ADODB.Stream")
+    stream.Type = 2 ' adTypeText
+    stream.Charset = "UTF-8"
+    stream.Open
+    stream.WriteText content
+    stream.SaveToFile filePath, 2 ' adSaveCreateOverWrite
+    stream.Close
+    Set stream = Nothing
 
     WriteFile = (Err.Number = 0)
     On Error GoTo 0

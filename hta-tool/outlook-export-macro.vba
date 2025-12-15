@@ -268,19 +268,19 @@ Private Function BuildJSON(emails As Object, mailboxName As String) As String
 End Function
 
 Private Function WriteFile(filePath As String, content As String) As Boolean
-    Dim f As Object
+    Dim stream As Object
 
     On Error Resume Next
-    Set f = fso.CreateTextFile(filePath, True, False)
 
-    If Err.Number <> 0 Then
-        WriteFile = False
-        Exit Function
-    End If
-
-    f.Write content
-    f.Close
-    Set f = Nothing
+    ' ADODB.Stream fuer UTF-8 Encoding verwenden
+    Set stream = CreateObject("ADODB.Stream")
+    stream.Type = 2 ' adTypeText
+    stream.Charset = "UTF-8"
+    stream.Open
+    stream.WriteText content
+    stream.SaveToFile filePath, 2 ' adSaveCreateOverWrite
+    stream.Close
+    Set stream = Nothing
 
     WriteFile = (Err.Number = 0)
     On Error GoTo 0
