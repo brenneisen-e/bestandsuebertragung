@@ -22,11 +22,7 @@ Sub Main()
     Dim result
 
     ' Einfacher Start-Dialog
-    result = MsgBox("Bestandsübertragung - Outlook Export" & vbCrLf & vbCrLf & _
-        "Postfach: " & TARGET_MAILBOX & vbCrLf & _
-        "Filter: Betreff enthält '" & SUBJECT_FILTER & "'" & vbCrLf & _
-        "Zeitraum: Letzte " & DAYS_BACK & " Tage" & vbCrLf & vbCrLf & _
-        "Mail Export starten?", vbYesNo + vbQuestion, "Outlook Export")
+    result = MsgBox("Mail Export starten?", vbYesNo + vbQuestion, "Outlook Export")
 
     If result <> vbYes Then
         WScript.Quit
