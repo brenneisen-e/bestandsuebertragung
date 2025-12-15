@@ -262,8 +262,8 @@ const UI = (function() {
                 const statusIcon = STATUS_ICONS[a.to] || '○';
 
                 // Prüfen ob Aktivität neu ist (letzte 60 Minuten oder isNew Flag)
-                const activityDate = new Date(a.date);
-                const isNew = a.isNew || (Date.now() - activityDate.getTime() < 60 * 60 * 1000);
+                const activityDate = parseGermanDate(a.date) || new Date(a.date);
+                const isNew = a.isNew || (activityDate && !isNaN(activityDate.getTime()) && (Date.now() - activityDate.getTime() < 60 * 60 * 1000));
                 const newClass = isNew ? ' new-activity' : '';
 
                 html += `
@@ -794,9 +794,11 @@ const UI = (function() {
         }
 
         // Nach Datum sortieren (neueste zuerst)
-        const sorted = [...messages].sort((a, b) =>
-            new Date(b.receivedTime) - new Date(a.receivedTime)
-        );
+        const sorted = [...messages].sort((a, b) => {
+            const dateA = parseGermanDate(a.receivedTime) || new Date(0);
+            const dateB = parseGermanDate(b.receivedTime) || new Date(0);
+            return dateB - dateA;
+        });
 
         elements.emailTimeline.innerHTML = sorted.map(msg => {
             const isSent = msg.folder === 'sent';

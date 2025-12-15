@@ -430,7 +430,8 @@ const Storage = (function() {
                         date: h.date,
                         from: h.from,
                         to: h.to,
-                        note: h.note
+                        note: h.note,
+                        isNew: h.isNew || false
                     });
                 });
             }
@@ -593,12 +594,15 @@ const Storage = (function() {
         if (!caseData.messages) caseData.messages = [];
         if (!caseData.messageIds) caseData.messageIds = [];
         if (!caseData.conversationIds) caseData.conversationIds = [];
+        if (!caseData.statusHistory) caseData.statusHistory = [];
 
+        let addedCount = 0;
         messages.forEach(msg => {
             // Prüfen ob Nachricht bereits vorhanden
             if (!caseData.messageIds.includes(msg.entryID)) {
                 caseData.messages.push(msg);
                 caseData.messageIds.push(msg.entryID);
+                addedCount++;
 
                 // ConversationID hinzufügen falls vorhanden
                 if (msg.conversationID && !caseData.conversationIds.includes(msg.conversationID)) {
@@ -606,6 +610,17 @@ const Storage = (function() {
                 }
             }
         });
+
+        // Aktivität für neue Mails hinzufügen
+        if (addedCount > 0) {
+            caseData.statusHistory.push({
+                date: new Date().toISOString(),
+                from: caseData.status,
+                to: caseData.status,
+                note: `${addedCount} neue Mail${addedCount > 1 ? 's' : ''} erhalten`,
+                isNew: true
+            });
+        }
 
         return saveCase(caseData);
     }
@@ -620,10 +635,11 @@ const Storage = (function() {
         if (!caseData.statusHistory) caseData.statusHistory = [];
 
         caseData.statusHistory.push({
-            date: new Date().toISOString().split('T')[0],
+            date: new Date().toISOString(),
             from: fromStatus,
             to: toStatus,
-            note: note || ''
+            note: note || '',
+            isNew: true
         });
 
         return saveCase(caseData);

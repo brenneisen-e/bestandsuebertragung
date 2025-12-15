@@ -520,7 +520,7 @@ const Matcher = (function() {
             messageIds: messages.map(m => m.entryID),
             messages: messages,
             statusHistory: [
-                { date: new Date().toISOString().split('T')[0], from: null, to: 'unvollstaendig', note: 'Aus E-Mail erstellt' }
+                { date: new Date().toISOString(), from: null, to: 'unvollstaendig', note: 'Aus E-Mail erstellt', isNew: true }
             ]
         };
 

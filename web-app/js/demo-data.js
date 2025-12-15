@@ -155,21 +155,6 @@ Vollmacht anbei.
 Mit freundlichen Grüßen
 Sandra Schmidt
 Versicherungsmaklerin`
-                },
-                {
-                    entryID: 'msg-002-b',
-                    folder: 'inbox',
-                    subject: 'AW: Antrag Bestandsübertragung Weber',
-                    senderEmail: 'maklerservice@ergo.de',
-                    receivedTime: daysAgo(1),
-                    bodyPlain: `Sehr geehrte Frau Schmidt,
-
-die Bestandsübertragung für Christine Weber, Vertrag ERG-4512378, wurde genehmigt.
-
-Wirksamkeitsdatum: 01.02.2026
-
-Mit freundlichen Grüßen
-ERGO Maklerservice`
                 }
             ],
             statusHistory: [
