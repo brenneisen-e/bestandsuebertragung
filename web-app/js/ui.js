@@ -27,13 +27,13 @@ const UI = (function() {
     // Cache für DOM-Elemente
     let elements = {};
 
-    // Workflow-Schritte Definition
+    // Workflow-Schritte Definition (monochrome icons)
     const WORKFLOW_STEPS = [
-        { key: 'mailReceived', label: 'Mail erhalten', icon: '✉' },
+        { key: 'mailReceived', label: 'Mail erhalten', icon: '◉' },
         { key: 'mailUploaded', label: 'Mail hochgeladen', icon: '↑' },
-        { key: 'kiRecognized', label: 'Von KI erkannt', icon: '⚙' },
+        { key: 'kiRecognized', label: 'Von KI erkannt', icon: '◈' },
         { key: 'pvValidated', label: 'Von PV validiert', icon: '✓' },
-        { key: 'exported', label: 'Exportiert', icon: '📤' }
+        { key: 'exported', label: 'Exportiert', icon: '↗' }
     ];
 
     /**
