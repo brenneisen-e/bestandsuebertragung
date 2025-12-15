@@ -24,11 +24,12 @@ const Export = (function() {
 
     // Status-Labels für Export
     const STATUS_LABELS = {
-        'neu': 'Neu',
-        'angefragt': 'Angefragt',
-        'in-bearbeitung': 'In Bearbeitung',
-        'bestaetigt': 'Bestätigt',
-        'abgelehnt': 'Abgelehnt'
+        'unvollstaendig': 'Unvollständig',
+        'zu-validieren': 'Zu Validieren',
+        'export-bereit': 'Export-Bereit',
+        'abgeschlossen': 'Abgeschlossen',
+        'abgelehnt': 'Abgelehnt',
+        'wiedervorlage': 'Wiedervorlage'
     };
 
     /**
@@ -286,9 +287,19 @@ const Export = (function() {
         // Automatische Zuordnungen durchführen
         const assignResult = Matcher.autoAssign(matchResult.matched);
 
-        // Neue Fälle aus nicht zugeordneten E-Mails erstellen
+        // Suggested Matches auch zuordnen (niedrigere Confidence, aber trotzdem Match)
+        // Dies verhindert, dass Reminder-Mails als neue Vorgänge angelegt werden
+        const suggestedForAssign = matchResult.suggested
+            .filter(s => s.matches && s.matches.length > 0)
+            .map(s => ({
+                email: s.email,
+                match: s.matches[0] // Besten Match nehmen
+            }));
+        const suggestedAssignResult = Matcher.autoAssign(suggestedForAssign);
+
+        // Neue Fälle nur aus wirklich nicht zugeordneten E-Mails erstellen
         let createdCases = 0;
-        const unmatchedEmails = [...matchResult.unmatched, ...matchResult.suggested.map(s => s.email)];
+        const unmatchedEmails = matchResult.unmatched;
 
         // E-Mails nach ConversationID gruppieren
         const byConversation = {};
@@ -308,12 +319,15 @@ const Export = (function() {
             }
         }
 
+        // Gesamtzahl der zugeordneten E-Mails
+        const totalAssigned = assignResult.assigned.length + suggestedAssignResult.assigned.length;
+
         return {
             processed: newMessages.length,
-            matched: assignResult.assigned.length,
-            unmatched: 0, // Alle werden jetzt als neue Fälle erstellt
+            matched: totalAssigned,
+            unmatched: unmatchedEmails.length,
             created: createdCases,
-            errors: assignResult.failed
+            errors: [...assignResult.failed, ...suggestedAssignResult.failed]
         };
     }
 

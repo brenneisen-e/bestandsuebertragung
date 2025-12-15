@@ -10,9 +10,10 @@ const Matcher = (function() {
     const MATCH_CONFIDENCE = {
         CONVERSATION_ID: 1.0,    // ConversationID = 100% Treffer
         VS_NR_EXACT: 0.95,       // Exakte VS-Nr = 95%
-        VS_NR_PARTIAL: 0.85,    // Teilweise VS-Nr = 85%
+        VS_NR_PARTIAL: 0.85,     // Teilweise VS-Nr = 85%
+        MAKLER_EMAIL: 0.85,      // Makler E-Mail = 85%
         KUNDE_VERSICHERER: 0.80, // Kunde + Versicherer = 80%
-        KUNDE_ONLY: 0.60,       // Nur Kunde = 60%
+        KUNDE_ONLY: 0.60,        // Nur Kunde = 60%
         SUBJECT_SIMILAR: 0.50    // Ähnlicher Betreff = 50%
     };
 
@@ -40,11 +41,15 @@ const Matcher = (function() {
         const vsNrMatches = matchByVersicherungsnummer(email, cases);
         matches.push(...vsNrMatches);
 
-        // 3. Kunde + Versicherer prüfen
+        // 3. Makler E-Mail-Adresse prüfen
+        const maklerEmailMatches = matchByMaklerEmail(email, cases);
+        matches.push(...maklerEmailMatches);
+
+        // 4. Kunde + Versicherer prüfen
         const kundeMatches = matchByKundeVersicherer(email, cases);
         matches.push(...kundeMatches);
 
-        // 4. Betreff-Ähnlichkeit prüfen
+        // 5. Betreff-Ähnlichkeit prüfen
         const subjectMatches = matchBySubject(email, cases);
         matches.push(...subjectMatches);
 
@@ -83,6 +88,60 @@ const Matcher = (function() {
         }
 
         return null;
+    }
+
+    /**
+     * Match per Makler E-Mail-Adresse
+     * Wenn der Sender der E-Mail der Makler eines bestehenden Vorgangs ist
+     */
+    function matchByMaklerEmail(email, cases) {
+        const matches = [];
+
+        // E-Mail-Adresse des Senders extrahieren
+        const senderEmail = extractEmailAddress(email.from || email.senderAddress || '');
+        const recipientEmail = extractEmailAddress(email.to || email.recipientAddress || '');
+
+        if (!senderEmail && !recipientEmail) return matches;
+
+        cases.forEach(c => {
+            if (!c.makler || !c.makler.email) return;
+
+            const maklerEmail = c.makler.email.toLowerCase();
+
+            // Sender ist der Makler (Antwort vom Makler)
+            if (senderEmail && senderEmail === maklerEmail) {
+                matches.push({
+                    caseId: c.id,
+                    confidence: MATCH_CONFIDENCE.MAKLER_EMAIL,
+                    reason: 'Makler E-Mail (Sender)',
+                    details: `E-Mail von ${c.makler.name || maklerEmail}`
+                });
+            }
+            // Empfänger ist der Makler (Anfrage an den Makler)
+            else if (recipientEmail && recipientEmail === maklerEmail) {
+                matches.push({
+                    caseId: c.id,
+                    confidence: MATCH_CONFIDENCE.MAKLER_EMAIL * 0.9, // Etwas niedrigere Confidence
+                    reason: 'Makler E-Mail (Empfänger)',
+                    details: `E-Mail an ${c.makler.name || maklerEmail}`
+                });
+            }
+        });
+
+        return matches;
+    }
+
+    /**
+     * E-Mail-Adresse aus String extrahieren
+     */
+    function extractEmailAddress(str) {
+        if (!str) return null;
+
+        // E-Mail aus Format "Name <email@domain.de>" oder direkt extrahieren
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i;
+        const match = str.match(emailRegex);
+
+        return match ? match[0].toLowerCase() : null;
     }
 
     /**
@@ -402,24 +461,35 @@ const Matcher = (function() {
 
         if (!extractedStatus) return;
 
-        // Status nur updaten wenn er "aufsteigt" (nicht zurückstufen)
-        const statusOrder = ['neu', 'angefragt', 'in-bearbeitung', 'bestaetigt', 'abgelehnt', 'erledigt'];
-        const currentIndex = statusOrder.indexOf(caseData.status);
-        const newIndex = statusOrder.indexOf(extractedStatus.status);
+        // Status-Mapping auf neuen Workflow
+        const statusMapping = {
+            'neu': 'unvollstaendig',
+            'angefragt': 'zu-validieren',
+            'in-bearbeitung': 'wiedervorlage',
+            'bestaetigt': 'export-bereit',
+            'abgelehnt': 'abgelehnt',
+            'erledigt': 'abgeschlossen'
+        };
 
-        // Bei bestätigt/abgelehnt immer updaten (Endstatus)
-        if (extractedStatus.status === 'bestaetigt' || extractedStatus.status === 'abgelehnt') {
+        // Status nur updaten wenn er "aufsteigt" (nicht zurückstufen)
+        const statusOrder = ['unvollstaendig', 'zu-validieren', 'wiedervorlage', 'export-bereit', 'abgeschlossen', 'abgelehnt'];
+        const currentIndex = statusOrder.indexOf(caseData.status);
+        const mappedStatus = statusMapping[extractedStatus.status] || extractedStatus.status;
+        const newIndex = statusOrder.indexOf(mappedStatus);
+
+        // Bei export-bereit/abgelehnt immer updaten (Endstatus)
+        if (mappedStatus === 'export-bereit' || mappedStatus === 'abgelehnt') {
             const oldStatus = caseData.status;
-            caseData.status = extractedStatus.status;
+            caseData.status = mappedStatus;
             Storage.saveCase(caseData);
-            Storage.addStatusHistory(caseId, oldStatus, extractedStatus.status, 'Automatisch aus E-Mail erkannt');
+            Storage.addStatusHistory(caseId, oldStatus, mappedStatus, 'Automatisch aus E-Mail erkannt');
         }
         // Ansonsten nur wenn höherer Status
         else if (newIndex > currentIndex && currentIndex !== -1) {
             const oldStatus = caseData.status;
-            caseData.status = extractedStatus.status;
+            caseData.status = mappedStatus;
             Storage.saveCase(caseData);
-            Storage.addStatusHistory(caseId, oldStatus, extractedStatus.status, 'Automatisch aus E-Mail erkannt');
+            Storage.addStatusHistory(caseId, oldStatus, mappedStatus, 'Automatisch aus E-Mail erkannt');
         }
 
         // Gültigkeitsdatum aktualisieren falls erkannt
@@ -442,7 +512,7 @@ const Matcher = (function() {
             versicherungsnummer: extracted.versicherungsnummer || { value: '', confidence: 0, source: 'manual' },
             versicherer: extracted.versicherer || { name: '', confidence: 0, source: 'manual' },
             gueltigkeitsdatum: extracted.gueltigkeitsdatum || null,
-            status: 'neu',
+            status: 'unvollstaendig',
             sparte: extracted.sparte || '',
             notes: '',
             flagged: false,
@@ -450,7 +520,7 @@ const Matcher = (function() {
             messageIds: messages.map(m => m.entryID),
             messages: messages,
             statusHistory: [
-                { date: new Date().toISOString().split('T')[0], from: null, to: 'neu', note: 'Aus E-Mail erstellt' }
+                { date: new Date().toISOString().split('T')[0], from: null, to: 'unvollstaendig', note: 'Aus E-Mail erstellt' }
             ]
         };
 
