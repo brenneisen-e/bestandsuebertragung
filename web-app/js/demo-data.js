@@ -62,17 +62,21 @@ const DemoData = (function() {
             const createdAt = randomDate(daysAgo);
             const updatedAt = randomDate(daysUpdated);
 
+            // Workflow-Daten basierend auf Status generieren
+            const workflow = generateWorkflow(status, daysAgo, daysUpdated);
+
             return {
                 id,
                 createdAt,
                 updatedAt,
-                kunde: { name: kunde, source: "manual" },
-                versicherungsnummer: { value: vsNr, source: "auto" },
-                gueltigkeitsdatum: { value: "01.01.2026", source: "auto" },
+                kunde: { name: kunde, source: "auto", confidence: 0.95 },
+                versicherungsnummer: { value: vsNr, source: "auto", confidence: 0.98 },
+                gueltigkeitsdatum: { value: "01.01.2026", source: "auto", confidence: 0.9 },
                 status,
                 sparte,
                 makler,
                 notes: "",
+                workflow,
                 conversationIds: [`conv-${id}`],
                 messageIds: [`msg-${id}-a`],
                 messages: [
@@ -82,13 +86,45 @@ const DemoData = (function() {
                         subject: `Bestandsübertragung ${kunde.split(',')[0]} ${sparte} - ${vsNr}`,
                         senderEmail: makler.email,
                         receivedTime: createdAt,
-                        bodyPlain: `Anfrage Bestandsübertragung für ${kunde}, VS-Nr. ${vsNr}.`
+                        bodyPlain: `Sehr geehrte Damen und Herren,\n\nhiermit beantragen wir die Bestandsübertragung für den Kunden ${kunde}.\n\nVS-Nr: ${vsNr}\nSparte: ${sparte}\nGültig ab: 01.01.2026\n\nDie Maklervollmacht liegt vor.\n\nMit freundlichen Grüßen\n${makler.name}`
                     }
                 ],
                 statusHistory: [
                     { date: createdAt.split('T')[0], from: null, to: status === 'neu' ? 'neu' : 'angefragt', note: "Anfrage erstellt" }
                 ]
             };
+        }
+
+        /**
+         * Workflow-Daten basierend auf Status generieren
+         */
+        function generateWorkflow(status, daysAgo, daysUpdated) {
+            const workflow = {};
+
+            // Mail erhalten - für alle außer 'neu' ohne Mails
+            if (status !== 'neu') {
+                workflow.mailReceived = randomDate(daysAgo);
+            }
+
+            // Mail hochgeladen - sobald verarbeitet
+            if (['angefragt', 'in-bearbeitung', 'bestaetigt', 'abgelehnt'].includes(status)) {
+                workflow.mailUploaded = randomDate(daysAgo - 1);
+            }
+
+            // Von KI erkannt - für angefragt und später
+            if (['angefragt', 'in-bearbeitung', 'bestaetigt', 'abgelehnt'].includes(status)) {
+                workflow.kiRecognized = randomDate(daysAgo - 1);
+            }
+
+            // Von PV validiert - für in-bearbeitung und später
+            if (['in-bearbeitung', 'bestaetigt', 'abgelehnt'].includes(status)) {
+                workflow.pvValidated = randomDate(daysUpdated + 2);
+            }
+
+            // Exportiert - nur für einige bestätigte/abgelehnte (ca. 30%)
+            // Wird später für bestimmte Fälle gesetzt
+
+            return workflow;
         }
 
         // ============================================
@@ -103,8 +139,16 @@ const DemoData = (function() {
                 subject: `AW: Bestandsübertragung ${c.kunde.name.split(',')[0]}`,
                 senderEmail: "maklerservice@ergo.de",
                 receivedTime: c.updatedAt,
-                bodyPlain: "Die Bestandsübertragung wurde bestätigt."
+                bodyPlain: `Sehr geehrte Damen und Herren,\n\ndie Bestandsübertragung für ${c.kunde.name} mit der VS-Nr. ${c.versicherungsnummer.value} wurde bestätigt.\n\nDie Übertragung wird zum ${c.gueltigkeitsdatum.value} wirksam.\n\nMit freundlichen Grüßen\nERGO Maklerservice`
             });
+
+            // Einige als exportiert markieren (ca. 40%)
+            if (i < 6) {
+                const exportDate = randomDate(5 + i);
+                c.exported = { date: exportDate, by: "Max Mustermann" };
+                c.workflow.exported = exportDate;
+            }
+
             cases[c.id] = c;
         }
 
@@ -121,8 +165,16 @@ const DemoData = (function() {
                 subject: `AW: Bestandsübertragung ${c.kunde.name.split(',')[0]}`,
                 senderEmail: "maklerservice@ergo.de",
                 receivedTime: c.updatedAt,
-                bodyPlain: "Leider müssen wir die Bestandsübertragung ablehnen. Die eingereichte Vollmacht ist nicht gültig."
+                bodyPlain: `Sehr geehrte Damen und Herren,\n\nleider müssen wir die Bestandsübertragung für ${c.kunde.name} ablehnen.\n\nGrund: Die eingereichte Maklervollmacht ist nicht gültig oder liegt nicht vor.\n\nBitte reichen Sie eine gültige Vollmacht ein.\n\nMit freundlichen Grüßen\nERGO Maklerservice`
             });
+
+            // Einige als exportiert markieren (ca. 25%)
+            if (i < 2) {
+                const exportDate = randomDate(10 + i);
+                c.exported = { date: exportDate, by: "Lisa Schmidt" };
+                c.workflow.exported = exportDate;
+            }
+
             cases[c.id] = c;
         }
 

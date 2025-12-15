@@ -97,31 +97,18 @@
 
         <!-- Dashboard Grid -->
         <div class="dashboard-grid">
-            <!-- Status-Verteilung -->
             <div class="dashboard-card">
                 <h3>Status-Verteilung</h3>
-                <div class="status-bars" id="statusBars">
-                    <!-- Dynamisch gefüllt -->
-                </div>
+                <div class="status-bars" id="statusBars"></div>
             </div>
-
-            <!-- Top Makler -->
             <div class="dashboard-card">
                 <h3>Top Makler</h3>
-                <div class="top-list" id="topMaklerList">
-                    <!-- Dynamisch gefüllt -->
-                </div>
+                <div class="top-list" id="topMaklerList"></div>
             </div>
-
-            <!-- Sparten-Verteilung -->
             <div class="dashboard-card">
                 <h3>Nach Sparte</h3>
-                <div class="sparten-list" id="spartenList">
-                    <!-- Dynamisch gefüllt -->
-                </div>
+                <div class="sparten-list" id="spartenList"></div>
             </div>
-
-            <!-- Export-Bereit -->
             <div class="dashboard-card card-highlight">
                 <h3>Export-Bereit</h3>
                 <p class="card-description">Vorgänge mit Status "Bestätigt" oder "Abgelehnt" die noch nicht exportiert wurden.</p>
@@ -145,14 +132,13 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody id="recentActivityBody">
-                </tbody>
+                <tbody id="recentActivityBody"></tbody>
             </table>
         </div>
     </section>
 
     <!-- ============================================ -->
-    <!-- VIEW: Vorgänge -->
+    <!-- VIEW: Vorgänge (Kachel-Ansicht) -->
     <!-- ============================================ -->
     <section class="view" id="view-vorgaenge">
         <div class="toolbar">
@@ -189,26 +175,12 @@
             <button class="btn btn-primary" id="newCaseBtn">+ Neuer Vorgang</button>
         </div>
 
-        <div class="table-container">
-            <table class="data-table" id="vorgaengeTable">
-                <thead>
-                    <tr>
-                        <th class="col-status">Status</th>
-                        <th class="col-kunde sortable" data-sort="kunde">Kunde (VN)</th>
-                        <th class="col-vsnr">VS-Nr</th>
-                        <th class="col-sparte">Sparte</th>
-                        <th class="col-makler sortable" data-sort="makler">Makler</th>
-                        <th class="col-datum">Gültig ab</th>
-                        <th class="col-aktivitaet sortable active" data-sort="updatedAt">Letzte Aktivität ↓</th>
-                        <th class="col-export">Export</th>
-                    </tr>
-                </thead>
-                <tbody id="vorgaengeTableBody">
-                </tbody>
-            </table>
-            <div class="empty-state" id="vorgaengeEmpty" style="display: none;">
-                <p>Keine Vorgänge gefunden</p>
-            </div>
+        <!-- Kachel-Grid -->
+        <div class="case-tiles" id="caseTilesContainer">
+            <!-- Dynamisch gefüllt -->
+        </div>
+        <div class="empty-state" id="vorgaengeEmpty" style="display: none;">
+            <p>Keine Vorgänge gefunden</p>
         </div>
     </section>
 
@@ -235,8 +207,7 @@
                         <th class="col-number sortable" data-sort="abgelehnt">Abgelehnt</th>
                     </tr>
                 </thead>
-                <tbody id="maklerTableBody">
-                </tbody>
+                <tbody id="maklerTableBody"></tbody>
             </table>
             <div class="empty-state" id="maklerEmpty" style="display: none;">
                 <p>Keine Makler gefunden</p>
@@ -271,8 +242,7 @@
                         <th class="col-status">Status</th>
                     </tr>
                 </thead>
-                <tbody id="emailsTableBody">
-                </tbody>
+                <tbody id="emailsTableBody"></tbody>
             </table>
             <div class="empty-state" id="emailsEmpty" style="display: none;">
                 <p>Keine E-Mails gefunden</p>
@@ -281,102 +251,144 @@
     </section>
 
     <!-- ============================================ -->
-    <!-- MODALS -->
+    <!-- MODAL: Vorgang Detail (Komplett neu) -->
     <!-- ============================================ -->
-
-    <!-- Modal: Vorgang Detail -->
     <div class="modal-overlay" id="caseModal" style="display: none;">
-        <div class="modal">
+        <div class="modal modal-xlarge">
             <div class="modal-header">
                 <h2 id="modalTitle">Vorgang</h2>
                 <button class="modal-close" id="modalClose">×</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body case-detail-body">
                 <form id="caseForm">
                     <input type="hidden" id="caseId">
 
-                    <!-- Export-Info Banner -->
-                    <div class="export-info" id="exportInfo" style="display: none;">
-                        <span class="export-icon">↑</span>
-                        <span class="export-text" id="exportInfoText"></span>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Kunde (Versicherungsnehmer)</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="caseKunde">Name</label>
-                                <input type="text" id="caseKunde" placeholder="Nachname, Vorname">
+                    <!-- Workflow Timeline -->
+                    <div class="workflow-section">
+                        <h3>Prozess-Status</h3>
+                        <div class="workflow-timeline" id="workflowTimeline">
+                            <div class="workflow-step" data-step="mailReceived">
+                                <div class="step-icon">✉</div>
+                                <div class="step-content">
+                                    <div class="step-label">Mail erhalten</div>
+                                    <div class="step-date" id="stepMailReceived">–</div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="caseVsNr">VS-Nr</label>
-                                <input type="text" id="caseVsNr" placeholder="ERG-12345678">
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step" data-step="mailUploaded">
+                                <div class="step-icon">↑</div>
+                                <div class="step-content">
+                                    <div class="step-label">Mail hochgeladen</div>
+                                    <div class="step-date" id="stepMailUploaded">–</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="caseSparte">Sparte</label>
-                                <select id="caseSparte">
-                                    <option value="">-- Auswählen --</option>
-                                    <option value="KFZ">KFZ</option>
-                                    <option value="Leben">Leben</option>
-                                    <option value="Kranken">Kranken</option>
-                                    <option value="Haftpflicht">Haftpflicht</option>
-                                    <option value="Hausrat">Hausrat</option>
-                                    <option value="Rechtsschutz">Rechtsschutz</option>
-                                    <option value="Unfall">Unfall</option>
-                                    <option value="BU">BU</option>
-                                    <option value="Wohngebäude">Wohngebäude</option>
-                                    <option value="Rente">Rente</option>
-                                </select>
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step" data-step="kiRecognized">
+                                <div class="step-icon">⚙</div>
+                                <div class="step-content">
+                                    <div class="step-label">Von KI erkannt</div>
+                                    <div class="step-date" id="stepKiRecognized">–</div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="caseDatum">Gültig ab</label>
-                                <input type="text" id="caseDatum" placeholder="TT.MM.JJJJ">
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step" data-step="pvValidated">
+                                <div class="step-icon">✓</div>
+                                <div class="step-content">
+                                    <div class="step-label">Von PV validiert</div>
+                                    <div class="step-date" id="stepPvValidated">–</div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Makler</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="caseMaklerName">Maklerbüro</label>
-                                <input type="text" id="caseMaklerName" placeholder="Name des Maklerbüros">
-                            </div>
-                            <div class="form-group">
-                                <label for="caseMaklerEmail">E-Mail</label>
-                                <input type="email" id="caseMaklerEmail" placeholder="makler@beispiel.de">
+                            <div class="workflow-connector"></div>
+                            <div class="workflow-step" data-step="exported">
+                                <div class="step-icon">📤</div>
+                                <div class="step-content">
+                                    <div class="step-label">Exportiert</div>
+                                    <div class="step-date" id="stepExported">–</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <h3>Status & Notizen</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="caseStatus">Status</label>
-                                <select id="caseStatus">
-                                    <option value="neu">○ Neu</option>
-                                    <option value="angefragt">◐ Angefragt</option>
-                                    <option value="in-bearbeitung">◑ In Bearbeitung</option>
-                                    <option value="bestaetigt">● Bestätigt</option>
-                                    <option value="abgelehnt">✕ Abgelehnt</option>
-                                </select>
+                    <!-- Zwei-Spalten Layout -->
+                    <div class="case-detail-columns">
+                        <!-- Linke Spalte: Stammdaten -->
+                        <div class="case-detail-left">
+                            <div class="stammdaten-card">
+                                <h3>Stammdaten</h3>
+                                <div class="stammdaten-grid">
+                                    <div class="stammdaten-item">
+                                        <label>Kunde (VN)</label>
+                                        <input type="text" id="caseKunde" placeholder="Nachname, Vorname">
+                                    </div>
+                                    <div class="stammdaten-item">
+                                        <label>VS-Nr</label>
+                                        <input type="text" id="caseVsNr" placeholder="ERG-12345678">
+                                    </div>
+                                    <div class="stammdaten-item">
+                                        <label>Sparte</label>
+                                        <select id="caseSparte">
+                                            <option value="">– Auswählen –</option>
+                                            <option value="KFZ">KFZ</option>
+                                            <option value="Leben">Leben</option>
+                                            <option value="Kranken">Kranken</option>
+                                            <option value="Haftpflicht">Haftpflicht</option>
+                                            <option value="Hausrat">Hausrat</option>
+                                            <option value="Rechtsschutz">Rechtsschutz</option>
+                                            <option value="Unfall">Unfall</option>
+                                            <option value="BU">BU</option>
+                                            <option value="Wohngebäude">Wohngebäude</option>
+                                            <option value="Rente">Rente</option>
+                                        </select>
+                                    </div>
+                                    <div class="stammdaten-item">
+                                        <label>Gültig ab</label>
+                                        <input type="text" id="caseDatum" placeholder="TT.MM.JJJJ">
+                                    </div>
+                                    <div class="stammdaten-item">
+                                        <label>Maklerbüro</label>
+                                        <input type="text" id="caseMaklerName" placeholder="Name des Maklerbüros">
+                                    </div>
+                                    <div class="stammdaten-item">
+                                        <label>Makler E-Mail</label>
+                                        <input type="email" id="caseMaklerEmail" placeholder="makler@beispiel.de">
+                                    </div>
+                                    <div class="stammdaten-item full-width">
+                                        <label>Status</label>
+                                        <select id="caseStatus">
+                                            <option value="neu">○ Neu</option>
+                                            <option value="angefragt">◐ Angefragt</option>
+                                            <option value="in-bearbeitung">◑ In Bearbeitung</option>
+                                            <option value="bestaetigt">● Bestätigt</option>
+                                            <option value="abgelehnt">✕ Abgelehnt</option>
+                                        </select>
+                                    </div>
+                                    <div class="stammdaten-item full-width">
+                                        <label>Notizen</label>
+                                        <textarea id="caseNotes" rows="2" placeholder="Interne Notizen..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Erkannte Schlagwörter -->
+                            <div class="keywords-card">
+                                <h3>Erkannte Schlagwörter</h3>
+                                <div class="keywords-list" id="keywordsList">
+                                    <!-- Dynamisch gefüllt -->
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="caseNotes">Notizen</label>
-                            <textarea id="caseNotes" rows="2" placeholder="Interne Notizen..."></textarea>
+
+                        <!-- Rechte Spalte: E-Mails -->
+                        <div class="case-detail-right">
+                            <div class="emails-card">
+                                <h3>E-Mail Verlauf <span class="badge" id="modalMailCount">0</span></h3>
+                                <div class="email-timeline" id="emailTimeline">
+                                    <!-- Dynamisch gefüllt -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
-
-                <!-- E-Mail Verlauf -->
-                <div class="form-section">
-                    <h3>E-Mail Verlauf <span class="badge" id="modalMailCount">0</span></h3>
-                    <div class="email-timeline" id="emailTimeline"></div>
-                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-danger" id="deleteCase">Löschen</button>

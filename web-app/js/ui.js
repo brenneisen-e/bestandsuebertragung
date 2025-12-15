@@ -27,6 +27,15 @@ const UI = (function() {
     // Cache für DOM-Elemente
     let elements = {};
 
+    // Workflow-Schritte Definition
+    const WORKFLOW_STEPS = [
+        { key: 'mailReceived', label: 'Mail erhalten', icon: '✉' },
+        { key: 'mailUploaded', label: 'Mail hochgeladen', icon: '↑' },
+        { key: 'kiRecognized', label: 'Von KI erkannt', icon: '⚙' },
+        { key: 'pvValidated', label: 'Von PV validiert', icon: '✓' },
+        { key: 'exported', label: 'Exportiert', icon: '📤' }
+    ];
+
     /**
      * UI initialisieren - DOM-Elemente cachen
      */
@@ -59,12 +68,12 @@ const UI = (function() {
             exportReadyCount: document.getElementById('exportReadyCount'),
             recentActivityBody: document.getElementById('recentActivityBody'),
 
-            // Vorgänge Tab
+            // Vorgänge Tab (jetzt Kachel-Ansicht)
             vorgaengeSearch: document.getElementById('vorgaengeSearch'),
             filterStatus: document.getElementById('filterStatus'),
             filterSparte: document.getElementById('filterSparte'),
             filterExport: document.getElementById('filterExport'),
-            vorgaengeTableBody: document.getElementById('vorgaengeTableBody'),
+            caseTilesContainer: document.getElementById('caseTilesContainer'),
             vorgaengeEmpty: document.getElementById('vorgaengeEmpty'),
 
             // Makler Tab
@@ -93,8 +102,14 @@ const UI = (function() {
             caseNotes: document.getElementById('caseNotes'),
             emailTimeline: document.getElementById('emailTimeline'),
             modalMailCount: document.getElementById('modalMailCount'),
-            exportInfo: document.getElementById('exportInfo'),
-            exportInfoText: document.getElementById('exportInfoText'),
+            keywordsList: document.getElementById('keywordsList'),
+
+            // Workflow Steps
+            stepMailReceived: document.getElementById('stepMailReceived'),
+            stepMailUploaded: document.getElementById('stepMailUploaded'),
+            stepKiRecognized: document.getElementById('stepKiRecognized'),
+            stepPvValidated: document.getElementById('stepPvValidated'),
+            stepExported: document.getElementById('stepExported'),
 
             // Makler Modal
             maklerModal: document.getElementById('maklerModal'),
@@ -246,51 +261,82 @@ const UI = (function() {
     }
 
     /**
-     * Vorgänge-Tabelle rendern
+     * Vorgänge als Kacheln rendern
      */
-    function renderVorgaengeTable(cases) {
-        if (!elements.vorgaengeTableBody) return;
+    function renderCaseTiles(cases) {
+        if (!elements.caseTilesContainer) return;
 
         if (!cases || cases.length === 0) {
-            elements.vorgaengeTableBody.innerHTML = '';
+            elements.caseTilesContainer.innerHTML = '';
             if (elements.vorgaengeEmpty) elements.vorgaengeEmpty.style.display = 'block';
             return;
         }
 
         if (elements.vorgaengeEmpty) elements.vorgaengeEmpty.style.display = 'none';
 
-        elements.vorgaengeTableBody.innerHTML = cases.map(c => {
+        elements.caseTilesContainer.innerHTML = cases.map(c => {
             const kunde = c.kunde?.name || 'Unbekannt';
             const vsNr = c.versicherungsnummer?.value || '-';
             const sparte = c.sparte || '-';
             const makler = c.makler?.name || '-';
-            const datum = c.gueltigkeitsdatum?.value || '-';
             const updatedAt = formatDate(c.updatedAt);
 
-            // Export Status
-            let exportBadge;
-            if (c.exported && c.exported.date) {
-                const exportDate = formatDate(c.exported.date);
-                exportBadge = `<span class="export-badge" title="Exportiert von ${escapeHtml(c.exported.by)}">↑ ${exportDate}</span>`;
-            } else {
-                exportBadge = '<span class="export-badge not-exported">–</span>';
-            }
+            // Export Badge
+            const exportBadge = (c.exported && c.exported.date)
+                ? `<span class="tile-export-badge">Exportiert</span>`
+                : '';
+
+            // Workflow Progress Dots
+            const workflow = c.workflow || {};
+            const workflowDots = WORKFLOW_STEPS.map(step => {
+                let dotClass = 'workflow-dot';
+                if (workflow[step.key]) {
+                    dotClass += ' completed';
+                } else if (getActiveWorkflowStep(workflow) === step.key) {
+                    dotClass += ' active';
+                }
+                return `<div class="${dotClass}" title="${step.label}"></div>`;
+            }).join('');
 
             return `
-                <tr class="clickable-row" data-case-id="${c.id}">
-                    <td class="col-status">
-                        <span class="status-badge status-${c.status}">${STATUS_ICONS[c.status] || '○'} ${STATUS_LABELS[c.status] || c.status}</span>
-                    </td>
-                    <td class="col-kunde">${escapeHtml(kunde)}</td>
-                    <td class="col-vsnr">${escapeHtml(vsNr)}</td>
-                    <td class="col-sparte">${escapeHtml(sparte)}</td>
-                    <td class="col-makler">${escapeHtml(makler)}</td>
-                    <td class="col-datum">${escapeHtml(datum)}</td>
-                    <td class="col-aktivitaet">${updatedAt}</td>
-                    <td class="col-export">${exportBadge}</td>
-                </tr>
+                <div class="case-tile status-${c.status}" data-case-id="${c.id}">
+                    ${exportBadge}
+                    <div class="tile-header">
+                        <div>
+                            <h3 class="tile-kunde">${escapeHtml(kunde)}</h3>
+                            <div class="tile-vsnr">${escapeHtml(vsNr)}</div>
+                        </div>
+                        <span class="status-badge status-${c.status}">${STATUS_ICONS[c.status] || '○'}</span>
+                    </div>
+                    <div class="tile-body">
+                        <div class="tile-row">
+                            <span class="label">Sparte</span>
+                            <span>${escapeHtml(sparte)}</span>
+                        </div>
+                        <div class="tile-row">
+                            <span class="label">Aktualisiert</span>
+                            <span>${updatedAt}</span>
+                        </div>
+                    </div>
+                    <div class="tile-makler" title="${escapeHtml(makler)}">${escapeHtml(makler)}</div>
+                    <div class="tile-workflow">
+                        ${workflowDots}
+                    </div>
+                </div>
             `;
         }).join('');
+    }
+
+    /**
+     * Aktiven Workflow-Schritt ermitteln
+     */
+    function getActiveWorkflowStep(workflow) {
+        for (const step of WORKFLOW_STEPS) {
+            if (!workflow[step.key]) {
+                return step.key;
+            }
+        }
+        return null; // Alle abgeschlossen
     }
 
     /**
@@ -387,11 +433,6 @@ const UI = (function() {
         // Formular zurücksetzen
         elements.caseForm.reset();
 
-        // Export-Info verstecken
-        if (elements.exportInfo) {
-            elements.exportInfo.style.display = 'none';
-        }
-
         if (caseData) {
             elements.caseId.value = caseData.id;
             elements.caseKunde.value = caseData.kunde?.name || '';
@@ -403,17 +444,19 @@ const UI = (function() {
             elements.caseStatus.value = caseData.status || 'neu';
             elements.caseNotes.value = caseData.notes || '';
 
-            // Export-Info anzeigen falls exportiert
-            if (caseData.exported && caseData.exported.date && elements.exportInfo) {
-                elements.exportInfo.style.display = 'flex';
-                elements.exportInfoText.textContent = `Exportiert am ${formatDateTime(caseData.exported.date)} von ${caseData.exported.by}`;
-            }
+            // Workflow Timeline rendern
+            renderWorkflowTimeline(caseData.workflow || {});
 
-            // E-Mail Timeline rendern
-            renderEmailTimeline(caseData.messages || []);
+            // Keywords rendern
+            renderKeywords(caseData);
+
+            // E-Mail Timeline mit Highlighting rendern
+            renderEmailTimelineWithHighlights(caseData.messages || [], caseData);
         } else {
             elements.caseId.value = '';
-            renderEmailTimeline([]);
+            renderWorkflowTimeline({});
+            renderKeywords(null);
+            renderEmailTimelineWithHighlights([], null);
         }
 
         // Modal anzeigen
@@ -421,18 +464,108 @@ const UI = (function() {
     }
 
     /**
-     * Case Modal schließen
+     * Workflow Timeline im Modal rendern
      */
-    function closeCaseModal() {
-        if (elements.caseModal) {
-            elements.caseModal.style.display = 'none';
+    function renderWorkflowTimeline(workflow) {
+        const stepElements = {
+            mailReceived: elements.stepMailReceived,
+            mailUploaded: elements.stepMailUploaded,
+            kiRecognized: elements.stepKiRecognized,
+            pvValidated: elements.stepPvValidated,
+            exported: elements.stepExported
+        };
+
+        let lastCompletedIndex = -1;
+
+        // Schritt-Daten und Status setzen
+        WORKFLOW_STEPS.forEach((step, index) => {
+            const stepEl = stepElements[step.key];
+            const stepContainer = stepEl?.closest('.workflow-step');
+            const connectorAfter = stepContainer?.nextElementSibling;
+
+            if (!stepEl || !stepContainer) return;
+
+            const stepDate = workflow[step.key];
+
+            // Status-Klassen entfernen
+            stepContainer.classList.remove('completed', 'active');
+
+            if (stepDate) {
+                // Schritt abgeschlossen
+                stepContainer.classList.add('completed');
+                stepEl.textContent = formatDate(stepDate);
+                lastCompletedIndex = index;
+
+                // Connector als completed markieren
+                if (connectorAfter?.classList.contains('workflow-connector')) {
+                    connectorAfter.classList.add('completed');
+                }
+            } else {
+                stepEl.textContent = '–';
+                if (connectorAfter?.classList.contains('workflow-connector')) {
+                    connectorAfter.classList.remove('completed');
+                }
+            }
+        });
+
+        // Aktiven Schritt markieren (nächster nach letztem completed)
+        const activeIndex = lastCompletedIndex + 1;
+        if (activeIndex < WORKFLOW_STEPS.length) {
+            const activeStepKey = WORKFLOW_STEPS[activeIndex].key;
+            const activeEl = stepElements[activeStepKey]?.closest('.workflow-step');
+            if (activeEl) {
+                activeEl.classList.add('active');
+            }
         }
     }
 
     /**
-     * E-Mail Timeline rendern
+     * Erkannte Schlagwörter rendern
      */
-    function renderEmailTimeline(messages) {
+    function renderKeywords(caseData) {
+        if (!elements.keywordsList) return;
+
+        if (!caseData) {
+            elements.keywordsList.innerHTML = '<span class="text-muted">Keine Schlagwörter</span>';
+            return;
+        }
+
+        const keywords = [];
+
+        // Erkannte Felder als Keywords sammeln
+        if (caseData.kunde?.name && caseData.kunde.source !== 'manual') {
+            keywords.push({ field: 'Kunde', value: caseData.kunde.name, confidence: caseData.kunde.confidence });
+        }
+        if (caseData.versicherungsnummer?.value && caseData.versicherungsnummer.source !== 'manual') {
+            keywords.push({ field: 'VS-Nr', value: caseData.versicherungsnummer.value, confidence: caseData.versicherungsnummer.confidence });
+        }
+        if (caseData.gueltigkeitsdatum?.value && caseData.gueltigkeitsdatum.source !== 'manual') {
+            keywords.push({ field: 'Datum', value: caseData.gueltigkeitsdatum.value, confidence: caseData.gueltigkeitsdatum.confidence });
+        }
+        if (caseData.makler?.name && caseData.makler.email) {
+            keywords.push({ field: 'Makler', value: caseData.makler.name });
+        }
+        if (caseData.sparte) {
+            keywords.push({ field: 'Sparte', value: caseData.sparte });
+        }
+
+        if (keywords.length === 0) {
+            elements.keywordsList.innerHTML = '<span class="text-muted">Keine automatisch erkannten Schlagwörter</span>';
+            return;
+        }
+
+        elements.keywordsList.innerHTML = keywords.map(kw => `
+            <span class="keyword-tag">
+                <span class="keyword-field">${escapeHtml(kw.field)}:</span>
+                <span class="keyword-value">${escapeHtml(kw.value)}</span>
+            </span>
+        `).join('');
+    }
+
+    /**
+     * E-Mail Timeline mit Keyword-Highlighting rendern
+     */
+    function renderEmailTimelineWithHighlights(messages, caseData) {
         if (!elements.emailTimeline) return;
 
         elements.modalMailCount.textContent = messages.length;
@@ -440,6 +573,22 @@ const UI = (function() {
         if (messages.length === 0) {
             elements.emailTimeline.innerHTML = '<p class="empty-message">Keine E-Mails vorhanden</p>';
             return;
+        }
+
+        // Keywords zum Highlighten sammeln
+        const highlightTerms = [];
+        if (caseData) {
+            if (caseData.kunde?.name) {
+                // Nur Nachname für besseres Matching
+                const nameParts = caseData.kunde.name.split(',');
+                highlightTerms.push(nameParts[0].trim());
+            }
+            if (caseData.versicherungsnummer?.value) {
+                highlightTerms.push(caseData.versicherungsnummer.value);
+            }
+            if (caseData.gueltigkeitsdatum?.value) {
+                highlightTerms.push(caseData.gueltigkeitsdatum.value);
+            }
         }
 
         // Nach Datum sortieren (neueste zuerst)
@@ -453,6 +602,10 @@ const UI = (function() {
             const directionText = isSent ? 'Gesendet' : 'Empfangen';
             const directionClass = isSent ? 'direction-sent' : 'direction-inbox';
 
+            // Body mit Highlighting
+            let bodyText = truncateText(msg.bodyPlain || msg.body || '', 500);
+            bodyText = highlightKeywords(bodyText, highlightTerms);
+
             return `
                 <div class="email-item ${msg.folder}">
                     <div class="email-header">
@@ -461,10 +614,44 @@ const UI = (function() {
                     </div>
                     <div class="email-subject">${escapeHtml(msg.subject || 'Kein Betreff')}</div>
                     <div class="email-sender">${escapeHtml(msg.senderEmail || '-')}</div>
-                    <div class="email-body">${escapeHtml(truncateText(msg.bodyPlain || msg.body || '', 300))}</div>
+                    <div class="email-body">${bodyText}</div>
                 </div>
             `;
         }).join('');
+    }
+
+    /**
+     * Keywords im Text hervorheben
+     */
+    function highlightKeywords(text, keywords) {
+        if (!keywords || keywords.length === 0) return escapeHtml(text);
+
+        let result = escapeHtml(text);
+
+        keywords.forEach(keyword => {
+            if (!keyword) return;
+            const escapedKeyword = escapeHtml(keyword);
+            const regex = new RegExp(`(${escapeRegex(escapedKeyword)})`, 'gi');
+            result = result.replace(regex, '<span class="highlight">$1</span>');
+        });
+
+        return result;
+    }
+
+    /**
+     * Regex-Sonderzeichen escapen
+     */
+    function escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    /**
+     * Case Modal schließen
+     */
+    function closeCaseModal() {
+        if (elements.caseModal) {
+            elements.caseModal.style.display = 'none';
+        }
     }
 
     /**
@@ -731,7 +918,7 @@ const UI = (function() {
         switchView,
 
         // Rendering
-        renderVorgaengeTable,
+        renderCaseTiles,
         renderMaklerTable,
         renderEmailsTable,
 
@@ -761,6 +948,7 @@ const UI = (function() {
 
         // Konstanten
         STATUS_ICONS,
-        STATUS_LABELS
+        STATUS_LABELS,
+        WORKFLOW_STEPS
     };
 })();

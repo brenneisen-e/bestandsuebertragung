@@ -8,8 +8,6 @@ const App = (function() {
 
     // Aktueller Zustand
     let currentView = 'dashboard';
-    let vorgaengeSortField = 'updatedAt';
-    let vorgaengeSortDir = 'desc';
     let maklerSortField = 'total';
     let maklerSortDir = 'desc';
 
@@ -67,13 +65,8 @@ const App = (function() {
         document.getElementById('filterSparte')?.addEventListener('change', refreshVorgaengeView);
         document.getElementById('filterExport')?.addEventListener('change', refreshVorgaengeView);
 
-        // Vorgänge: Sortierbare Spalten
-        document.querySelectorAll('#view-vorgaenge th.sortable').forEach(th => {
-            th.addEventListener('click', () => handleVorgaengeSort(th.dataset.sort));
-        });
-
-        // Vorgänge-Tabelle Klick
-        document.getElementById('vorgaengeTableBody')?.addEventListener('click', handleVorgaengeRowClick);
+        // Vorgänge-Kacheln Klick
+        document.getElementById('caseTilesContainer')?.addEventListener('click', handleTileClick);
 
         // Makler View
         document.getElementById('maklerSearch')?.addEventListener('input', debounce(refreshMaklerView, 300));
@@ -214,7 +207,7 @@ const App = (function() {
     }
 
     /**
-     * Vorgänge View aktualisieren
+     * Vorgänge View aktualisieren (Kachel-Ansicht)
      */
     function refreshVorgaengeView() {
         const filters = UI.getVorgaengeFilterValues();
@@ -223,11 +216,11 @@ const App = (function() {
         // Filtern
         cases = filterVorgaenge(cases, filters);
 
-        // Sortieren
-        cases = sortVorgaenge(cases, vorgaengeSortField, vorgaengeSortDir);
+        // Sortieren nach Aktualisierungsdatum (neueste zuerst)
+        cases.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
 
         // Rendern
-        UI.renderVorgaengeTable(cases);
+        UI.renderCaseTiles(cases);
     }
 
     /**
@@ -271,53 +264,6 @@ const App = (function() {
 
             return true;
         });
-    }
-
-    /**
-     * Vorgänge sortieren
-     */
-    function sortVorgaenge(cases, field, direction) {
-        const multiplier = direction === 'desc' ? -1 : 1;
-
-        return cases.sort((a, b) => {
-            let valueA, valueB;
-
-            switch (field) {
-                case 'updatedAt':
-                    valueA = new Date(a.updatedAt || 0);
-                    valueB = new Date(b.updatedAt || 0);
-                    break;
-                case 'kunde':
-                    valueA = (a.kunde?.name || '').toLowerCase();
-                    valueB = (b.kunde?.name || '').toLowerCase();
-                    break;
-                case 'makler':
-                    valueA = (a.makler?.name || '').toLowerCase();
-                    valueB = (b.makler?.name || '').toLowerCase();
-                    break;
-                default:
-                    return 0;
-            }
-
-            if (valueA < valueB) return -1 * multiplier;
-            if (valueA > valueB) return 1 * multiplier;
-            return 0;
-        });
-    }
-
-    /**
-     * Vorgänge-Sortierung Handler
-     */
-    function handleVorgaengeSort(field) {
-        if (vorgaengeSortField === field) {
-            vorgaengeSortDir = vorgaengeSortDir === 'desc' ? 'asc' : 'desc';
-        } else {
-            vorgaengeSortField = field;
-            vorgaengeSortDir = 'desc';
-        }
-
-        updateSortIndicators('#view-vorgaenge', field, vorgaengeSortDir);
-        refreshVorgaengeView();
     }
 
     /**
@@ -465,13 +411,13 @@ const App = (function() {
     }
 
     /**
-     * Klick auf Vorgänge-Zeile
+     * Klick auf Vorgänge-Kachel
      */
-    function handleVorgaengeRowClick(e) {
-        const row = e.target.closest('tr.clickable-row');
-        if (!row) return;
+    function handleTileClick(e) {
+        const tile = e.target.closest('.case-tile');
+        if (!tile) return;
 
-        const caseId = row.dataset.caseId;
+        const caseId = tile.dataset.caseId;
         const caseData = Storage.getCase(caseId);
 
         if (caseData) {
