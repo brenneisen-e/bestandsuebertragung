@@ -8,6 +8,9 @@ Option Explicit
 ' Konfiguration
 Const MAX_EMAILS = 5000
 Const MAX_BODY_LENGTH = 10000
+Const TARGET_MAILBOX = "ebrenneisen@deloitte.de"
+Const SUBJECT_FILTER = "Demo Bestandsübertragung"
+Const DAYS_BACK = 90
 
 ' Globale Variablen
 Dim objOutlook, objNamespace
@@ -16,15 +19,14 @@ Dim emailCount, outputPath
 
 ' Hauptprogramm
 Sub Main()
-    Dim mailboxName, dateFrom, dateTo
-    Dim daysBack, result
+    Dim result
 
-    ' Begruessungsdialog
-    result = MsgBox("Bestandsuebertragung - Outlook Export" & vbCrLf & vbCrLf & _
-        "Dieses Skript exportiert E-Mails aus Outlook als JSON-Datei." & vbCrLf & _
-        "Die Datei kann dann in der Web-App importiert werden." & vbCrLf & vbCrLf & _
-        "Outlook muss geoeffnet sein!" & vbCrLf & vbCrLf & _
-        "Fortfahren?", vbYesNo + vbQuestion, "Outlook Export")
+    ' Einfacher Start-Dialog
+    result = MsgBox("Bestandsübertragung - Outlook Export" & vbCrLf & vbCrLf & _
+        "Postfach: " & TARGET_MAILBOX & vbCrLf & _
+        "Filter: Betreff enthält '" & SUBJECT_FILTER & "'" & vbCrLf & _
+        "Zeitraum: Letzte " & DAYS_BACK & " Tage" & vbCrLf & vbCrLf & _
+        "Mail Export starten?", vbYesNo + vbQuestion, "Outlook Export")
 
     If result <> vbYes Then
         WScript.Quit
@@ -38,49 +40,30 @@ Sub Main()
         WScript.Quit
     End If
 
-    ' Postfach auswaehlen
-    mailboxName = SelectMailbox()
-    If mailboxName = "" Then
+    ' Postfach finden
+    Dim mailbox
+    Set mailbox = FindMailbox(TARGET_MAILBOX)
+
+    If mailbox Is Nothing Then
+        MsgBox "Fehler: Postfach '" & TARGET_MAILBOX & "' nicht gefunden." & vbCrLf & vbCrLf & _
+            "Bitte prüfen Sie, ob das Postfach in Outlook eingerichtet ist.", _
+            vbCritical, "Postfach nicht gefunden"
         WScript.Quit
     End If
 
-    ' Zeitraum auswaehlen
-    daysBack = InputBox("Wie viele Tage zurueck sollen E-Mails exportiert werden?" & vbCrLf & vbCrLf & _
-        "Beispiele:" & vbCrLf & _
-        "  7 = Letzte Woche" & vbCrLf & _
-        "  14 = Letzte 2 Wochen" & vbCrLf & _
-        "  30 = Letzter Monat" & vbCrLf & _
-        "  90 = Letzte 3 Monate", _
-        "Zeitraum", "14")
-
-    If daysBack = "" Then
-        WScript.Quit
-    End If
-
-    If Not IsNumeric(daysBack) Then
-        MsgBox "Bitte geben Sie eine Zahl ein.", vbExclamation, "Eingabefehler"
-        WScript.Quit
-    End If
-
-    dateFrom = DateAdd("d", -CInt(daysBack), Date)
-    dateTo = Date
-
-    ' Speicherort auswaehlen
+    ' Speicherort festlegen (Desktop)
     outputPath = GetSavePath()
-    If outputPath = "" Then
-        WScript.Quit
-    End If
 
     ' E-Mails exportieren
-    If ExportEmails(mailboxName, dateFrom, dateTo) Then
+    If ExportEmails(mailbox) Then
         MsgBox "Export erfolgreich!" & vbCrLf & vbCrLf & _
             "Exportierte E-Mails: " & emailCount & vbCrLf & _
             "Datei: " & outputPath & vbCrLf & vbCrLf & _
             "Sie koennen diese Datei nun in der Web-App importieren.", _
             vbInformation, "Export abgeschlossen"
     Else
-        MsgBox "Export fehlgeschlagen. Bitte versuchen Sie es erneut.", _
-            vbCritical, "Exportfehler"
+        MsgBox "Export fehlgeschlagen oder keine E-Mails gefunden.", _
+            vbExclamation, "Exportergebnis"
     End If
 End Sub
 
@@ -105,80 +88,52 @@ Function ConnectOutlook()
     On Error GoTo 0
 End Function
 
-' Postfach auswaehlen
-Function SelectMailbox()
-    Dim folders, folder, i, choices, selection
+' Postfach nach Name finden
+Function FindMailbox(mailboxName)
+    Dim folders, folder, i
 
+    Set FindMailbox = Nothing
     Set folders = objNamespace.Folders
-
-    If folders.Count = 0 Then
-        MsgBox "Keine Postfaecher gefunden.", vbExclamation, "Fehler"
-        SelectMailbox = ""
-        Exit Function
-    End If
-
-    ' Liste der Postfaecher erstellen
-    choices = "Bitte waehlen Sie ein Postfach:" & vbCrLf & vbCrLf
 
     For i = 1 To folders.Count
         Set folder = folders.Item(i)
-        choices = choices & i & ". " & folder.Name & vbCrLf
+        If LCase(folder.Name) = LCase(mailboxName) Then
+            Set FindMailbox = folder
+            Exit Function
+        End If
     Next
-
-    selection = InputBox(choices, "Postfach auswaehlen", "1")
-
-    If selection = "" Then
-        SelectMailbox = ""
-        Exit Function
-    End If
-
-    If Not IsNumeric(selection) Or CInt(selection) < 1 Or CInt(selection) > folders.Count Then
-        MsgBox "Ungueltige Auswahl.", vbExclamation, "Fehler"
-        SelectMailbox = ""
-        Exit Function
-    End If
-
-    SelectMailbox = folders.Item(CInt(selection)).Name
 End Function
 
-' Speicherort auswaehlen
+' Speicherort festlegen (Downloads-Ordner)
 Function GetSavePath()
-    Dim shell, desktopPath, filename
+    Dim shell, downloadsPath, filename
 
     Set shell = CreateObject("WScript.Shell")
-    desktopPath = shell.SpecialFolders("Desktop")
+
+    ' Downloads-Ordner ermitteln
+    downloadsPath = shell.ExpandEnvironmentStrings("%USERPROFILE%") & "\Downloads"
 
     filename = "bestandsuebertragung-export-" & _
         Year(Date) & "-" & Right("0" & Month(Date), 2) & "-" & Right("0" & Day(Date), 2) & ".json"
 
-    GetSavePath = desktopPath & "\" & filename
+    GetSavePath = downloadsPath & "\" & filename
 
     Set shell = Nothing
 End Function
 
 ' E-Mails exportieren
-Function ExportEmails(mailboxName, dateFrom, dateTo)
-    Dim mailbox, inbox, sentFolder
+Function ExportEmails(mailbox)
+    Dim inbox, sentFolder
     Dim inboxEmails, sentEmails
     Dim jsonContent, i
+    Dim dateFrom, dateTo
 
     On Error Resume Next
 
     Set fso = CreateObject("Scripting.FileSystemObject")
 
-    ' Postfach finden
-    Set mailbox = Nothing
-    For i = 1 To objNamespace.Folders.Count
-        If objNamespace.Folders.Item(i).Name = mailboxName Then
-            Set mailbox = objNamespace.Folders.Item(i)
-            Exit For
-        End If
-    Next
-
-    If mailbox Is Nothing Then
-        ExportEmails = False
-        Exit Function
-    End If
+    dateFrom = DateAdd("d", -DAYS_BACK, Date)
+    dateTo = Date
 
     ' Posteingang finden
     Set inbox = FindFolder(mailbox, Array("Posteingang", "Inbox"))
@@ -199,8 +154,14 @@ Function ExportEmails(mailboxName, dateFrom, dateTo)
         sentEmails = GetEmailsFromFolder(sentFolder, dateFrom, dateTo, "sent")
     End If
 
+    ' Pruefen ob E-Mails gefunden
+    If emailCount = 0 Then
+        ExportEmails = False
+        Exit Function
+    End If
+
     ' JSON erstellen und speichern
-    jsonContent = BuildJsonOutput(inboxEmails, sentEmails, mailboxName, dateFrom, dateTo)
+    jsonContent = BuildJsonOutput(inboxEmails, sentEmails, TARGET_MAILBOX, dateFrom, dateTo)
 
     Set outputFile = fso.CreateTextFile(outputPath, True, True) ' Unicode
     outputFile.Write jsonContent
@@ -213,7 +174,7 @@ End Function
 
 ' Ordner finden
 Function FindFolder(mailbox, folderNames)
-    Dim folders, folder, i, j, name
+    Dim folders, folder, i, j
 
     Set FindFolder = Nothing
     Set folders = mailbox.Folders
@@ -229,10 +190,10 @@ Function FindFolder(mailbox, folderNames)
     Next
 End Function
 
-' E-Mails aus Ordner holen
+' E-Mails aus Ordner holen (nur mit Betreff-Filter)
 Function GetEmailsFromFolder(folder, dateFrom, dateTo, folderType)
     Dim items, item, i, emails(), count
-    Dim receivedTime, senderEmail
+    Dim receivedTime, senderEmail, subject
 
     On Error Resume Next
 
@@ -254,22 +215,26 @@ Function GetEmailsFromFolder(folder, dateFrom, dateTo, folderType)
             ' Datum pruefen
             If receivedTime < dateFrom Then Exit For
             If receivedTime <= dateTo Then
-                count = count + 1
-                ReDim Preserve emails(count)
+                ' BETREFF-FILTER: Nur Mails mit "Demo Bestandsübertragung"
+                subject = item.Subject
+                If InStr(1, subject, SUBJECT_FILTER, vbTextCompare) > 0 Then
+                    count = count + 1
+                    ReDim Preserve emails(count)
 
-                senderEmail = GetSenderEmail(item)
+                    senderEmail = GetSenderEmail(item)
 
-                emails(count) = Array( _
-                    item.EntryID, _
-                    GetConversationID(item), _
-                    CleanString(item.Subject), _
-                    senderEmail, _
-                    FormatDateTime(receivedTime, vbGeneralDate), _
-                    TruncateBody(item.Body), _
-                    folderType _
-                )
+                    emails(count) = Array( _
+                        item.EntryID, _
+                        GetConversationID(item), _
+                        CleanString(subject), _
+                        senderEmail, _
+                        FormatDateTime(receivedTime, vbGeneralDate), _
+                        TruncateBody(item.Body), _
+                        folderType _
+                    )
 
-                emailCount = emailCount + 1
+                    emailCount = emailCount + 1
+                End If
             End If
         End If
     Next
@@ -345,6 +310,7 @@ Function BuildJsonOutput(inboxEmails, sentEmails, mailboxName, dateFrom, dateTo)
     json = json & "  ""exportDate"": """ & FormatDateTime(Now, vbGeneralDate) & """," & vbCrLf
     json = json & "  ""exportedBy"": ""Outlook VBScript Export""," & vbCrLf
     json = json & "  ""mailbox"": """ & CleanString(mailboxName) & """," & vbCrLf
+    json = json & "  ""subjectFilter"": """ & CleanString(SUBJECT_FILTER) & """," & vbCrLf
     json = json & "  ""dateRange"": {" & vbCrLf
     json = json & "    ""from"": """ & FormatDateTime(dateFrom, vbShortDate) & """," & vbCrLf
     json = json & "    ""to"": """ & FormatDateTime(dateTo, vbShortDate) & """" & vbCrLf
