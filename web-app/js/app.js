@@ -563,14 +563,26 @@ const App = (function() {
             caseData.makler = formData.makler;
             caseData.notes = formData.notes;
 
+            // Auto-Promotion: Wenn unvollständig und jetzt vollständig -> angefragt
+            if (oldStatus === 'unvollstaendig' && formData.status === 'unvollstaendig') {
+                // Prüfen ob jetzt alle Pflichtdaten vorhanden
+                const hasKunde = formData.kunde && formData.kunde.name && formData.kunde.name.trim();
+                const hasVsNr = formData.versicherungsnummer && formData.versicherungsnummer.value && formData.versicherungsnummer.value.trim();
+
+                if (hasKunde && hasVsNr) {
+                    caseData.status = 'angefragt';
+                    UI.showToast('Daten vollständig - Status auf "Angefragt" geändert', 'success');
+                }
+            }
+
             // Status-Historie aktualisieren
-            if (oldStatus !== formData.status) {
+            if (oldStatus !== caseData.status) {
                 if (!caseData.statusHistory) caseData.statusHistory = [];
                 caseData.statusHistory.push({
                     date: new Date().toISOString().split('T')[0],
                     from: oldStatus,
-                    to: formData.status,
-                    note: 'Manuell geändert'
+                    to: caseData.status,
+                    note: oldStatus === 'unvollstaendig' ? 'Daten ergänzt' : 'Manuell geändert'
                 });
             }
         }
