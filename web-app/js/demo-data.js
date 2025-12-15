@@ -241,7 +241,7 @@ ERGO Maklerservice`
         };
 
         // ============================================
-        // FALL 4: Abgelehnt & Exportiert - Kranken
+        // FALL 4: Export-Bereit - Kranken
         // ============================================
         cases['case-004'] = {
             id: 'case-004',
@@ -250,18 +250,16 @@ ERGO Maklerservice`
             kunde: { name: "Schneider, Peter", source: "auto", confidence: 0.94 },
             versicherungsnummer: { value: "ERG-3345678", source: "auto", confidence: 0.97 },
             gueltigkeitsdatum: { value: "01.03.2026", source: "auto", confidence: 0.88 },
-            status: 'abgelehnt',
+            status: 'export-bereit',
             sparte: 'Kranken',
             makler: MAKLER[3],
-            notes: "Vollmacht fehlerhaft - falsches Datum",
+            notes: "",
             workflow: {
                 mailReceived: daysAgo(50),
                 mailUploaded: daysAgo(49),
                 kiRecognized: daysAgo(49),
-                pvValidated: daysAgo(38),
-                exported: daysAgo(20)
+                pvValidated: daysAgo(38)
             },
-            exported: { date: daysAgo(20), by: "Max Mustermann" },
             messages: [
                 {
                     entryID: 'msg-004-a',
@@ -302,12 +300,12 @@ ERGO Maklerservice`
             ],
             statusHistory: [
                 { date: daysAgo(50).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
-                { date: daysAgo(38).split('T')[0], from: 'zu-validieren', to: 'abgelehnt', note: 'Abgelehnt - Vollmacht fehlerhaft' }
+                { date: daysAgo(38).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Validiert - Bereit für Export' }
             ]
         };
 
         // ============================================
-        // FALL 5: Abgelehnt - nicht exportiert - Haftpflicht
+        // FALL 5: Export-Bereit - Haftpflicht
         // ============================================
         cases['case-005'] = {
             id: 'case-005',
@@ -316,10 +314,10 @@ ERGO Maklerservice`
             kunde: { name: "Braun, Sabine", source: "auto", confidence: 0.95 },
             versicherungsnummer: { value: "ERG-6654321", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.04.2026", source: "auto", confidence: 0.91 },
-            status: 'abgelehnt',
+            status: 'export-bereit',
             sparte: 'Haftpflicht',
             makler: MAKLER[4],
-            notes: "Keine Vollmacht eingereicht",
+            notes: "",
             workflow: {
                 mailReceived: daysAgo(20),
                 mailUploaded: daysAgo(19),
@@ -365,7 +363,7 @@ ERGO Maklerservice`
             ],
             statusHistory: [
                 { date: daysAgo(20).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
-                { date: daysAgo(10).split('T')[0], from: 'zu-validieren', to: 'abgelehnt', note: 'Abgelehnt - keine Vollmacht' }
+                { date: daysAgo(10).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Validiert - Bereit für Export' }
             ]
         };
 
@@ -432,23 +430,24 @@ ERGO Maklerservice`
         };
 
         // ============================================
-        // FALL 7: Angefragt - BU
+        // FALL 7: Export-Bereit - BU
         // ============================================
         cases['case-007'] = {
             id: 'case-007',
             createdAt: daysAgo(10),
-            updatedAt: daysAgo(10),
+            updatedAt: daysAgo(5),
             kunde: { name: "Hoffmann, Laura", source: "auto", confidence: 0.96 },
             versicherungsnummer: { value: "ERG-8876543", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.05.2026", source: "auto", confidence: 0.94 },
-            status: 'zu-validieren',
+            status: 'export-bereit',
             sparte: 'BU',
             makler: MAKLER[6],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(10),
                 mailUploaded: daysAgo(9),
-                kiRecognized: daysAgo(9)
+                kiRecognized: daysAgo(9),
+                pvValidated: daysAgo(5)
             },
             messages: [
                 {
@@ -473,28 +472,30 @@ Versicherungsmakler`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(10).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
+                { date: daysAgo(10).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(5).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Validiert - Bereit für Export' }
             ]
         };
 
         // ============================================
-        // FALL 8: Angefragt - Wohngebäude
+        // FALL 8: Export-Bereit - Wohngebäude
         // ============================================
         cases['case-008'] = {
             id: 'case-008',
             createdAt: daysAgo(8),
-            updatedAt: daysAgo(8),
+            updatedAt: daysAgo(3),
             kunde: { name: "Berger, Thorsten", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-1123456", source: "auto", confidence: 0.97 },
             gueltigkeitsdatum: { value: "01.03.2026", source: "auto", confidence: 0.92 },
-            status: 'zu-validieren',
+            status: 'export-bereit',
             sparte: 'Wohngebäude',
             makler: MAKLER[7],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(8),
                 mailUploaded: daysAgo(7),
-                kiRecognized: daysAgo(7)
+                kiRecognized: daysAgo(7),
+                pvValidated: daysAgo(3)
             },
             messages: [
                 {
@@ -517,7 +518,8 @@ Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(8).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
+                { date: daysAgo(8).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(3).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Validiert - Bereit für Export' }
             ]
         };
 
