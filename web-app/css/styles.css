@@ -657,6 +657,15 @@ body {
     color: white;
 }
 
+.btn-success {
+    background: var(--workflow-completed);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #16a34a;
+}
+
 .btn-warning:hover {
     background: #ea580c;
 }
