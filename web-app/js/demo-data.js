@@ -6,14 +6,28 @@
 const DemoData = (function() {
     'use strict';
 
-    // Makler mit Ansprechpartner-Namen
+    // 20 Einzelmakler (individuelle Versicherungsmakler)
     const MAKLER = [
-        { name: "Thomas Meier", firma: "Versicherungsbüro Meier GmbH", email: "t.meier@vb-meier.de" },
-        { name: "Sandra Schmidt", firma: "Schmidt & Partner Finanzberatung", email: "s.schmidt@schmidt-partner.de" },
-        { name: "Michael Hofmann", firma: "Assekuranz Hofmann", email: "m.hofmann@hofmann-assekuranz.de" },
-        { name: "Julia Wagner", firma: "Finanzkonzepte Wagner", email: "j.wagner@fk-wagner.de" },
-        { name: "Andreas Krause", firma: "Maklerbüro Krause", email: "a.krause@makler-krause.de" },
-        { name: "Petra Becker", firma: "Becker Versicherungsmakler", email: "p.becker@becker-makler.de" }
+        { name: "Thomas Meier", email: "t.meier@makler-meier.de" },
+        { name: "Sandra Schmidt", email: "s.schmidt@schmidt-versicherungen.de" },
+        { name: "Michael Hofmann", email: "m.hofmann@hofmann-makler.de" },
+        { name: "Julia Wagner", email: "j.wagner@wagner-finanz.de" },
+        { name: "Andreas Krause", email: "a.krause@krause-makler.de" },
+        { name: "Petra Becker", email: "p.becker@becker-versicherung.de" },
+        { name: "Frank Richter", email: "f.richter@richter-makler.de" },
+        { name: "Claudia Wolf", email: "c.wolf@wolf-versicherungen.de" },
+        { name: "Martin Neumann", email: "m.neumann@neumann-finanz.de" },
+        { name: "Anna Schwarz", email: "a.schwarz@schwarz-makler.de" },
+        { name: "Stefan Zimmermann", email: "s.zimmermann@zimmermann-versicherung.de" },
+        { name: "Martina Koch", email: "m.koch@koch-makler.de" },
+        { name: "Nicole Krüger", email: "n.krueger@krueger-finanz.de" },
+        { name: "Daniel Hartmann", email: "d.hartmann@hartmann-makler.de" },
+        { name: "Karin Schulz", email: "k.schulz@schulz-versicherungen.de" },
+        { name: "Christian Bauer", email: "c.bauer@bauer-makler.de" },
+        { name: "Susanne Lang", email: "s.lang@lang-finanz.de" },
+        { name: "Markus Friedrich", email: "m.friedrich@friedrich-makler.de" },
+        { name: "Elisabeth Vogt", email: "e.vogt@vogt-versicherung.de" },
+        { name: "Robert Lehmann", email: "r.lehmann@lehmann-makler.de" }
     ];
 
     const SPARTEN = ["KFZ", "Leben", "Kranken", "Haftpflicht", "Hausrat", "Rechtsschutz", "Unfall", "BU", "Wohngebäude", "Rente"];
@@ -77,7 +91,7 @@ Die unterschriebene Maklervollmacht liegt vor und ist diesem Schreiben beigefüg
 
 Mit freundlichen Grüßen
 Thomas Meier
-Versicherungsbüro Meier GmbH`
+Versicherungsmakler`
                 },
                 {
                     entryID: 'msg-001-b',
@@ -141,7 +155,7 @@ Vollmacht anbei.
 
 Mit freundlichen Grüßen
 Sandra Schmidt
-Schmidt & Partner Finanzberatung`
+Versicherungsmaklerin`
                 },
                 {
                     entryID: 'msg-002-b',
@@ -202,7 +216,7 @@ Maklervollmacht liegt bei.
 
 Freundliche Grüße
 Michael Hofmann
-Assekuranz Hofmann`
+Versicherungsmakler`
                 },
                 {
                     entryID: 'msg-003-b',
@@ -266,7 +280,7 @@ Sparte: Kranken
 Vollmacht anbei.
 
 Julia Wagner
-Finanzkonzepte Wagner`
+Versicherungsmaklerin`
                 },
                 {
                     entryID: 'msg-004-b',
@@ -329,7 +343,7 @@ Vollmacht folgt per Post.
 
 Mit freundlichen Grüßen
 Andreas Krause
-Maklerbüro Krause`
+Versicherungsmakler`
                 },
                 {
                     entryID: 'msg-005-b',
@@ -393,7 +407,7 @@ Wirksam ab: 01.02.2026
 Vollmacht im Anhang.
 
 Petra Becker
-Becker Versicherungsmakler`
+Versicherungsmaklerin`
                 },
                 {
                     entryID: 'msg-006-b',
@@ -429,7 +443,7 @@ ERGO Maklerservice`
             gueltigkeitsdatum: { value: "01.05.2026", source: "auto", confidence: 0.94 },
             status: 'angefragt',
             sparte: 'BU',
-            makler: MAKLER[0],
+            makler: MAKLER[6],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(10),
@@ -441,7 +455,7 @@ ERGO Maklerservice`
                     entryID: 'msg-007-a',
                     folder: 'sent',
                     subject: 'Bestandsübertragung Hoffmann BU-Versicherung',
-                    senderEmail: MAKLER[0].email,
+                    senderEmail: MAKLER[6].email,
                     receivedTime: daysAgo(10),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
@@ -454,8 +468,8 @@ Sparte: Berufsunfähigkeit
 Maklervollmacht liegt bei.
 
 Mit freundlichen Grüßen
-Thomas Meier
-Versicherungsbüro Meier GmbH`
+Frank Richter
+Versicherungsmakler`
                 }
             ],
             statusHistory: [
@@ -470,12 +484,12 @@ Versicherungsbüro Meier GmbH`
             id: 'case-008',
             createdAt: daysAgo(8),
             updatedAt: daysAgo(8),
-            kunde: { name: "Richter, Frank", source: "auto", confidence: 0.98 },
+            kunde: { name: "Berger, Thorsten", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-1123456", source: "auto", confidence: 0.97 },
             gueltigkeitsdatum: { value: "01.03.2026", source: "auto", confidence: 0.92 },
             status: 'angefragt',
             sparte: 'Wohngebäude',
-            makler: MAKLER[1],
+            makler: MAKLER[7],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(8),
@@ -486,20 +500,20 @@ Versicherungsbüro Meier GmbH`
                 {
                     entryID: 'msg-008-a',
                     folder: 'sent',
-                    subject: 'Übertragung Wohngebäudeversicherung Richter',
-                    senderEmail: MAKLER[1].email,
+                    subject: 'Übertragung Wohngebäudeversicherung Berger',
+                    senderEmail: MAKLER[7].email,
                     receivedTime: daysAgo(8),
                     bodyPlain: `Guten Tag,
 
-für unseren Kunden Frank Richter beantragen wir die Übertragung der Wohngebäudeversicherung.
+für meinen Kunden Thorsten Berger beantrage ich die Übertragung der Wohngebäudeversicherung.
 
 Vertragsnummer: ERG-1123456
 Gewünschtes Übertragungsdatum: 01.03.2026
 
 Vollmacht anbei.
 
-Sandra Schmidt
-Schmidt & Partner Finanzberatung`
+Claudia Wolf
+Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
@@ -514,12 +528,12 @@ Schmidt & Partner Finanzberatung`
             id: 'case-009',
             createdAt: daysAgo(6),
             updatedAt: daysAgo(6),
-            kunde: { name: "Wolf, Claudia", source: "auto", confidence: 0.95 },
+            kunde: { name: "Lorenz, Simone", source: "auto", confidence: 0.95 },
             versicherungsnummer: { value: "ERG-5543210", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.90 },
             status: 'angefragt',
             sparte: 'Unfall',
-            makler: MAKLER[2],
+            makler: MAKLER[8],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(6),
@@ -530,20 +544,20 @@ Schmidt & Partner Finanzberatung`
                 {
                     entryID: 'msg-009-a',
                     folder: 'sent',
-                    subject: 'Bestandsübertragung Wolf Unfallversicherung',
-                    senderEmail: MAKLER[2].email,
+                    subject: 'Bestandsübertragung Lorenz Unfallversicherung',
+                    senderEmail: MAKLER[8].email,
                     receivedTime: daysAgo(6),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-wir beantragen die Übertragung der Unfallversicherung für Claudia Wolf.
+ich beantrage die Übertragung der Unfallversicherung für Simone Lorenz.
 
 Versicherungsnummer: ERG-5543210
 Übertragung zum: 15.02.2026
 
 Maklervollmacht im Anhang.
 
-Michael Hofmann
-Assekuranz Hofmann`
+Martin Neumann
+Versicherungsmakler`
                 }
             ],
             statusHistory: [
@@ -558,12 +572,12 @@ Assekuranz Hofmann`
             id: 'case-010',
             createdAt: daysAgo(5),
             updatedAt: daysAgo(5),
-            kunde: { name: "Neumann, Martin", source: "auto", confidence: 0.97 },
+            kunde: { name: "Werner, Patrick", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-7765432", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.04.2026", source: "auto", confidence: 0.93 },
             status: 'angefragt',
             sparte: 'Rente',
-            makler: MAKLER[3],
+            makler: MAKLER[9],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(5),
@@ -574,12 +588,12 @@ Assekuranz Hofmann`
                 {
                     entryID: 'msg-010-a',
                     folder: 'sent',
-                    subject: 'Antrag Bestandsübertragung Neumann Rentenversicherung',
-                    senderEmail: MAKLER[3].email,
+                    subject: 'Antrag Bestandsübertragung Werner Rentenversicherung',
+                    senderEmail: MAKLER[9].email,
                     receivedTime: daysAgo(5),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-hiermit beantragen wir die Bestandsübertragung für Martin Neumann.
+hiermit beantrage ich die Bestandsübertragung für Patrick Werner.
 
 VS-Nr: ERG-7765432
 Produkt: Rentenversicherung
@@ -587,8 +601,8 @@ Produkt: Rentenversicherung
 
 Die Vollmacht ist beigefügt.
 
-Julia Wagner
-Finanzkonzepte Wagner`
+Anna Schwarz
+Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
@@ -603,12 +617,12 @@ Finanzkonzepte Wagner`
             id: 'case-011',
             createdAt: daysAgo(2),
             updatedAt: daysAgo(2),
-            kunde: { name: "Schwarz, Anna", source: "manual", confidence: 1.0 },
+            kunde: { name: "Franke, Birgit", source: "manual", confidence: 1.0 },
             versicherungsnummer: { value: "ERG-4432109", source: "manual", confidence: 1.0 },
             gueltigkeitsdatum: { value: "01.06.2026", source: "manual", confidence: 1.0 },
             status: 'neu',
             sparte: 'KFZ',
-            makler: MAKLER[4],
+            makler: MAKLER[10],
             notes: "Kunde muss Vollmacht noch unterschreiben",
             workflow: {},
             messages: [],
@@ -624,12 +638,12 @@ Finanzkonzepte Wagner`
             id: 'case-012',
             createdAt: daysAgo(1),
             updatedAt: daysAgo(1),
-            kunde: { name: "Zimmermann, Stefan", source: "manual", confidence: 1.0 },
+            kunde: { name: "Seidel, Ralf", source: "manual", confidence: 1.0 },
             versicherungsnummer: { value: "ERG-9912345", source: "manual", confidence: 1.0 },
             gueltigkeitsdatum: { value: "01.07.2026", source: "manual", confidence: 1.0 },
             status: 'neu',
             sparte: 'Leben',
-            makler: MAKLER[5],
+            makler: MAKLER[11],
             notes: "",
             workflow: {},
             messages: [],
@@ -650,7 +664,7 @@ Finanzkonzepte Wagner`
             gueltigkeitsdatum: { value: "01.01.2026", source: "auto", confidence: 0.95 },
             status: 'bestaetigt',
             sparte: 'Kranken',
-            makler: MAKLER[0],
+            makler: MAKLER[12],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(35),
@@ -663,18 +677,18 @@ Finanzkonzepte Wagner`
                     entryID: 'msg-013-a',
                     folder: 'sent',
                     subject: 'Übertragung Krankenversicherung Koch',
-                    senderEmail: MAKLER[0].email,
+                    senderEmail: MAKLER[12].email,
                     receivedTime: daysAgo(35),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-bitte übertragen Sie die Krankenversicherung ERG-6678901 von Martina Koch in unseren Bestand.
+bitte übertragen Sie die Krankenversicherung ERG-6678901 von Martina Koch in meinen Bestand.
 
 Gewünschter Termin: 01.01.2026
 
 Vollmacht anbei.
 
-Thomas Meier
-Versicherungsbüro Meier GmbH`
+Martina Koch
+Versicherungsmaklerin`
                 },
                 {
                     entryID: 'msg-013-b',
@@ -682,7 +696,7 @@ Versicherungsbüro Meier GmbH`
                     subject: 'Bestätigung: Übertragung Koch',
                     senderEmail: 'maklerservice@ergo.de',
                     receivedTime: daysAgo(22),
-                    bodyPlain: `Sehr geehrter Herr Meier,
+                    bodyPlain: `Sehr geehrte Frau Koch,
 
 die Bestandsübertragung für Martina Koch (ERG-6678901) wurde bestätigt.
 
@@ -709,7 +723,7 @@ ERGO Maklerservice`
             gueltigkeitsdatum: { value: "01.03.2026", source: "auto", confidence: 0.91 },
             status: 'angefragt',
             sparte: 'KFZ',
-            makler: MAKLER[1],
+            makler: MAKLER[13],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(4),
@@ -721,18 +735,18 @@ ERGO Maklerservice`
                     entryID: 'msg-014-a',
                     folder: 'sent',
                     subject: 'Bestandsübertragung KFZ Krüger ERG-3321098',
-                    senderEmail: MAKLER[1].email,
+                    senderEmail: MAKLER[13].email,
                     receivedTime: daysAgo(4),
                     bodyPlain: `Guten Tag,
 
-wir beantragen die Übertragung des KFZ-Vertrags ERG-3321098 für Nicole Krüger.
+ich beantrage die Übertragung des KFZ-Vertrags ERG-3321098 für Nicole Krüger.
 
 Übertragung zum 01.03.2026.
 
 Vollmacht im Anhang.
 
-Sandra Schmidt
-Schmidt & Partner Finanzberatung`
+Daniel Hartmann
+Versicherungsmakler`
                 }
             ],
             statusHistory: [
@@ -747,12 +761,12 @@ Schmidt & Partner Finanzberatung`
             id: 'case-015',
             createdAt: daysAgo(18),
             updatedAt: daysAgo(6),
-            kunde: { name: "Hartmann, Daniel", source: "auto", confidence: 0.97 },
+            kunde: { name: "Roth, Alexander", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-2210987", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.01.2026", source: "auto", confidence: 0.94 },
             status: 'in-bearbeitung',
             sparte: 'Hausrat',
-            makler: MAKLER[2],
+            makler: MAKLER[14],
             notes: "Prüfung der Vollmacht läuft",
             workflow: {
                 mailReceived: daysAgo(18),
@@ -764,29 +778,30 @@ Schmidt & Partner Finanzberatung`
                 {
                     entryID: 'msg-015-a',
                     folder: 'sent',
-                    subject: 'Antrag Bestandsübertragung Hartmann',
-                    senderEmail: MAKLER[2].email,
+                    subject: 'Antrag Bestandsübertragung Roth',
+                    senderEmail: MAKLER[14].email,
                     receivedTime: daysAgo(18),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-für Daniel Hartmann beantragen wir die Übertragung der Hausratversicherung.
+für Alexander Roth beantrage ich die Übertragung der Hausratversicherung.
 
 Vertrag: ERG-2210987
 Datum: 15.01.2026
 
 Vollmacht liegt bei.
 
-Michael Hofmann`
+Karin Schulz
+Versicherungsmaklerin`
                 },
                 {
                     entryID: 'msg-015-b',
                     folder: 'inbox',
-                    subject: 'Bearbeitung Bestandsübertragung Hartmann',
+                    subject: 'Bearbeitung Bestandsübertragung Roth',
                     senderEmail: 'maklerservice@ergo.de',
                     receivedTime: daysAgo(8),
-                    bodyPlain: `Sehr geehrter Herr Hofmann,
+                    bodyPlain: `Sehr geehrte Frau Schulz,
 
-Ihr Antrag für Daniel Hartmann (ERG-2210987) wird derzeit geprüft.
+Ihr Antrag für Alexander Roth (ERG-2210987) wird derzeit geprüft.
 
 Wir melden uns bei Rückfragen.
 
@@ -806,12 +821,12 @@ ERGO Maklerservice`
             id: 'case-016',
             createdAt: daysAgo(40),
             updatedAt: daysAgo(25),
-            kunde: { name: "Schulz, Karin", source: "auto", confidence: 0.98 },
+            kunde: { name: "Schenk, Oliver", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-8809876", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.12.2025", source: "auto", confidence: 0.96 },
             status: 'bestaetigt',
             sparte: 'Haftpflicht',
-            makler: MAKLER[3],
+            makler: MAKLER[15],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(40),
@@ -825,12 +840,12 @@ ERGO Maklerservice`
                 {
                     entryID: 'msg-016-a',
                     folder: 'sent',
-                    subject: 'Übertragung Haftpflicht Schulz',
-                    senderEmail: MAKLER[3].email,
+                    subject: 'Übertragung Haftpflicht Schenk',
+                    senderEmail: MAKLER[15].email,
                     receivedTime: daysAgo(40),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-ich beantrage die Bestandsübertragung für Karin Schulz.
+ich beantrage die Bestandsübertragung für Oliver Schenk.
 
 VS-Nr: ERG-8809876
 Sparte: Haftpflicht
@@ -838,17 +853,18 @@ Sparte: Haftpflicht
 
 Vollmacht anbei.
 
-Julia Wagner`
+Christian Bauer
+Versicherungsmakler`
                 },
                 {
                     entryID: 'msg-016-b',
                     folder: 'inbox',
-                    subject: 'AW: Übertragung Haftpflicht Schulz',
+                    subject: 'AW: Übertragung Haftpflicht Schenk',
                     senderEmail: 'maklerservice@ergo.de',
                     receivedTime: daysAgo(28),
-                    bodyPlain: `Sehr geehrte Frau Wagner,
+                    bodyPlain: `Sehr geehrter Herr Bauer,
 
-die Bestandsübertragung für Karin Schulz, Vertrag ERG-8809876, wurde genehmigt.
+die Bestandsübertragung für Oliver Schenk, Vertrag ERG-8809876, wurde genehmigt.
 
 Wirksam ab: 01.12.2025
 
@@ -873,7 +889,7 @@ ERGO Maklerservice`
             gueltigkeitsdatum: { value: "01.05.2026", source: "auto", confidence: 0.92 },
             status: 'angefragt',
             sparte: 'Leben',
-            makler: MAKLER[4],
+            makler: MAKLER[16],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(3),
@@ -885,18 +901,18 @@ ERGO Maklerservice`
                     entryID: 'msg-017-a',
                     folder: 'sent',
                     subject: 'Bestandsübertragung Bauer Lebensversicherung',
-                    senderEmail: MAKLER[4].email,
+                    senderEmail: MAKLER[16].email,
                     receivedTime: daysAgo(3),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-wir beantragen die Übertragung der Lebensversicherung ERG-1198765 für Christian Bauer.
+ich beantrage die Übertragung der Lebensversicherung ERG-1198765 für Christian Bauer.
 
 Termin: 01.05.2026
 
 Maklervollmacht anbei.
 
-Andreas Krause
-Maklerbüro Krause`
+Susanne Lang
+Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
@@ -911,12 +927,12 @@ Maklerbüro Krause`
             id: 'case-018',
             createdAt: daysAgo(30),
             updatedAt: daysAgo(15),
-            kunde: { name: "Lang, Susanne", source: "auto", confidence: 0.93 },
+            kunde: { name: "Kraft, Melanie", source: "auto", confidence: 0.93 },
             versicherungsnummer: { value: "ERG-4487654", source: "auto", confidence: 0.96 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.89 },
             status: 'abgelehnt',
             sparte: 'Unfall',
-            makler: MAKLER[5],
+            makler: MAKLER[17],
             notes: "Kunde hat Übertragung widerrufen",
             workflow: {
                 mailReceived: daysAgo(30),
@@ -928,29 +944,30 @@ Maklerbüro Krause`
                 {
                     entryID: 'msg-018-a',
                     folder: 'sent',
-                    subject: 'Übertragungsantrag Lang Unfallversicherung',
-                    senderEmail: MAKLER[5].email,
+                    subject: 'Übertragungsantrag Kraft Unfallversicherung',
+                    senderEmail: MAKLER[17].email,
                     receivedTime: daysAgo(30),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-für Susanne Lang beantragen wir die Übertragung der Unfallversicherung.
+für Melanie Kraft beantrage ich die Übertragung der Unfallversicherung.
 
 VS-Nr: ERG-4487654
 Termin: 01.02.2026
 
 Vollmacht liegt bei.
 
-Petra Becker`
+Markus Friedrich
+Versicherungsmakler`
                 },
                 {
                     entryID: 'msg-018-b',
                     folder: 'inbox',
-                    subject: 'Stornierung Bestandsübertragung Lang',
+                    subject: 'Stornierung Bestandsübertragung Kraft',
                     senderEmail: 'maklerservice@ergo.de',
                     receivedTime: daysAgo(18),
-                    bodyPlain: `Sehr geehrte Frau Becker,
+                    bodyPlain: `Sehr geehrter Herr Friedrich,
 
-die Bestandsübertragung für Susanne Lang (ERG-4487654) wurde auf Wunsch der Kundin storniert.
+die Bestandsübertragung für Melanie Kraft (ERG-4487654) wurde auf Wunsch der Kundin storniert.
 
 Die Kundin hat ihre Maklervollmacht widerrufen.
 
@@ -970,12 +987,12 @@ ERGO Maklerservice`
             id: 'case-019',
             createdAt: daysAgo(1),
             updatedAt: daysAgo(1),
-            kunde: { name: "Friedrich, Markus", source: "manual", confidence: 1.0 },
+            kunde: { name: "Engel, Tanja", source: "manual", confidence: 1.0 },
             versicherungsnummer: { value: "ERG-7776543", source: "manual", confidence: 1.0 },
             gueltigkeitsdatum: { value: "01.08.2026", source: "manual", confidence: 1.0 },
             status: 'neu',
             sparte: 'Rechtsschutz',
-            makler: MAKLER[0],
+            makler: MAKLER[18],
             notes: "Vollmacht wird per Post erwartet",
             workflow: {},
             messages: [],
@@ -996,7 +1013,7 @@ ERGO Maklerservice`
             gueltigkeitsdatum: { value: "01.04.2026", source: "auto", confidence: 0.93 },
             status: 'angefragt',
             sparte: 'Wohngebäude',
-            makler: MAKLER[1],
+            makler: MAKLER[19],
             notes: "",
             workflow: {
                 mailReceived: daysAgo(7),
@@ -1008,11 +1025,11 @@ ERGO Maklerservice`
                     entryID: 'msg-020-a',
                     folder: 'sent',
                     subject: 'Antrag Bestandsübertragung Vogt Wohngebäude',
-                    senderEmail: MAKLER[1].email,
+                    senderEmail: MAKLER[19].email,
                     receivedTime: daysAgo(7),
                     bodyPlain: `Sehr geehrte Damen und Herren,
 
-hiermit beantragen wir die Übertragung der Wohngebäudeversicherung für Elisabeth Vogt.
+hiermit beantrage ich die Übertragung der Wohngebäudeversicherung für Elisabeth Vogt.
 
 Vertragsnummer: ERG-5565432
 Übertragung zum: 01.04.2026
@@ -1020,8 +1037,8 @@ Vertragsnummer: ERG-5565432
 Die Maklervollmacht ist beigefügt.
 
 Mit freundlichen Grüßen
-Sandra Schmidt
-Schmidt & Partner Finanzberatung`
+Robert Lehmann
+Versicherungsmakler`
                 }
             ],
             statusHistory: [

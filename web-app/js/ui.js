@@ -52,21 +52,22 @@ const UI = (function() {
             maklerNavCount: document.getElementById('maklerNavCount'),
             emailsNavCount: document.getElementById('emailsNavCount'),
 
-            // Dashboard KPIs
+            // Dashboard KPIs - Workflow-basiert
             kpiTotal: document.getElementById('kpiTotal'),
-            kpiBestaetigt: document.getElementById('kpiBestaetigt'),
-            kpiAbgelehnt: document.getElementById('kpiAbgelehnt'),
-            kpiOffen: document.getElementById('kpiOffen'),
+            kpiMailReceived: document.getElementById('kpiMailReceived'),
+            kpiMailReceivedPct: document.getElementById('kpiMailReceivedPct'),
+            kpiKiRecognized: document.getElementById('kpiKiRecognized'),
+            kpiKiRecognizedPct: document.getElementById('kpiKiRecognizedPct'),
+            kpiPvValidated: document.getElementById('kpiPvValidated'),
+            kpiPvValidatedPct: document.getElementById('kpiPvValidatedPct'),
             kpiExportiert: document.getElementById('kpiExportiert'),
-            kpiBestaetPct: document.getElementById('kpiBestaetPct'),
-            kpiAbgelehntPct: document.getElementById('kpiAbgelehntPct'),
-            kpiOffenPct: document.getElementById('kpiOffenPct'),
             kpiExportiertPct: document.getElementById('kpiExportiertPct'),
 
             // Dashboard Charts
             statusBars: document.getElementById('statusBars'),
             topMaklerList: document.getElementById('topMaklerList'),
             spartenList: document.getElementById('spartenList'),
+            validationPendingCount: document.getElementById('validationPendingCount'),
             exportReadyCount: document.getElementById('exportReadyCount'),
             recentActivityBody: document.getElementById('recentActivityBody'),
 
@@ -127,37 +128,38 @@ const UI = (function() {
     }
 
     /**
-     * Dashboard KPIs rendern
+     * Dashboard KPIs rendern - Workflow-basiert
      */
     function renderDashboardKPIs(stats) {
         if (!stats) return;
 
         const total = stats.total || 0;
+        const wf = stats.byWorkflow || {};
 
-        // KPI Werte
+        // KPI Werte - Workflow-Schritte
         if (elements.kpiTotal) elements.kpiTotal.textContent = total;
-        if (elements.kpiBestaetigt) elements.kpiBestaetigt.textContent = stats.byStatus?.bestaetigt || 0;
-        if (elements.kpiAbgelehnt) elements.kpiAbgelehnt.textContent = stats.byStatus?.abgelehnt || 0;
-        if (elements.kpiOffen) {
-            const offen = (stats.byStatus?.neu || 0) + (stats.byStatus?.angefragt || 0) + (stats.byStatus?.['in-bearbeitung'] || 0);
-            elements.kpiOffen.textContent = offen;
-        }
-        if (elements.kpiExportiert) elements.kpiExportiert.textContent = stats.exportiert || 0;
+        if (elements.kpiMailReceived) elements.kpiMailReceived.textContent = wf.mailReceived || 0;
+        if (elements.kpiKiRecognized) elements.kpiKiRecognized.textContent = wf.kiRecognized || 0;
+        if (elements.kpiPvValidated) elements.kpiPvValidated.textContent = wf.pvValidated || 0;
+        if (elements.kpiExportiert) elements.kpiExportiert.textContent = wf.exported || 0;
 
         // Prozente
         if (total > 0) {
-            if (elements.kpiBestaetPct) elements.kpiBestaetPct.textContent = Math.round((stats.byStatus?.bestaetigt || 0) / total * 100) + '%';
-            if (elements.kpiAbgelehntPct) elements.kpiAbgelehntPct.textContent = Math.round((stats.byStatus?.abgelehnt || 0) / total * 100) + '%';
-            if (elements.kpiOffenPct) {
-                const offen = (stats.byStatus?.neu || 0) + (stats.byStatus?.angefragt || 0) + (stats.byStatus?.['in-bearbeitung'] || 0);
-                elements.kpiOffenPct.textContent = Math.round(offen / total * 100) + '%';
-            }
-            if (elements.kpiExportiertPct) elements.kpiExportiertPct.textContent = Math.round((stats.exportiert || 0) / total * 100) + '%';
+            if (elements.kpiMailReceivedPct) elements.kpiMailReceivedPct.textContent = Math.round((wf.mailReceived || 0) / total * 100) + '%';
+            if (elements.kpiKiRecognizedPct) elements.kpiKiRecognizedPct.textContent = Math.round((wf.kiRecognized || 0) / total * 100) + '%';
+            if (elements.kpiPvValidatedPct) elements.kpiPvValidatedPct.textContent = Math.round((wf.pvValidated || 0) / total * 100) + '%';
+            if (elements.kpiExportiertPct) elements.kpiExportiertPct.textContent = Math.round((wf.exported || 0) / total * 100) + '%';
         }
 
         // Export-bereit Count
         if (elements.exportReadyCount) {
             elements.exportReadyCount.textContent = stats.exportReady || 0;
+        }
+
+        // Validation-pending Count (KI erkannt aber nicht validiert)
+        if (elements.validationPendingCount) {
+            const pendingValidation = (wf.kiRecognized || 0) - (wf.pvValidated || 0);
+            elements.validationPendingCount.textContent = Math.max(0, pendingValidation);
         }
     }
 

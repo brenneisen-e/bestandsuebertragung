@@ -52,7 +52,7 @@
     <!-- VIEW: Dashboard -->
     <!-- ============================================ -->
     <section class="view active" id="view-dashboard">
-        <!-- KPI Cards -->
+        <!-- KPI Cards - Workflow-Schritte -->
         <div class="kpi-grid">
             <div class="kpi-card kpi-total">
                 <div class="kpi-icon">◉</div>
@@ -61,32 +61,32 @@
                     <div class="kpi-label">Vorgänge gesamt</div>
                 </div>
             </div>
-            <div class="kpi-card kpi-bestaetigt">
-                <div class="kpi-icon">●</div>
+            <div class="kpi-card kpi-mail-received">
+                <div class="kpi-icon">◉</div>
                 <div class="kpi-content">
-                    <div class="kpi-value" id="kpiBestaetigt">0</div>
-                    <div class="kpi-label">Bestätigt</div>
-                    <div class="kpi-percent" id="kpiBestaetPct">0%</div>
+                    <div class="kpi-value" id="kpiMailReceived">0</div>
+                    <div class="kpi-label">Mail erhalten</div>
+                    <div class="kpi-percent" id="kpiMailReceivedPct">0%</div>
                 </div>
             </div>
-            <div class="kpi-card kpi-abgelehnt">
-                <div class="kpi-icon">✕</div>
+            <div class="kpi-card kpi-ki-recognized">
+                <div class="kpi-icon">◈</div>
                 <div class="kpi-content">
-                    <div class="kpi-value" id="kpiAbgelehnt">0</div>
-                    <div class="kpi-label">Abgelehnt</div>
-                    <div class="kpi-percent" id="kpiAbgelehntPct">0%</div>
+                    <div class="kpi-value" id="kpiKiRecognized">0</div>
+                    <div class="kpi-label">Von KI erkannt</div>
+                    <div class="kpi-percent" id="kpiKiRecognizedPct">0%</div>
                 </div>
             </div>
-            <div class="kpi-card kpi-offen">
-                <div class="kpi-icon">◐</div>
+            <div class="kpi-card kpi-pv-validated">
+                <div class="kpi-icon">✓</div>
                 <div class="kpi-content">
-                    <div class="kpi-value" id="kpiOffen">0</div>
-                    <div class="kpi-label">Offen</div>
-                    <div class="kpi-percent" id="kpiOffenPct">0%</div>
+                    <div class="kpi-value" id="kpiPvValidated">0</div>
+                    <div class="kpi-label">Von PV validiert</div>
+                    <div class="kpi-percent" id="kpiPvValidatedPct">0%</div>
                 </div>
             </div>
             <div class="kpi-card kpi-exportiert">
-                <div class="kpi-icon">↑</div>
+                <div class="kpi-icon">↗</div>
                 <div class="kpi-content">
                     <div class="kpi-value" id="kpiExportiert">0</div>
                     <div class="kpi-label">Exportiert</div>
@@ -108,6 +108,14 @@
             <div class="dashboard-card">
                 <h3>Nach Sparte</h3>
                 <div class="sparten-list" id="spartenList"></div>
+            </div>
+            <div class="dashboard-card card-validation">
+                <h3>Offene Validierung</h3>
+                <p class="card-description">Von KI erkannte Vorgänge die noch validiert werden müssen.</p>
+                <div class="validation-count" id="validationPendingCount">0</div>
+                <button class="btn btn-secondary btn-large" id="validateAllBtn">
+                    <span class="icon">✓</span> Offene validieren
+                </button>
             </div>
             <div class="dashboard-card card-highlight">
                 <h3>Export-Bereit</h3>

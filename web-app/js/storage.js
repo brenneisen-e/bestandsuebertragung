@@ -263,7 +263,15 @@ const Storage = (function() {
                 abgelehnt: 0
             },
             exportiert: 0,
-            exportReady: 0
+            exportReady: 0,
+            // Workflow-Statistiken
+            byWorkflow: {
+                mailReceived: 0,
+                mailUploaded: 0,
+                kiRecognized: 0,
+                pvValidated: 0,
+                exported: 0
+            }
         };
 
         cases.forEach(c => {
@@ -281,6 +289,15 @@ const Storage = (function() {
             if ((c.status === 'bestaetigt' || c.status === 'abgelehnt') && (!c.exported || !c.exported.date)) {
                 stats.exportReady++;
             }
+
+            // Workflow-Schritte zählen
+            if (c.workflow) {
+                if (c.workflow.mailReceived) stats.byWorkflow.mailReceived++;
+                if (c.workflow.mailUploaded) stats.byWorkflow.mailUploaded++;
+                if (c.workflow.kiRecognized) stats.byWorkflow.kiRecognized++;
+                if (c.workflow.pvValidated) stats.byWorkflow.pvValidated++;
+                if (c.workflow.exported) stats.byWorkflow.exported++;
+            }
         });
 
         return stats;
@@ -295,6 +312,52 @@ const Storage = (function() {
             (c.status === 'bestaetigt' || c.status === 'abgelehnt') &&
             (!c.exported || !c.exported.date)
         );
+    }
+
+    /**
+     * Vorgänge die auf PV-Validierung warten (KI erkannt, aber nicht validiert)
+     */
+    function getPendingValidationCases() {
+        const cases = getCasesArray();
+        return cases.filter(c =>
+            c.workflow &&
+            c.workflow.kiRecognized &&
+            !c.workflow.pvValidated
+        );
+    }
+
+    /**
+     * Vorgang als validiert markieren
+     */
+    function markCaseValidated(caseId) {
+        const caseData = getCase(caseId);
+        if (!caseData) return false;
+
+        if (!caseData.workflow) caseData.workflow = {};
+        caseData.workflow.pvValidated = new Date().toISOString();
+
+        return saveCase(caseData);
+    }
+
+    /**
+     * Mehrere Vorgänge als validiert markieren
+     */
+    function markCasesValidated(caseIds) {
+        const cases = getCases();
+        const validationDate = new Date().toISOString();
+        let count = 0;
+
+        caseIds.forEach(id => {
+            if (cases[id]) {
+                if (!cases[id].workflow) cases[id].workflow = {};
+                cases[id].workflow.pvValidated = validationDate;
+                cases[id].updatedAt = validationDate;
+                count++;
+            }
+        });
+
+        saveCases(cases);
+        return count;
     }
 
     /**
@@ -619,6 +682,11 @@ const Storage = (function() {
         getSpartenStats,
         getAllEmails,
         getRecentActivity,
+
+        // Validierung
+        getPendingValidationCases,
+        markCaseValidated,
+        markCasesValidated,
 
         // Export
         getExportReadyCases,

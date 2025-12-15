@@ -52,6 +52,9 @@ const App = (function() {
             });
         });
 
+        // Dashboard: Validate All Button
+        document.getElementById('validateAllBtn')?.addEventListener('click', handleValidateAll);
+
         // Dashboard: Export Ready Button
         document.getElementById('exportReadyBtn')?.addEventListener('click', handleExportReady);
 
@@ -565,6 +568,26 @@ const App = (function() {
             } else {
                 UI.showToast('Fehler beim Löschen', 'error');
             }
+        }
+    }
+
+    /**
+     * Offene Validierung Button Handler
+     */
+    function handleValidateAll() {
+        const pendingCases = Storage.getPendingValidationCases();
+
+        if (pendingCases.length === 0) {
+            UI.showToast('Keine Vorgänge zur Validierung', 'info');
+            return;
+        }
+
+        if (confirm(`${pendingCases.length} Vorgänge als validiert markieren?`)) {
+            const caseIds = pendingCases.map(c => c.id);
+            const count = Storage.markCasesValidated(caseIds);
+
+            UI.showToast(`${count} Vorgänge erfolgreich validiert`, 'success');
+            refreshData();
         }
     }
 

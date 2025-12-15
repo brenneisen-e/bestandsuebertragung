@@ -197,10 +197,11 @@ body {
     color: var(--gray-600);
 }
 
+/* Workflow-basierte KPI Icons */
 .kpi-total .kpi-icon { background: var(--gray-800); color: white; }
-.kpi-bestaetigt .kpi-icon { background: #dcfce7; color: var(--status-bestaetigt); }
-.kpi-abgelehnt .kpi-icon { background: #fee2e2; color: var(--status-abgelehnt); }
-.kpi-offen .kpi-icon { background: #dbeafe; color: var(--status-angefragt); }
+.kpi-mail-received .kpi-icon { background: #dbeafe; color: #2563eb; }
+.kpi-ki-recognized .kpi-icon { background: #fef3c7; color: #d97706; }
+.kpi-pv-validated .kpi-icon { background: #dcfce7; color: var(--status-bestaetigt); }
 .kpi-exportiert .kpi-icon { background: #ede9fe; color: var(--status-exportiert); }
 
 .kpi-value {
@@ -269,6 +270,24 @@ body {
 }
 
 .export-ready-count {
+    font-size: 3rem;
+    font-weight: 700;
+    text-align: center;
+    margin: var(--spacing-md) 0;
+}
+
+/* Validation Card */
+.dashboard-card.card-validation {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.dashboard-card.card-validation h3 {
+    color: white;
+    border-color: rgba(255,255,255,0.2);
+}
+
+.validation-count {
     font-size: 3rem;
     font-weight: 700;
     text-align: center;
