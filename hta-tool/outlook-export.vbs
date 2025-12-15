@@ -16,16 +16,12 @@ Dim objOutlook, objNamespace
 Dim fso, outputFile
 Dim emailCount, outputPath
 
+' Globale Variable fuer ausgewaehltes Postfach
+Dim selectedMailbox
+
 ' Hauptprogramm
 Sub Main()
     Dim result
-
-    ' Einfacher Start-Dialog
-    result = MsgBox("Mail Export starten?", vbYesNo + vbQuestion, "Outlook Export")
-
-    If result <> vbYes Then
-        WScript.Quit
-    End If
 
     ' Mit Outlook verbinden
     If Not ConnectOutlook() Then
@@ -35,22 +31,67 @@ Sub Main()
         WScript.Quit
     End If
 
-    ' Speicherort festlegen (Desktop)
+    ' Postfach auswaehlen lassen
+    Set selectedMailbox = SelectMailbox()
+    If selectedMailbox Is Nothing Then
+        MsgBox "Abgebrochen.", vbInformation, "Export"
+        WScript.Quit
+    End If
+
+    ' Speicherort festlegen
     outputPath = GetSavePath()
 
-    ' E-Mails exportieren (nutzt Standard-Ordner)
-    If ExportEmailsFromDefaultFolders() Then
+    ' E-Mails exportieren
+    If ExportEmailsFromMailbox(selectedMailbox) Then
         MsgBox "Export erfolgreich!" & vbCrLf & vbCrLf & _
+            "Postfach: " & selectedMailbox.Name & vbCrLf & _
             "Exportierte E-Mails: " & emailCount & vbCrLf & _
             "Datei: " & outputPath & vbCrLf & vbCrLf & _
             "Sie koennen diese Datei nun in der Web-App importieren.", _
             vbInformation, "Export abgeschlossen"
     Else
         MsgBox "Export fehlgeschlagen oder keine E-Mails gefunden." & vbCrLf & vbCrLf & _
+            "Postfach: " & selectedMailbox.Name & vbCrLf & _
             "Betreff-Filter: " & SUBJECT_FILTER, _
             vbExclamation, "Exportergebnis"
     End If
 End Sub
+
+' Postfach-Auswahl Dialog
+Function SelectMailbox()
+    Dim folders, folder, i
+    Dim mailboxList, selection
+
+    Set SelectMailbox = Nothing
+    Set folders = objNamespace.Folders
+
+    ' Liste der Postfaecher erstellen
+    mailboxList = "Bitte Postfach-Nummer eingeben:" & vbCrLf & vbCrLf
+
+    For i = 1 To folders.Count
+        Set folder = folders.Item(i)
+        mailboxList = mailboxList & i & ". " & folder.Name & vbCrLf
+    Next
+
+    ' Benutzer nach Nummer fragen
+    selection = InputBox(mailboxList, "Postfach auswaehlen", "")
+
+    If selection = "" Then
+        Exit Function
+    End If
+
+    ' Auswahl validieren
+    On Error Resume Next
+    Dim num
+    num = CInt(selection)
+    If Err.Number <> 0 Or num < 1 Or num > folders.Count Then
+        MsgBox "Ungueltige Auswahl: " & selection, vbExclamation, "Fehler"
+        Exit Function
+    End If
+    On Error GoTo 0
+
+    Set SelectMailbox = folders.Item(num)
+End Function
 
 ' Mit Outlook verbinden
 Function ConnectOutlook()
@@ -73,10 +114,9 @@ Function ConnectOutlook()
     On Error GoTo 0
 End Function
 
-' E-Mails aus Postfach exportieren
-' Durchsucht erst das konfigurierte Postfach (Nr. 9), dann Default-Folders als Fallback
-Function ExportEmailsFromDefaultFolders()
-    Dim inbox, sentFolder, mailbox
+' E-Mails aus ausgewaehltem Postfach exportieren
+Function ExportEmailsFromMailbox(mailbox)
+    Dim inbox, sentFolder
     Dim inboxEmails, sentEmails
     Dim jsonContent
     Dim dateFrom, dateTo
@@ -88,52 +128,11 @@ Function ExportEmailsFromDefaultFolders()
 
     dateFrom = DateAdd("d", -DAYS_BACK, Date)
     dateTo = Date
-
-    ' Versuche zuerst Postfach Nr. 9 (konfiguriertes Postfach)
-    Set mailbox = Nothing
-    If objNamespace.Folders.Count >= 9 Then
-        Set mailbox = objNamespace.Folders.Item(9)
-    End If
+    mailboxName = mailbox.Name
 
     ' Posteingang und Gesendete aus dem Postfach holen
-    Set inbox = Nothing
-    Set sentFolder = Nothing
-
-    If Not mailbox Is Nothing Then
-        mailboxName = mailbox.Name
-        ' Posteingang finden
-        Set inbox = FindFolderInMailbox(mailbox, Array("Posteingang", "Inbox"))
-        ' Gesendete finden
-        Set sentFolder = FindFolderInMailbox(mailbox, Array("Gesendete Elemente", "Sent Items", "Gesendet"))
-    End If
-
-    ' Fallback: Standard-Ordner wenn kein Postfach gefunden
-    If inbox Is Nothing Then
-        Set inbox = objNamespace.GetDefaultFolder(6) ' olFolderInbox
-        If Err.Number <> 0 Then
-            Err.Clear
-            Set inbox = Nothing
-        End If
-    End If
-
-    If sentFolder Is Nothing Then
-        Set sentFolder = objNamespace.GetDefaultFolder(5) ' olFolderSentMail
-        If Err.Number <> 0 Then
-            Err.Clear
-            Set sentFolder = Nothing
-        End If
-    End If
-
-    ' Postfach-Name ermitteln
-    If mailboxName = "" Then
-        If Not inbox Is Nothing Then
-            mailboxName = inbox.Parent.Name
-        ElseIf Not sentFolder Is Nothing Then
-            mailboxName = sentFolder.Parent.Name
-        Else
-            mailboxName = "Unbekannt"
-        End If
-    End If
+    Set inbox = FindFolderInMailbox(mailbox, Array("Posteingang", "Inbox"))
+    Set sentFolder = FindFolderInMailbox(mailbox, Array("Gesendete Elemente", "Sent Items", "Gesendet"))
 
     ' E-Mails sammeln
     emailCount = 0
@@ -150,7 +149,7 @@ Function ExportEmailsFromDefaultFolders()
 
     ' Pruefen ob E-Mails gefunden
     If emailCount = 0 Then
-        ExportEmailsFromDefaultFolders = False
+        ExportEmailsFromMailbox = False
         Exit Function
     End If
 
@@ -183,7 +182,7 @@ Function ExportEmailsFromDefaultFolders()
     Set binaryStream = Nothing
     Set stream = Nothing
 
-    ExportEmailsFromDefaultFolders = True
+    ExportEmailsFromMailbox = True
 
     On Error GoTo 0
 End Function
