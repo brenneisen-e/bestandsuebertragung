@@ -52,6 +52,9 @@ const App = (function() {
             });
         });
 
+        // Dashboard: Show Incomplete Cases Button
+        document.getElementById('showIncompleteBtn')?.addEventListener('click', handleShowIncomplete);
+
         // Dashboard: Validate All Button
         document.getElementById('validateAllBtn')?.addEventListener('click', handleValidateAll);
 
@@ -606,6 +609,31 @@ const App = (function() {
                 UI.showToast('Fehler beim Löschen', 'error');
             }
         }
+    }
+
+    /**
+     * Unvollständige Vorgänge anzeigen - wechselt zu Vorgänge mit Filter
+     */
+    function handleShowIncomplete() {
+        const incompleteCases = Storage.getIncompleteCases();
+
+        if (incompleteCases.length === 0) {
+            UI.showToast('Keine unvollständigen Vorgänge', 'info');
+            return;
+        }
+
+        // Zu Vorgänge-View wechseln
+        currentView = 'vorgaenge';
+        UI.switchView(currentView);
+
+        // Filter auf "unvollständig" setzen
+        const filterStatus = document.getElementById('filterStatus');
+        if (filterStatus) {
+            filterStatus.value = 'unvollstaendig';
+        }
+
+        refreshVorgaengeView();
+        UI.showToast(`${incompleteCases.length} unvollständige Vorgänge`, 'info');
     }
 
     /**

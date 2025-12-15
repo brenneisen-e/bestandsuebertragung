@@ -65,6 +65,7 @@ const UI = (function() {
 
             // Dashboard Charts
             spartenList: document.getElementById('spartenList'),
+            incompleteCount: document.getElementById('incompleteCount'),
             validationPendingCount: document.getElementById('validationPendingCount'),
             exportReadyCount: document.getElementById('exportReadyCount'),
             recentActivityBody: document.getElementById('recentActivityBody'),
@@ -169,10 +170,16 @@ const UI = (function() {
             elements.exportReadyCount.textContent = stats.exportReady || 0;
         }
 
-        // Validation-pending Count (KI erkannt aber nicht validiert)
+        // Validation-pending Count (KI erkannt aber nicht validiert, ohne unvollständige)
         if (elements.validationPendingCount) {
-            const pendingValidation = (wf.kiRecognized || 0) - (wf.pvValidated || 0);
-            elements.validationPendingCount.textContent = Math.max(0, pendingValidation);
+            const pendingCases = Storage.getPendingValidationCases();
+            elements.validationPendingCount.textContent = pendingCases.length;
+        }
+
+        // Incomplete Count (unvollständige Vorgänge)
+        if (elements.incompleteCount) {
+            const incompleteCases = Storage.getIncompleteCases();
+            elements.incompleteCount.textContent = incompleteCases.length;
         }
     }
 

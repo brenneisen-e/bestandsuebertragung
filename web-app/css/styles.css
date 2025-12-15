@@ -288,11 +288,16 @@ body {
     border-color: rgba(255,255,255,0.2);
 }
 
-.validation-count {
+.validation-count,
+.incomplete-count {
     font-size: 3rem;
     font-weight: 700;
     text-align: center;
     margin: var(--spacing-md) 0;
+}
+
+.incomplete-count {
+    color: var(--status-unvollstaendig);
 }
 
 /* Status Bars */
@@ -495,6 +500,15 @@ body {
 
 .btn-danger:hover {
     background: #dc2626;
+}
+
+.btn-warning {
+    background: var(--status-unvollstaendig);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #ea580c;
 }
 
 .btn-large {

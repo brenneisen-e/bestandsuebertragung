@@ -316,14 +316,24 @@ const Storage = (function() {
 
     /**
      * Vorgänge die auf PV-Validierung warten (KI erkannt, aber nicht validiert)
+     * Unvollständige Vorgänge müssen erst ergänzt werden
      */
     function getPendingValidationCases() {
         const cases = getCasesArray();
         return cases.filter(c =>
             c.workflow &&
             c.workflow.kiRecognized &&
-            !c.workflow.pvValidated
+            !c.workflow.pvValidated &&
+            c.status !== 'unvollstaendig'
         );
+    }
+
+    /**
+     * Unvollständige Vorgänge (fehlende Daten, müssen manuell ergänzt werden)
+     */
+    function getIncompleteCases() {
+        const cases = getCasesArray();
+        return cases.filter(c => c.status === 'unvollstaendig');
     }
 
     /**
@@ -709,6 +719,7 @@ const Storage = (function() {
 
         // Validierung
         getPendingValidationCases,
+        getIncompleteCases,
         markCaseValidated,
         markCasesValidated,
 
