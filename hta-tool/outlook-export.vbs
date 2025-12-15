@@ -97,61 +97,199 @@ Sub CollectEmails(folder, emails)
     Dim items, item, i, subFolder
     Dim dateFrom, receivedTime, subject
     Dim entryId, convId, sender, body, folderName, recTime
+    Dim itemClass
 
     dateFrom = DateAdd("d", -DAYS_BACK, Date)
 
     On Error Resume Next
     Set items = folder.Items
+    On Error GoTo 0
 
-    If Not items Is Nothing Then
-        For i = 1 To items.Count
-            If emailCount >= MAX_EMAILS Then Exit For
+    If items Is Nothing Then Exit Sub
 
-            Set item = items.Item(i)
+    For i = 1 To items.Count
+        If emailCount >= MAX_EMAILS Then Exit For
 
-            ' Nur Mail-Items (Class = 43)
-            If item.Class = 43 Then
-                receivedTime = item.ReceivedTime
+        On Error Resume Next
+        Set item = items.Item(i)
+        If Err.Number <> 0 Then
+            Err.Clear
+            On Error GoTo 0
+            GoTo NextItem
+        End If
+        On Error GoTo 0
 
-                ' Datum pruefen (heute eingeschlossen)
-                If receivedTime >= dateFrom Then
-                    subject = "" & item.Subject
+        ' Nur Mail-Items (Class = 43)
+        On Error Resume Next
+        itemClass = item.Class
+        On Error GoTo 0
+        If itemClass <> 43 Then GoTo NextItem
 
-                    ' Betreff-Filter pruefen
-                    If InStr(1, subject, SUBJECT_FILTER, vbTextCompare) > 0 Then
-                        ' Alle Werte VORHER in Variablen speichern
-                        entryId = "" & item.EntryID
-                        convId = GetConvID(item)
-                        sender = GetSender(item)
-                        body = TruncBody(item)
-                        folderName = "" & folder.Name
-                        recTime = FormatDateTime(receivedTime, vbGeneralDate)
+        On Error Resume Next
+        receivedTime = item.ReceivedTime
+        On Error GoTo 0
 
-                        emailCount = emailCount + 1
+        ' Datum pruefen
+        If receivedTime < dateFrom Then GoTo NextItem
 
-                        ' Als einzelne Strings speichern (kein Array)
-                        emails.Add "e" & emailCount & "_entryID", entryId
-                        emails.Add "e" & emailCount & "_convID", convId
-                        emails.Add "e" & emailCount & "_subject", CleanStr(subject)
-                        emails.Add "e" & emailCount & "_sender", sender
-                        emails.Add "e" & emailCount & "_time", recTime
-                        emails.Add "e" & emailCount & "_body", CleanStr(body)
-                        emails.Add "e" & emailCount & "_folder", folderName
-                    End If
+        On Error Resume Next
+        subject = "" & item.Subject
+        On Error GoTo 0
+
+        ' Betreff-Filter pruefen
+        If InStr(1, subject, SUBJECT_FILTER, vbTextCompare) = 0 Then GoTo NextItem
+
+        ' === ALLE WERTE EINZELN MIT ERROR HANDLING EXTRAHIEREN ===
+
+        ' EntryID
+        entryId = ""
+        On Error Resume Next
+        entryId = "" & item.EntryID
+        Err.Clear
+        On Error GoTo 0
+
+        ' ConversationID
+        convId = ""
+        On Error Resume Next
+        convId = "" & item.ConversationID
+        Err.Clear
+        On Error GoTo 0
+
+        ' Folder Name
+        folderName = ""
+        On Error Resume Next
+        folderName = "" & folder.Name
+        Err.Clear
+        On Error GoTo 0
+
+        ' ReceivedTime formatiert
+        recTime = ""
+        On Error Resume Next
+        recTime = FormatDateTime(receivedTime, vbGeneralDate)
+        Err.Clear
+        On Error GoTo 0
+
+        ' === BODY EXTRAHIEREN (mehrere Methoden) ===
+        body = ""
+        On Error Resume Next
+
+        ' Methode 1: Body direkt
+        body = item.Body
+        If Err.Number <> 0 Or Len(body) = 0 Then
+            Err.Clear
+            ' Methode 2: PlainBody (falls verfuegbar)
+            body = item.PlainBody
+        End If
+        If Err.Number <> 0 Or Len(body) = 0 Then
+            Err.Clear
+            ' Methode 3: HTMLBody -> Text (Fallback)
+            Dim htmlBody
+            htmlBody = item.HTMLBody
+            If Len(htmlBody) > 0 Then
+                body = StripHTML(htmlBody)
+            End If
+        End If
+        Err.Clear
+        On Error GoTo 0
+
+        If IsNull(body) Or IsEmpty(body) Then body = ""
+        body = "" & body
+        If Len(body) > MAX_BODY_LENGTH Then
+            body = Left(body, MAX_BODY_LENGTH) & " [...]"
+        End If
+
+        ' === SENDER EXTRAHIEREN (mehrere Methoden) ===
+        sender = ""
+        On Error Resume Next
+
+        ' Methode 1: SenderEmailAddress (SMTP)
+        If item.SenderEmailType <> "EX" Then
+            sender = "" & item.SenderEmailAddress
+        End If
+        Err.Clear
+
+        ' Methode 2: Exchange User -> SMTP
+        If Len(sender) = 0 Then
+            If Not item.Sender Is Nothing Then
+                Dim exchUser
+                Set exchUser = item.Sender.GetExchangeUser()
+                If Not exchUser Is Nothing Then
+                    sender = "" & exchUser.PrimarySmtpAddress
+                    Set exchUser = Nothing
                 End If
             End If
+        End If
+        Err.Clear
 
-            Set item = Nothing
-        Next
-    End If
+        ' Methode 3: PropertyAccessor (PR_SENDER_SMTP_ADDRESS)
+        If Len(sender) = 0 Then
+            sender = "" & item.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x5D01001F")
+        End If
+        Err.Clear
+
+        ' Methode 4: SenderEmailAddress als Fallback (auch EX-Adressen)
+        If Len(sender) = 0 Then
+            sender = "" & item.SenderEmailAddress
+        End If
+        Err.Clear
+
+        ' Methode 5: Reply Recipients
+        If Len(sender) = 0 Then
+            If item.ReplyRecipients.Count > 0 Then
+                sender = "" & item.ReplyRecipients.Item(1).Address
+            End If
+        End If
+        Err.Clear
+
+        On Error GoTo 0
+
+        ' === DATEN SPEICHERN ===
+        emailCount = emailCount + 1
+
+        emails.Add "e" & emailCount & "_entryID", entryId
+        emails.Add "e" & emailCount & "_convID", convId
+        emails.Add "e" & emailCount & "_subject", CleanStr(subject)
+        emails.Add "e" & emailCount & "_sender", CleanStr(sender)
+        emails.Add "e" & emailCount & "_time", recTime
+        emails.Add "e" & emailCount & "_body", CleanStr(body)
+        emails.Add "e" & emailCount & "_folder", folderName
+
+NextItem:
+        Set item = Nothing
+    Next
 
     ' Unterordner durchsuchen
+    On Error Resume Next
     For Each subFolder In folder.Folders
         CollectEmails subFolder, emails
     Next
-
     On Error GoTo 0
 End Sub
+
+' HTML-Tags entfernen (einfach)
+Function StripHTML(html)
+    Dim result, inTag
+    result = ""
+    inTag = False
+
+    Dim ch, j
+    For j = 1 To Len(html)
+        ch = Mid(html, j, 1)
+        If ch = "<" Then
+            inTag = True
+        ElseIf ch = ">" Then
+            inTag = False
+        ElseIf Not inTag Then
+            result = result & ch
+        End If
+    Next
+
+    ' Mehrfache Leerzeichen/Zeilenumbrueche reduzieren
+    result = Replace(result, vbCrLf & vbCrLf, vbCrLf)
+    result = Replace(result, "  ", " ")
+
+    StripHTML = Trim(result)
+End Function
 
 ' ConversationID holen
 Function GetConvID(item)
