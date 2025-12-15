@@ -9,7 +9,7 @@ Option Explicit
 Const MAX_EMAILS = 5000
 Const MAX_BODY_LENGTH = 10000
 Const TARGET_MAILBOX = "ebrenneisen@deloitte.de"
-Const SUBJECT_FILTER = "Demo Bestandsübertragung"
+Const SUBJECT_FILTER = "[EXT] Demo Bestandsübertragung"
 Const DAYS_BACK = 90
 
 ' Globale Variablen
