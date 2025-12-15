@@ -261,8 +261,13 @@ const UI = (function() {
                 const statusLabel = STATUS_LABELS[a.to] || a.to;
                 const statusIcon = STATUS_ICONS[a.to] || '○';
 
+                // Prüfen ob Aktivität neu ist (letzte 60 Minuten oder isNew Flag)
+                const activityDate = new Date(a.date);
+                const isNew = a.isNew || (Date.now() - activityDate.getTime() < 60 * 60 * 1000);
+                const newClass = isNew ? ' new-activity' : '';
+
                 html += `
-                    <tr class="clickable-row" data-case-id="${a.caseId}">
+                    <tr class="clickable-row${newClass}" data-case-id="${a.caseId}">
                         <td></td>
                         <td>${escapeHtml(a.kundeName)}</td>
                         <td>${escapeHtml(a.maklerName)}</td>
@@ -1283,12 +1288,31 @@ const UI = (function() {
     }
 
     /**
-     * Datum+Zeit formatieren
+     * Deutsches Datumsformat parsen (dd.mm.yyyy hh:nn:ss)
      */
+    function parseGermanDate(dateStr) {
+        if (!dateStr) return null;
+
+        // Bereits ein Date-Objekt oder ISO-String?
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) return d;
+
+        // Deutsches Format: "dd.mm.yyyy hh:nn:ss" oder "dd.mm.yyyy"
+        const match = dateStr.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+        if (match) {
+            const [, day, month, year, hour = '0', minute = '0', second = '0'] = match;
+            return new Date(year, month - 1, day, hour, minute, second);
+        }
+
+        return null;
+    }
+
     function formatDateTime(dateStr) {
         if (!dateStr) return '-';
         try {
-            const date = new Date(dateStr);
+            const date = parseGermanDate(dateStr);
+            if (!date || isNaN(date.getTime())) return '-';
+
             return date.toLocaleDateString('de-DE', {
                 day: '2-digit',
                 month: '2-digit',
@@ -1372,6 +1396,7 @@ const UI = (function() {
         // Hilfsfunktionen
         formatDate,
         formatDateTime,
+        parseGermanDate,
         escapeHtml,
 
         // Konstanten

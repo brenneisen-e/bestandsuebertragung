@@ -116,27 +116,26 @@ ERGO Maklerservice`
         };
 
         // ============================================
-        // FALL 2: Bestätigt & Exportiert - Leben
+        // FALL 2: Export-Bereit - Leben (Christine Weber)
+        // Import: 13.12., PV-Validierung: 14.12.
         // ============================================
         cases['case-002'] = {
             id: 'case-002',
-            createdAt: daysAgo(60),
-            updatedAt: daysAgo(40),
+            createdAt: daysAgo(2),  // 13.12.
+            updatedAt: daysAgo(1),  // 14.12.
             kunde: { name: "Weber, Christine", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-4512378", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.92 },
-            status: 'abgeschlossen',
+            status: 'export-bereit',
             sparte: 'Leben',
             makler: MAKLER[1],
             notes: "",
             workflow: {
-                mailReceived: daysAgo(60),
-                mailUploaded: daysAgo(59),
-                kiRecognized: daysAgo(59),
-                pvValidated: daysAgo(45),
-                exported: daysAgo(30)
+                mailReceived: daysAgo(60),       // Original-Mail vom 15.10.
+                mailUploaded: daysAgo(2),        // Import am 13.12.
+                kiRecognized: daysAgo(2),        // KI-Erkennung am 13.12.
+                pvValidated: daysAgo(1)          // PV-Validierung am 14.12.
             },
-            exported: { date: daysAgo(30), by: "Lisa Schmidt" },
             messages: [
                 {
                     entryID: 'msg-002-a',
@@ -162,7 +161,7 @@ Versicherungsmaklerin`
                     folder: 'inbox',
                     subject: 'AW: Antrag Bestandsübertragung Weber',
                     senderEmail: 'maklerservice@ergo.de',
-                    receivedTime: daysAgo(45),
+                    receivedTime: daysAgo(1),
                     bodyPlain: `Sehr geehrte Frau Schmidt,
 
 die Bestandsübertragung für Christine Weber, Vertrag ERG-4512378, wurde genehmigt.
@@ -174,8 +173,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(60).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
-                { date: daysAgo(45).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Bestätigt durch ERGO' }
+                { date: daysAgo(2).split('T')[0], from: null, to: 'zu-validieren', note: 'Importiert am 13.12.' },
+                { date: daysAgo(1).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'PV validiert am 14.12.' }
             ]
         };
 
