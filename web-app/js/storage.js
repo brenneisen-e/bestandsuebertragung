@@ -291,10 +291,13 @@ const Storage = (function() {
             }
 
             // Workflow-Schritte zählen
+            // KI erkannt = nur erfolgreich erkannte (nicht unvollständige)
             if (c.workflow) {
                 if (c.workflow.mailReceived) stats.byWorkflow.mailReceived++;
                 if (c.workflow.mailUploaded) stats.byWorkflow.mailUploaded++;
-                if (c.workflow.kiRecognized) stats.byWorkflow.kiRecognized++;
+                if (c.workflow.kiRecognized && c.status !== 'unvollstaendig') {
+                    stats.byWorkflow.kiRecognized++;
+                }
                 if (c.workflow.pvValidated) stats.byWorkflow.pvValidated++;
                 if (c.workflow.exported) stats.byWorkflow.exported++;
             }
