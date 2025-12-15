@@ -17,14 +17,11 @@
     --status-bearbeitung: #f59e0b;
     --status-bestaetigt: #22c55e;
     --status-abgelehnt: #ef4444;
-    --status-erledigt: #059669;
 
     /* UI Farben */
     --bg-primary: #ffffff;
     --bg-secondary: #f8fafc;
     --bg-tertiary: #f1f5f9;
-    --bg-warning: #fef3c7;
-    --bg-warning-border: #fcd34d;
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
@@ -168,17 +165,6 @@ h1, h2, h3, h4, h5, h6 {
     border-color: var(--border-dark);
 }
 
-.btn-outline {
-    background: transparent;
-    color: var(--text-secondary);
-    border-color: var(--border);
-}
-
-.btn-outline:hover:not(:disabled) {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-}
-
 .btn-danger {
     background: var(--status-abgelehnt);
     color: white;
@@ -190,122 +176,146 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================
-   Warning Section (Nicht zugeordnete Mails)
+   Stats Bar
    ============================================ */
-.warning-section {
-    background: var(--bg-warning);
-    border: 1px solid var(--bg-warning-border);
-    border-radius: var(--radius-md);
-    margin: var(--space-lg) var(--space-xl);
-    padding: var(--space-md);
-}
-
-.warning-header {
+.stats-bar {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-md) var(--space-xl);
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-md);
-    padding-bottom: var(--space-sm);
-    border-bottom: 1px solid var(--bg-warning-border);
+    gap: var(--space-xl);
 }
 
-.warning-icon {
-    color: var(--status-bearbeitung);
-    font-size: 1.25rem;
+.stat-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
 }
 
-.warning-title {
-    font-weight: 600;
+.stat-main .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
     color: var(--secondary);
 }
 
-.warning-count {
-    background: var(--status-bearbeitung);
-    color: white;
+.stat-main .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+}
+
+.stat-group {
+    display: flex;
+    gap: var(--space-lg);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.stat-item .stat-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.stat-item .stat-label {
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+}
+
+.stat-bestaetigt .stat-number { color: var(--status-bestaetigt); }
+.stat-abgelehnt .stat-number { color: var(--status-abgelehnt); }
+.stat-offen .stat-number { color: var(--status-angefragt); }
+
+/* ============================================
+   Tab Navigation
+   ============================================ */
+.tab-nav {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    padding: 0 var(--space-xl);
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.tab-btn {
+    padding: var(--space-md) var(--space-lg);
+    border: none;
+    background: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.tab-count {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
     font-size: 0.75rem;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 10px;
-    margin-left: auto;
 }
 
-.unassigned-mails {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.unassigned-mail-card {
-    background: white;
-    border-radius: var(--radius);
-    padding: var(--space-md);
-    display: flex;
-    gap: var(--space-md);
-    align-items: flex-start;
-    border: 1px solid var(--border);
-}
-
-.unassigned-mail-icon {
-    color: var(--status-angefragt);
-    font-size: 1.25rem;
-    flex-shrink: 0;
-}
-
-.unassigned-mail-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.unassigned-mail-subject {
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: var(--space-xs);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.unassigned-mail-meta {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    display: flex;
-    gap: var(--space-md);
-}
-
-.unassigned-mail-actions {
-    display: flex;
-    gap: var(--space-xs);
-    flex-shrink: 0;
+.tab-btn.active .tab-count {
+    background: var(--primary);
+    color: white;
 }
 
 /* ============================================
-   Filter Section
+   Tab Content
    ============================================ */
-.filter-section {
-    background: var(--bg-primary);
-    margin: var(--space-lg) var(--space-xl);
-    padding: var(--space-md);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border);
+.tab-content {
+    display: none;
+    padding: var(--space-lg) var(--space-xl);
 }
 
-.filter-row {
+.tab-content.active {
+    display: block;
+}
+
+/* ============================================
+   Toolbar
+   ============================================ */
+.toolbar {
     display: flex;
     gap: var(--space-md);
+    margin-bottom: var(--space-lg);
     flex-wrap: wrap;
-}
-
-.filter-row + .filter-row {
-    margin-top: var(--space-md);
-    padding-top: var(--space-md);
-    border-top: 1px solid var(--border);
+    align-items: center;
 }
 
 .search-box {
     flex: 1;
     min-width: 250px;
+    max-width: 400px;
     position: relative;
 }
 
@@ -332,12 +342,7 @@ h1, h2, h3, h4, h5, h6 {
     border-color: var(--primary);
 }
 
-.filter-group {
-    display: flex;
-    gap: var(--space-sm);
-}
-
-.filter-group select {
+.toolbar select {
     padding: var(--space-sm) var(--space-md);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -347,243 +352,194 @@ h1, h2, h3, h4, h5, h6 {
     min-width: 140px;
 }
 
-.filter-group select:focus {
+.toolbar select:focus {
     outline: none;
     border-color: var(--primary);
 }
 
-.filter-checkboxes {
-    display: flex;
-    gap: var(--space-lg);
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    cursor: pointer;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.checkbox-label input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--primary);
-    cursor: pointer;
-}
-
-.checkbox-label .icon {
-    margin-left: var(--space-xs);
-}
-
 /* ============================================
-   Stats Section
+   Data Tables
    ============================================ */
-.stats-section {
-    display: flex;
-    gap: var(--space-sm);
-    margin: var(--space-lg) var(--space-xl);
-    flex-wrap: wrap;
-}
-
-.stat-item {
+.table-container {
     background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--space-sm) var(--space-md);
-    text-align: center;
-    min-width: 90px;
-}
-
-.stat-value {
-    display: block;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}
-
-.stat-neu .stat-value { color: var(--status-neu); }
-.stat-angefragt .stat-value { color: var(--status-angefragt); }
-.stat-bearbeitung .stat-value { color: var(--status-bearbeitung); }
-.stat-bestaetigt .stat-value { color: var(--status-bestaetigt); }
-.stat-abgelehnt .stat-value { color: var(--status-abgelehnt); }
-.stat-erledigt .stat-value { color: var(--status-erledigt); }
-.stat-flagged .stat-value { color: var(--status-bearbeitung); }
-
-/* ============================================
-   Cases Section
-   ============================================ */
-.cases-section {
-    margin: var(--space-lg) var(--space-xl);
-}
-
-.cases-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-md);
-}
-
-.sort-options {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.sort-options select {
-    padding: var(--space-xs) var(--space-sm);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 0.875rem;
-    background: white;
-}
-
-.cases-list {
-    display: grid;
-    gap: var(--space-md);
-}
-
-.cases-empty {
-    text-align: center;
-    padding: var(--space-xl) * 2;
-    color: var(--text-muted);
-}
-
-.cases-empty .empty-icon {
-    font-size: 3rem;
-    display: block;
-    margin-bottom: var(--space-md);
-}
-
-/* ============================================
-   Case Card
-   ============================================ */
-.case-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: var(--space-md);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.data-table thead {
+    background: var(--bg-tertiary);
+}
+
+.data-table th {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.data-table th.sortable {
     cursor: pointer;
-    transition: all var(--transition);
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: var(--space-md);
-    align-items: center;
+    user-select: none;
 }
 
-.case-card:hover {
-    border-color: var(--border-dark);
-    box-shadow: var(--shadow);
+.data-table th.sortable:hover {
+    background: var(--border);
 }
 
-.case-card.flagged {
-    border-left: 3px solid var(--status-bearbeitung);
+.data-table th.sortable.active {
+    color: var(--primary);
 }
 
-.case-status-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
+.data-table td {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.data-table tbody tr {
+    transition: background var(--transition);
+    cursor: pointer;
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Table Column Widths */
+.col-status { width: 80px; text-align: center; }
+.col-kunde { min-width: 150px; }
+.col-vsnr { width: 130px; }
+.col-sparte { width: 100px; }
+.col-makler { min-width: 150px; }
+.col-datum { width: 100px; }
+.col-aktivitaet { width: 130px; }
+.col-mails { width: 60px; text-align: center; }
+.col-number { width: 80px; text-align: center; }
+.col-makler-name { min-width: 200px; }
+.col-makler-email { min-width: 200px; }
+.col-direction { width: 40px; text-align: center; }
+.col-sender { min-width: 180px; }
+.col-subject { min-width: 250px; }
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
-    flex-shrink: 0;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
-.case-status-icon.status-neu {
+.status-badge.status-neu {
     background: #f1f5f9;
     color: var(--status-neu);
 }
 
-.case-status-icon.status-angefragt {
+.status-badge.status-angefragt {
     background: #dbeafe;
     color: var(--status-angefragt);
 }
 
-.case-status-icon.status-in-bearbeitung {
+.status-badge.status-in-bearbeitung {
     background: #fef3c7;
     color: var(--status-bearbeitung);
 }
 
-.case-status-icon.status-bestaetigt {
+.status-badge.status-bestaetigt {
     background: #dcfce7;
     color: var(--status-bestaetigt);
 }
 
-.case-status-icon.status-abgelehnt {
+.status-badge.status-abgelehnt {
     background: #fee2e2;
     color: var(--status-abgelehnt);
 }
 
-.case-status-icon.status-erledigt {
-    background: #d1fae5;
-    color: var(--status-erledigt);
-}
-
-.case-content {
-    min-width: 0;
-}
-
-.case-header {
-    display: flex;
+/* Mail Count Badge */
+.mail-count {
+    display: inline-flex;
     align-items: center;
-    gap: var(--space-sm);
-    margin-bottom: var(--space-xs);
-}
-
-.case-kunde {
-    font-weight: 600;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.case-flagged {
-    color: var(--status-bearbeitung);
-}
-
-.case-details {
-    display: flex;
-    gap: var(--space-md);
-    font-size: 0.8125rem;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    background: var(--bg-tertiary);
     color: var(--text-secondary);
-    flex-wrap: wrap;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
 }
 
-.case-detail {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
+/* Direction Icon */
+.direction-icon {
+    font-size: 1rem;
 }
 
-.case-meta {
-    text-align: right;
-    flex-shrink: 0;
+.direction-icon.incoming {
+    color: var(--status-bestaetigt);
 }
 
-.case-date {
-    font-size: 0.8125rem;
+.direction-icon.outgoing {
+    color: var(--status-angefragt);
+}
+
+/* Empty State */
+.empty-state {
+    padding: var(--space-xl) * 2;
+    text-align: center;
     color: var(--text-muted);
 }
 
-.case-message-count {
+.empty-state p {
+    font-size: 0.9375rem;
+}
+
+/* ============================================
+   Makler Info Card
+   ============================================ */
+.makler-info {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+    display: flex;
+    gap: var(--space-lg);
+}
+
+.makler-info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.makler-info-label {
     font-size: 0.75rem;
     color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    justify-content: flex-end;
-    margin-top: var(--space-xs);
+    text-transform: uppercase;
+}
+
+.makler-info-value {
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
 /* ============================================
@@ -607,15 +563,15 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--bg-primary);
     border-radius: var(--radius-lg);
     width: 100%;
-    max-width: 700px;
+    max-width: 600px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
 }
 
-.modal-small {
-    max-width: 500px;
+.modal-large {
+    max-width: 900px;
 }
 
 .modal-header {
@@ -670,68 +626,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================
-   Tabs
-   ============================================ */
-.modal-tabs {
-    display: flex;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-lg);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: var(--space-xs);
-}
-
-.tab-btn {
-    padding: var(--space-sm) var(--space-md);
-    border: none;
-    background: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    border-radius: var(--radius) var(--radius) 0 0;
-    transition: all var(--transition);
-    position: relative;
-}
-
-.tab-btn:hover {
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-}
-
-.tab-btn.active {
-    color: var(--primary);
-}
-
-.tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--primary);
-}
-
-.tab-count {
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-left: var(--space-xs);
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-/* ============================================
    Form
    ============================================ */
+.form-section {
+    margin-bottom: var(--space-lg);
+}
+
+.form-section h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--border);
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -776,217 +685,71 @@ h1, h2, h3, h4, h5, h6 {
 
 .form-group textarea {
     resize: vertical;
-    min-height: 80px;
-}
-
-.form-checkbox {
-    display: flex;
-    align-items: center;
-}
-
-.confidence-indicator {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-top: var(--space-xs);
-}
-
-.confidence-indicator.high {
-    color: var(--status-bestaetigt);
-}
-
-.confidence-indicator.medium {
-    color: var(--status-bearbeitung);
-}
-
-.confidence-indicator.low {
-    color: var(--status-abgelehnt);
+    min-height: 60px;
 }
 
 /* ============================================
-   Messages Timeline
+   Email Timeline
    ============================================ */
-.messages-timeline {
+.email-timeline {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
+    gap: var(--space-sm);
+    max-height: 250px;
+    overflow-y: auto;
 }
 
-.message-item {
+.email-item {
     background: var(--bg-secondary);
     border-radius: var(--radius);
-    padding: var(--space-md);
-    border: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-md);
+    border-left: 3px solid var(--border);
 }
 
-.message-item.sent {
-    border-left: 3px solid var(--status-angefragt);
+.email-item.incoming {
+    border-left-color: var(--status-bestaetigt);
 }
 
-.message-item.inbox {
-    border-left: 3px solid var(--status-bestaetigt);
+.email-item.outgoing {
+    border-left-color: var(--status-angefragt);
 }
 
-.message-header {
+.email-item-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--space-sm);
-}
-
-.message-direction {
-    display: flex;
     align-items: center;
-    gap: var(--space-xs);
+    margin-bottom: var(--space-xs);
+}
+
+.email-item-subject {
+    font-weight: 500;
     font-size: 0.8125rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
-.message-direction .icon {
-    font-size: 1rem;
-}
-
-.message-date {
+.email-item-date {
     font-size: 0.75rem;
     color: var(--text-muted);
 }
 
-.message-subject {
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: var(--space-xs);
-}
-
-.message-sender {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-sm);
-}
-
-.message-body {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    background: white;
-    padding: var(--space-sm);
-    border-radius: var(--radius-sm);
-    white-space: pre-wrap;
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-.messages-empty {
-    text-align: center;
-    padding: var(--space-xl);
-    color: var(--text-muted);
-}
-
-.messages-empty .empty-icon {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: var(--space-sm);
-}
-
-/* ============================================
-   History Timeline
-   ============================================ */
-.history-timeline {
-    position: relative;
-    padding-left: var(--space-lg);
-}
-
-.history-timeline::before {
-    content: '';
-    position: absolute;
-    left: 8px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--border);
-}
-
-.history-item {
-    position: relative;
-    padding-bottom: var(--space-md);
-}
-
-.history-item::before {
-    content: '';
-    position: absolute;
-    left: calc(-1 * var(--space-lg) + 4px);
-    top: 4px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--border-dark);
-    border: 2px solid var(--bg-primary);
-}
-
-.history-date {
+.email-item-sender {
     font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-bottom: var(--space-xs);
-}
-
-.history-change {
-    font-size: 0.875rem;
-    color: var(--text-primary);
-}
-
-.history-note {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    margin-top: var(--space-xs);
-}
-
-/* ============================================
-   Assign Modal
-   ============================================ */
-.mail-preview {
-    background: var(--bg-secondary);
-    border-radius: var(--radius);
-    padding: var(--space-md);
-    margin-bottom: var(--space-md);
-    border: 1px solid var(--border);
-}
-
-.assign-results {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-top: var(--space-sm);
-}
-
-.assign-result-item {
-    padding: var(--space-sm) var(--space-md);
-    cursor: pointer;
-    border-bottom: 1px solid var(--border);
-    transition: background var(--transition);
-}
-
-.assign-result-item:last-child {
-    border-bottom: none;
-}
-
-.assign-result-item:hover {
-    background: var(--bg-secondary);
-}
-
-.assign-result-item.selected {
-    background: var(--primary);
-    color: white;
-}
-
-.assign-result-kunde {
-    font-weight: 500;
-}
-
-.assign-result-details {
-    font-size: 0.8125rem;
     color: var(--text-secondary);
 }
 
-.assign-result-item.selected .assign-result-details {
-    color: rgba(255, 255, 255, 0.8);
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border-radius: 10px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    margin-left: var(--space-xs);
 }
 
 /* ============================================
@@ -1088,6 +851,13 @@ h1, h2, h3, h4, h5, h6 {
 /* ============================================
    Responsive
    ============================================ */
+@media (max-width: 1024px) {
+    .col-aktivitaet,
+    .col-datum {
+        display: none;
+    }
+}
+
 @media (max-width: 768px) {
     .header {
         flex-direction: column;
@@ -1101,42 +871,49 @@ h1, h2, h3, h4, h5, h6 {
         flex-wrap: wrap;
     }
 
-    .filter-section,
-    .stats-section,
-    .cases-section,
-    .warning-section {
-        margin-left: var(--space-md);
-        margin-right: var(--space-md);
-    }
-
-    .filter-group {
+    .stats-bar {
         flex-wrap: wrap;
+        gap: var(--space-md);
+        padding: var(--space-md);
     }
 
-    .filter-group select {
-        flex: 1;
-        min-width: 120px;
+    .stat-divider {
+        display: none;
+    }
+
+    .tab-nav {
+        padding: 0 var(--space-md);
+        overflow-x: auto;
+    }
+
+    .tab-content {
+        padding: var(--space-md);
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        max-width: none;
     }
 
     .form-row {
         grid-template-columns: 1fr;
     }
 
-    .case-card {
-        grid-template-columns: auto 1fr;
-    }
-
-    .case-meta {
-        grid-column: 1 / -1;
-        text-align: left;
-        margin-top: var(--space-sm);
-        padding-top: var(--space-sm);
-        border-top: 1px solid var(--border);
-    }
-
     .modal {
         margin: var(--space-sm);
         max-height: calc(100vh - var(--space-lg));
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        min-width: 600px;
     }
 }
 
@@ -1145,14 +922,15 @@ h1, h2, h3, h4, h5, h6 {
    ============================================ */
 @media print {
     .header-actions,
-    .filter-section,
+    .toolbar,
     .modal-overlay,
     .toast-container,
-    .drop-overlay {
+    .drop-overlay,
+    .tab-nav {
         display: none !important;
     }
 
-    .case-card {
-        break-inside: avoid;
+    .tab-content {
+        display: block !important;
     }
 }

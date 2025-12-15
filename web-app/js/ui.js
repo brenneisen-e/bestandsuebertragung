@@ -12,8 +12,7 @@ const UI = (function() {
         'angefragt': '◐',
         'in-bearbeitung': '◑',
         'bestaetigt': '●',
-        'abgelehnt': '✕',
-        'erledigt': '✔'
+        'abgelehnt': '✕'
     };
 
     // Status-Labels
@@ -22,8 +21,7 @@ const UI = (function() {
         'angefragt': 'Angefragt',
         'in-bearbeitung': 'In Bearbeitung',
         'bestaetigt': 'Bestätigt',
-        'abgelehnt': 'Abgelehnt',
-        'erledigt': 'Erledigt'
+        'abgelehnt': 'Abgelehnt'
     };
 
     // Cache für DOM-Elemente
@@ -34,32 +32,38 @@ const UI = (function() {
      */
     function init() {
         elements = {
-            casesList: document.getElementById('casesList'),
-            casesEmpty: document.getElementById('casesEmpty'),
-            warningSection: document.getElementById('warningSection'),
-            warningCount: document.getElementById('warningCount'),
-            unassignedMails: document.getElementById('unassignedMails'),
+            // Toast & Drop
             toastContainer: document.getElementById('toastContainer'),
             dropOverlay: document.getElementById('dropOverlay'),
 
-            // Filter
-            searchInput: document.getElementById('searchInput'),
-            filterStatus: document.getElementById('filterStatus'),
-            filterVersicherer: document.getElementById('filterVersicherer'),
-            filterSparte: document.getElementById('filterSparte'),
-            filterFlagged: document.getElementById('filterFlagged'),
-            filterOpen: document.getElementById('filterOpen'),
-            sortSelect: document.getElementById('sortSelect'),
-
             // Statistik
             statTotal: document.getElementById('statTotal'),
-            statNeu: document.getElementById('statNeu'),
-            statAngefragt: document.getElementById('statAngefragt'),
-            statBearbeitung: document.getElementById('statBearbeitung'),
             statBestaetigt: document.getElementById('statBestaetigt'),
             statAbgelehnt: document.getElementById('statAbgelehnt'),
-            statErledigt: document.getElementById('statErledigt'),
-            statFlagged: document.getElementById('statFlagged'),
+            statOffen: document.getElementById('statOffen'),
+
+            // Tab Counts
+            kundenCount: document.getElementById('kundenCount'),
+            maklerCount: document.getElementById('maklerCount'),
+            emailsCount: document.getElementById('emailsCount'),
+
+            // Kunden Tab
+            kundenSearch: document.getElementById('kundenSearch'),
+            filterStatus: document.getElementById('filterStatus'),
+            filterSparte: document.getElementById('filterSparte'),
+            kundenTableBody: document.getElementById('kundenTableBody'),
+            kundenEmpty: document.getElementById('kundenEmpty'),
+
+            // Makler Tab
+            maklerSearch: document.getElementById('maklerSearch'),
+            maklerTableBody: document.getElementById('maklerTableBody'),
+            maklerEmpty: document.getElementById('maklerEmpty'),
+
+            // E-Mails Tab
+            emailSearch: document.getElementById('emailSearch'),
+            emailSort: document.getElementById('emailSort'),
+            emailsTableBody: document.getElementById('emailsTableBody'),
+            emailsEmpty: document.getElementById('emailsEmpty'),
 
             // Case Modal
             caseModal: document.getElementById('caseModal'),
@@ -68,82 +72,21 @@ const UI = (function() {
             caseId: document.getElementById('caseId'),
             caseKunde: document.getElementById('caseKunde'),
             caseVsNr: document.getElementById('caseVsNr'),
-            caseVersicherer: document.getElementById('caseVersicherer'),
             caseSparte: document.getElementById('caseSparte'),
-            caseStatus: document.getElementById('caseStatus'),
             caseDatum: document.getElementById('caseDatum'),
+            caseMaklerName: document.getElementById('caseMaklerName'),
+            caseMaklerEmail: document.getElementById('caseMaklerEmail'),
+            caseStatus: document.getElementById('caseStatus'),
             caseNotes: document.getElementById('caseNotes'),
-            caseFlagged: document.getElementById('caseFlagged'),
-            messagesTimeline: document.getElementById('messagesTimeline'),
-            messagesEmpty: document.getElementById('messagesEmpty'),
-            messagesCount: document.getElementById('messagesCount'),
-            historyTimeline: document.getElementById('historyTimeline'),
-            kundeConfidence: document.getElementById('kundeConfidence'),
-            vsNrConfidence: document.getElementById('vsNrConfidence'),
-            datumConfidence: document.getElementById('datumConfidence'),
+            emailTimeline: document.getElementById('emailTimeline'),
+            modalMailCount: document.getElementById('modalMailCount'),
 
-            // Assign Modal
-            assignModal: document.getElementById('assignModal'),
-            assignMailPreview: document.getElementById('assignMailPreview'),
-            assignSearch: document.getElementById('assignSearch'),
-            assignResults: document.getElementById('assignResults'),
-            assignConfirm: document.getElementById('assignConfirm')
+            // Makler Modal
+            maklerModal: document.getElementById('maklerModal'),
+            maklerModalTitle: document.getElementById('maklerModalTitle'),
+            maklerInfo: document.getElementById('maklerInfo'),
+            maklerCasesBody: document.getElementById('maklerCasesBody')
         };
-    }
-
-    /**
-     * Vorgangsliste rendern
-     */
-    function renderCasesList(cases) {
-        if (!elements.casesList) return;
-
-        if (!cases || cases.length === 0) {
-            elements.casesList.innerHTML = '';
-            elements.casesEmpty.style.display = 'block';
-            return;
-        }
-
-        elements.casesEmpty.style.display = 'none';
-        elements.casesList.innerHTML = cases.map(c => renderCaseCard(c)).join('');
-    }
-
-    /**
-     * Einzelne Vorgangs-Karte rendern
-     */
-    function renderCaseCard(caseData) {
-        const statusClass = `status-${caseData.status.replace('-', '-')}`;
-        const flaggedClass = caseData.flagged ? 'flagged' : '';
-        const kunde = caseData.kunde?.name || 'Unbekannt';
-        const versicherer = caseData.versicherer?.name || '-';
-        const vsNr = caseData.versicherungsnummer?.value || '-';
-        const sparte = caseData.sparte || '-';
-        const messageCount = caseData.messages?.length || 0;
-        const updatedAt = formatDate(caseData.updatedAt);
-
-        return `
-            <div class="case-card ${flaggedClass}" data-case-id="${caseData.id}">
-                <div class="case-status-icon ${statusClass}">
-                    ${STATUS_ICONS[caseData.status] || '○'}
-                </div>
-                <div class="case-content">
-                    <div class="case-header">
-                        <span class="case-kunde">${escapeHtml(kunde)}</span>
-                        ${caseData.flagged ? '<span class="case-flagged">⚑</span>' : ''}
-                    </div>
-                    <div class="case-details">
-                        <span class="case-detail">${escapeHtml(versicherer)}</span>
-                        <span class="case-detail">${escapeHtml(vsNr)}</span>
-                        <span class="case-detail">${escapeHtml(sparte)}</span>
-                    </div>
-                </div>
-                <div class="case-meta">
-                    <div class="case-date">${updatedAt}</div>
-                    <div class="case-message-count">
-                        <span>✉</span> ${messageCount}
-                    </div>
-                </div>
-            </div>
-        `;
     }
 
     /**
@@ -151,236 +94,123 @@ const UI = (function() {
      */
     function renderStats(stats) {
         if (elements.statTotal) elements.statTotal.textContent = stats.total;
-        if (elements.statNeu) elements.statNeu.textContent = stats.neu;
-        if (elements.statAngefragt) elements.statAngefragt.textContent = stats.angefragt;
-        if (elements.statBearbeitung) elements.statBearbeitung.textContent = stats['in-bearbeitung'];
         if (elements.statBestaetigt) elements.statBestaetigt.textContent = stats.bestaetigt;
         if (elements.statAbgelehnt) elements.statAbgelehnt.textContent = stats.abgelehnt;
-        if (elements.statErledigt) elements.statErledigt.textContent = stats.erledigt;
-        if (elements.statFlagged) elements.statFlagged.textContent = stats.flagged;
+        if (elements.statOffen) elements.statOffen.textContent = stats.offen;
     }
 
     /**
-     * Nicht zugeordnete Mails rendern
+     * Tab Counts aktualisieren
      */
-    function renderUnassignedMails(mails) {
-        if (!elements.warningSection || !elements.unassignedMails) return;
+    function updateTabCounts(kundenCount, maklerCount, emailsCount) {
+        if (elements.kundenCount) elements.kundenCount.textContent = kundenCount;
+        if (elements.maklerCount) elements.maklerCount.textContent = maklerCount;
+        if (elements.emailsCount) elements.emailsCount.textContent = emailsCount;
+    }
 
-        if (!mails || mails.length === 0) {
-            elements.warningSection.style.display = 'none';
+    /**
+     * Kunden-Tabelle rendern
+     */
+    function renderKundenTable(cases) {
+        if (!elements.kundenTableBody) return;
+
+        if (!cases || cases.length === 0) {
+            elements.kundenTableBody.innerHTML = '';
+            if (elements.kundenEmpty) elements.kundenEmpty.style.display = 'block';
             return;
         }
 
-        elements.warningSection.style.display = 'block';
-        elements.warningCount.textContent = mails.length;
+        if (elements.kundenEmpty) elements.kundenEmpty.style.display = 'none';
 
-        elements.unassignedMails.innerHTML = mails.map(mail => `
-            <div class="unassigned-mail-card" data-mail-id="${mail.entryID}">
-                <div class="unassigned-mail-icon">${mail.folder === 'sent' ? '↑' : '↓'}</div>
-                <div class="unassigned-mail-content">
-                    <div class="unassigned-mail-subject">${escapeHtml(mail.subject || 'Kein Betreff')}</div>
-                    <div class="unassigned-mail-meta">
-                        <span>${escapeHtml(mail.senderEmail || '-')}</span>
-                        <span>${formatDate(mail.receivedTime)}</span>
-                    </div>
-                </div>
-                <div class="unassigned-mail-actions">
-                    <button class="btn btn-primary btn-sm" onclick="App.createCaseFromMail('${mail.entryID}')">
-                        + Neuer Vorgang
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="App.showAssignModal('${mail.entryID}')">
-                        Zuordnen
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    /**
-     * Versicherer-Filter-Dropdown befüllen
-     */
-    function populateVersichererFilter(cases) {
-        if (!elements.filterVersicherer) return;
-
-        const versicherer = new Set();
-        cases.forEach(c => {
-            if (c.versicherer?.name) {
-                versicherer.add(c.versicherer.name);
-            }
-        });
-
-        const options = ['<option value="">Alle Versicherer</option>'];
-        Array.from(versicherer).sort().forEach(v => {
-            options.push(`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`);
-        });
-
-        elements.filterVersicherer.innerHTML = options.join('');
-    }
-
-    /**
-     * Case Modal öffnen
-     */
-    function openCaseModal(caseData) {
-        if (!elements.caseModal) return;
-
-        const isNew = !caseData;
-        elements.modalTitle.textContent = isNew ? 'Neuer Vorgang' : 'Vorgang bearbeiten';
-
-        // Formular zurücksetzen
-        elements.caseForm.reset();
-
-        if (caseData) {
-            elements.caseId.value = caseData.id;
-            elements.caseKunde.value = caseData.kunde?.name || '';
-            elements.caseVsNr.value = caseData.versicherungsnummer?.value || '';
-            elements.caseVersicherer.value = caseData.versicherer?.name || '';
-            elements.caseSparte.value = caseData.sparte || '';
-            elements.caseStatus.value = caseData.status || 'neu';
-            elements.caseDatum.value = caseData.gueltigkeitsdatum?.value || '';
-            elements.caseNotes.value = caseData.notes || '';
-            elements.caseFlagged.checked = caseData.flagged || false;
-
-            // Confidence-Indikatoren
-            renderConfidenceIndicator(elements.kundeConfidence, caseData.kunde);
-            renderConfidenceIndicator(elements.vsNrConfidence, caseData.versicherungsnummer);
-            renderConfidenceIndicator(elements.datumConfidence, caseData.gueltigkeitsdatum);
-
-            // Nachrichten rendern
-            renderMessages(caseData.messages || []);
-
-            // Historie rendern
-            renderHistory(caseData.statusHistory || []);
-        } else {
-            elements.caseId.value = '';
-            clearConfidenceIndicators();
-            renderMessages([]);
-            renderHistory([]);
-        }
-
-        // Tab auf "Details" setzen
-        switchTab('details');
-
-        // Modal anzeigen
-        elements.caseModal.style.display = 'flex';
-    }
-
-    /**
-     * Case Modal schließen
-     */
-    function closeCaseModal() {
-        if (elements.caseModal) {
-            elements.caseModal.style.display = 'none';
-        }
-    }
-
-    /**
-     * Confidence-Indikator rendern
-     */
-    function renderConfidenceIndicator(element, data) {
-        if (!element) return;
-
-        if (!data || data.confidence === undefined) {
-            element.textContent = '';
-            element.className = 'confidence-indicator';
-            return;
-        }
-
-        const confidence = data.confidence;
-        const source = data.source === 'auto' ? 'automatisch erkannt' : 'manuell eingegeben';
-        const percent = Math.round(confidence * 100);
-
-        let level = 'low';
-        if (confidence >= 0.9) level = 'high';
-        else if (confidence >= 0.7) level = 'medium';
-
-        element.className = `confidence-indicator ${level}`;
-        element.textContent = `${percent}% ${source}`;
-    }
-
-    /**
-     * Confidence-Indikatoren leeren
-     */
-    function clearConfidenceIndicators() {
-        if (elements.kundeConfidence) elements.kundeConfidence.textContent = '';
-        if (elements.vsNrConfidence) elements.vsNrConfidence.textContent = '';
-        if (elements.datumConfidence) elements.datumConfidence.textContent = '';
-    }
-
-    /**
-     * Nachrichten-Timeline rendern
-     */
-    function renderMessages(messages) {
-        if (!elements.messagesTimeline || !elements.messagesEmpty) return;
-
-        elements.messagesCount.textContent = messages.length;
-
-        if (messages.length === 0) {
-            elements.messagesTimeline.innerHTML = '';
-            elements.messagesTimeline.style.display = 'none';
-            elements.messagesEmpty.style.display = 'block';
-            return;
-        }
-
-        elements.messagesEmpty.style.display = 'none';
-        elements.messagesTimeline.style.display = 'flex';
-
-        // Nach Datum sortieren (neueste zuerst)
-        const sorted = [...messages].sort((a, b) =>
-            new Date(b.receivedTime) - new Date(a.receivedTime)
-        );
-
-        elements.messagesTimeline.innerHTML = sorted.map(msg => {
-            const isSent = msg.folder === 'sent';
-            const directionIcon = isSent ? '↑' : '↓';
-            const directionText = isSent ? 'Gesendet' : 'Empfangen';
+        elements.kundenTableBody.innerHTML = cases.map(c => {
+            const kunde = c.kunde?.name || 'Unbekannt';
+            const vsNr = c.versicherungsnummer?.value || '-';
+            const sparte = c.sparte || '-';
+            const makler = c.makler?.name || '-';
+            const datum = c.gueltigkeitsdatum?.value || '-';
+            const updatedAt = formatDate(c.updatedAt);
+            const messageCount = c.messages?.length || 0;
 
             return `
-                <div class="message-item ${msg.folder}">
-                    <div class="message-header">
-                        <div class="message-direction">
-                            <span class="icon">${directionIcon}</span>
-                            ${directionText}
-                        </div>
-                        <div class="message-date">${formatDateTime(msg.receivedTime)}</div>
-                    </div>
-                    <div class="message-subject">${escapeHtml(msg.subject || 'Kein Betreff')}</div>
-                    <div class="message-sender">${escapeHtml(msg.senderEmail || '-')}</div>
-                    <div class="message-body">${escapeHtml(msg.bodyPlain || msg.body || '')}</div>
-                </div>
+                <tr class="clickable-row" data-case-id="${c.id}">
+                    <td class="col-status">
+                        <span class="status-badge status-${c.status}">${STATUS_ICONS[c.status] || '○'} ${STATUS_LABELS[c.status] || c.status}</span>
+                    </td>
+                    <td class="col-kunde">${escapeHtml(kunde)}</td>
+                    <td class="col-vsnr">${escapeHtml(vsNr)}</td>
+                    <td class="col-sparte">${escapeHtml(sparte)}</td>
+                    <td class="col-makler">${escapeHtml(makler)}</td>
+                    <td class="col-datum">${escapeHtml(datum)}</td>
+                    <td class="col-aktivitaet">${updatedAt}</td>
+                    <td class="col-mails">${messageCount > 0 ? `<span class="mail-badge">${messageCount}</span>` : '-'}</td>
+                </tr>
             `;
         }).join('');
     }
 
     /**
-     * Status-Historie rendern
+     * Makler-Tabelle rendern
      */
-    function renderHistory(history) {
-        if (!elements.historyTimeline) return;
+    function renderMaklerTable(maklerStats) {
+        if (!elements.maklerTableBody) return;
 
-        if (!history || history.length === 0) {
-            elements.historyTimeline.innerHTML = '<p class="text-muted">Keine Historie vorhanden</p>';
+        if (!maklerStats || maklerStats.length === 0) {
+            elements.maklerTableBody.innerHTML = '';
+            if (elements.maklerEmpty) elements.maklerEmpty.style.display = 'block';
             return;
         }
 
-        // Nach Datum sortieren (neueste zuerst)
-        const sorted = [...history].sort((a, b) =>
-            new Date(b.date) - new Date(a.date)
-        );
+        if (elements.maklerEmpty) elements.maklerEmpty.style.display = 'none';
 
-        elements.historyTimeline.innerHTML = sorted.map(entry => {
-            const fromLabel = entry.from ? STATUS_LABELS[entry.from] : '-';
-            const toLabel = STATUS_LABELS[entry.to] || entry.to;
-            const fromIcon = entry.from ? STATUS_ICONS[entry.from] : '';
-            const toIcon = STATUS_ICONS[entry.to] || '';
+        elements.maklerTableBody.innerHTML = maklerStats.map(m => {
+            return `
+                <tr class="clickable-row" data-makler-name="${escapeHtml(m.name)}">
+                    <td class="col-makler-name">${escapeHtml(m.name)}</td>
+                    <td class="col-makler-email">${escapeHtml(m.email)}</td>
+                    <td class="col-number">${m.total}</td>
+                    <td class="col-number"><span class="text-success">${m.bestaetigt}</span></td>
+                    <td class="col-number"><span class="text-warning">${m.offen}</span></td>
+                    <td class="col-number"><span class="text-danger">${m.abgelehnt}</span></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    /**
+     * E-Mail-Tabelle rendern
+     */
+    function renderEmailsTable(emails) {
+        if (!elements.emailsTableBody) return;
+
+        if (!emails || emails.length === 0) {
+            elements.emailsTableBody.innerHTML = '';
+            if (elements.emailsEmpty) elements.emailsEmpty.style.display = 'block';
+            return;
+        }
+
+        if (elements.emailsEmpty) elements.emailsEmpty.style.display = 'none';
+
+        elements.emailsTableBody.innerHTML = emails.map(email => {
+            const isSent = email.folder === 'sent';
+            const directionIcon = isSent ? '↑' : '↓';
+            const directionClass = isSent ? 'direction-sent' : 'direction-inbox';
+            const senderOrRecipient = email.senderEmail || '-';
+            const subject = email.subject || 'Kein Betreff';
+            const date = formatDateTime(email.receivedTime);
+            const kunde = email.kundeName || 'Unbekannt';
+            const status = email.status || 'neu';
 
             return `
-                <div class="history-item">
-                    <div class="history-date">${formatDate(entry.date)}</div>
-                    <div class="history-change">
-                        ${entry.from ? `${fromIcon} ${fromLabel} → ` : ''}${toIcon} ${toLabel}
-                    </div>
-                    ${entry.note ? `<div class="history-note">${escapeHtml(entry.note)}</div>` : ''}
-                </div>
+                <tr class="clickable-row" data-case-id="${email.caseId}">
+                    <td class="col-direction"><span class="${directionClass}">${directionIcon}</span></td>
+                    <td class="col-datum">${date}</td>
+                    <td class="col-sender">${escapeHtml(senderOrRecipient)}</td>
+                    <td class="col-subject">${escapeHtml(subject)}</td>
+                    <td class="col-kunde">${escapeHtml(kunde)}</td>
+                    <td class="col-status">
+                        <span class="status-badge status-${status}">${STATUS_ICONS[status] || '○'}</span>
+                    </td>
+                </tr>
             `;
         }).join('');
     }
@@ -401,57 +231,151 @@ const UI = (function() {
     }
 
     /**
-     * Assign Modal öffnen
+     * Case Modal öffnen
      */
-    function openAssignModal(mail, cases) {
-        if (!elements.assignModal) return;
+    function openCaseModal(caseData) {
+        if (!elements.caseModal) return;
 
-        // Mail-Vorschau
-        elements.assignMailPreview.innerHTML = `
-            <div class="mail-preview-subject"><strong>${escapeHtml(mail.subject || 'Kein Betreff')}</strong></div>
-            <div class="mail-preview-meta">${escapeHtml(mail.senderEmail || '-')} | ${formatDateTime(mail.receivedTime)}</div>
-        `;
+        const isNew = !caseData;
+        elements.modalTitle.textContent = isNew ? 'Neuer Vorgang' : 'Vorgang bearbeiten';
 
-        // Suchergebnisse initialisieren
-        elements.assignSearch.value = '';
-        renderAssignResults(cases.slice(0, 10));
+        // Formular zurücksetzen
+        elements.caseForm.reset();
 
-        // Auswahl zurücksetzen
-        elements.assignConfirm.disabled = true;
-        elements.assignConfirm.dataset.caseId = '';
-        elements.assignConfirm.dataset.mailId = mail.entryID;
+        if (caseData) {
+            elements.caseId.value = caseData.id;
+            elements.caseKunde.value = caseData.kunde?.name || '';
+            elements.caseVsNr.value = caseData.versicherungsnummer?.value || '';
+            elements.caseSparte.value = caseData.sparte || '';
+            elements.caseDatum.value = caseData.gueltigkeitsdatum?.value || '';
+            elements.caseMaklerName.value = caseData.makler?.name || '';
+            elements.caseMaklerEmail.value = caseData.makler?.email || '';
+            elements.caseStatus.value = caseData.status || 'neu';
+            elements.caseNotes.value = caseData.notes || '';
 
-        elements.assignModal.style.display = 'flex';
+            // E-Mail Timeline rendern
+            renderEmailTimeline(caseData.messages || []);
+        } else {
+            elements.caseId.value = '';
+            renderEmailTimeline([]);
+        }
+
+        // Modal anzeigen
+        elements.caseModal.style.display = 'flex';
     }
 
     /**
-     * Assign Modal schließen
+     * Case Modal schließen
      */
-    function closeAssignModal() {
-        if (elements.assignModal) {
-            elements.assignModal.style.display = 'none';
+    function closeCaseModal() {
+        if (elements.caseModal) {
+            elements.caseModal.style.display = 'none';
         }
     }
 
     /**
-     * Zuordnungs-Ergebnisse rendern
+     * E-Mail Timeline rendern
      */
-    function renderAssignResults(cases) {
-        if (!elements.assignResults) return;
+    function renderEmailTimeline(messages) {
+        if (!elements.emailTimeline) return;
 
-        if (cases.length === 0) {
-            elements.assignResults.innerHTML = '<div class="assign-result-empty">Keine Vorgänge gefunden</div>';
+        elements.modalMailCount.textContent = messages.length;
+
+        if (messages.length === 0) {
+            elements.emailTimeline.innerHTML = '<p class="empty-message">Keine E-Mails vorhanden</p>';
             return;
         }
 
-        elements.assignResults.innerHTML = cases.map(c => `
-            <div class="assign-result-item" data-case-id="${c.id}">
-                <div class="assign-result-kunde">${escapeHtml(c.kunde?.name || 'Unbekannt')}</div>
-                <div class="assign-result-details">
-                    ${escapeHtml(c.versicherer?.name || '-')} | ${escapeHtml(c.versicherungsnummer?.value || '-')}
+        // Nach Datum sortieren (neueste zuerst)
+        const sorted = [...messages].sort((a, b) =>
+            new Date(b.receivedTime) - new Date(a.receivedTime)
+        );
+
+        elements.emailTimeline.innerHTML = sorted.map(msg => {
+            const isSent = msg.folder === 'sent';
+            const directionIcon = isSent ? '↑' : '↓';
+            const directionText = isSent ? 'Gesendet' : 'Empfangen';
+            const directionClass = isSent ? 'direction-sent' : 'direction-inbox';
+
+            return `
+                <div class="email-item ${msg.folder}">
+                    <div class="email-header">
+                        <span class="email-direction ${directionClass}">${directionIcon} ${directionText}</span>
+                        <span class="email-date">${formatDateTime(msg.receivedTime)}</span>
+                    </div>
+                    <div class="email-subject">${escapeHtml(msg.subject || 'Kein Betreff')}</div>
+                    <div class="email-sender">${escapeHtml(msg.senderEmail || '-')}</div>
+                    <div class="email-body">${escapeHtml(truncateText(msg.bodyPlain || msg.body || '', 300))}</div>
                 </div>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Makler Modal öffnen
+     */
+    function openMaklerModal(maklerData, cases) {
+        if (!elements.maklerModal) return;
+
+        elements.maklerModalTitle.textContent = maklerData.name;
+
+        // Makler Info
+        elements.maklerInfo.innerHTML = `
+            <div class="makler-detail">
+                <span class="label">E-Mail:</span>
+                <span class="value">${escapeHtml(maklerData.email)}</span>
             </div>
-        `).join('');
+            <div class="makler-stats">
+                <span class="makler-stat">
+                    <span class="number">${maklerData.total}</span>
+                    <span class="label">Vorgänge</span>
+                </span>
+                <span class="makler-stat text-success">
+                    <span class="number">${maklerData.bestaetigt}</span>
+                    <span class="label">Bestätigt</span>
+                </span>
+                <span class="makler-stat text-warning">
+                    <span class="number">${maklerData.offen}</span>
+                    <span class="label">Offen</span>
+                </span>
+                <span class="makler-stat text-danger">
+                    <span class="number">${maklerData.abgelehnt}</span>
+                    <span class="label">Abgelehnt</span>
+                </span>
+            </div>
+        `;
+
+        // Vorgänge-Tabelle
+        elements.maklerCasesBody.innerHTML = cases.map(c => {
+            const kunde = c.kunde?.name || 'Unbekannt';
+            const vsNr = c.versicherungsnummer?.value || '-';
+            const sparte = c.sparte || '-';
+            const updatedAt = formatDate(c.updatedAt);
+
+            return `
+                <tr class="clickable-row" data-case-id="${c.id}">
+                    <td>
+                        <span class="status-badge status-${c.status}">${STATUS_ICONS[c.status] || '○'}</span>
+                    </td>
+                    <td>${escapeHtml(kunde)}</td>
+                    <td>${escapeHtml(vsNr)}</td>
+                    <td>${escapeHtml(sparte)}</td>
+                    <td>${updatedAt}</td>
+                </tr>
+            `;
+        }).join('');
+
+        // Modal anzeigen
+        elements.maklerModal.style.display = 'flex';
+    }
+
+    /**
+     * Makler Modal schließen
+     */
+    function closeMaklerModal() {
+        if (elements.maklerModal) {
+            elements.maklerModal.style.display = 'none';
+        }
     }
 
     /**
@@ -500,16 +424,11 @@ const UI = (function() {
             id: elements.caseId.value || null,
             kunde: {
                 name: elements.caseKunde.value.trim(),
-                confidence: elements.caseId.value ? undefined : 1.0,
+                confidence: 1.0,
                 source: 'manual'
             },
             versicherungsnummer: {
                 value: elements.caseVsNr.value.trim(),
-                confidence: elements.caseId.value ? undefined : 1.0,
-                source: 'manual'
-            },
-            versicherer: {
-                name: elements.caseVersicherer.value,
                 confidence: 1.0,
                 source: 'manual'
             },
@@ -520,23 +439,39 @@ const UI = (function() {
                 confidence: 1.0,
                 source: 'manual'
             } : null,
-            notes: elements.caseNotes.value.trim(),
-            flagged: elements.caseFlagged.checked
+            makler: {
+                name: elements.caseMaklerName.value.trim(),
+                email: elements.caseMaklerEmail.value.trim()
+            },
+            notes: elements.caseNotes.value.trim()
         };
     }
 
     /**
-     * Filter-Werte auslesen
+     * Filter-Werte auslesen (Kunden Tab)
      */
-    function getFilterValues() {
+    function getKundenFilterValues() {
         return {
-            search: elements.searchInput?.value.trim().toLowerCase() || '',
+            search: elements.kundenSearch?.value.trim().toLowerCase() || '',
             status: elements.filterStatus?.value || '',
-            versicherer: elements.filterVersicherer?.value || '',
-            sparte: elements.filterSparte?.value || '',
-            flaggedOnly: elements.filterFlagged?.checked || false,
-            openOnly: elements.filterOpen?.checked || false,
-            sort: elements.sortSelect?.value || 'updatedAt-desc'
+            sparte: elements.filterSparte?.value || ''
+        };
+    }
+
+    /**
+     * Makler-Suchwert auslesen
+     */
+    function getMaklerSearchValue() {
+        return elements.maklerSearch?.value.trim().toLowerCase() || '';
+    }
+
+    /**
+     * E-Mail-Filter auslesen
+     */
+    function getEmailFilterValues() {
+        return {
+            search: elements.emailSearch?.value.trim().toLowerCase() || '',
+            sort: elements.emailSort?.value || 'desc'
         };
     }
 
@@ -577,6 +512,15 @@ const UI = (function() {
     }
 
     /**
+     * Text kürzen
+     */
+    function truncateText(text, maxLength) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
+
+    /**
      * HTML-Zeichen escapen
      */
     function escapeHtml(str) {
@@ -592,17 +536,17 @@ const UI = (function() {
         elements,
 
         // Rendering
-        renderCasesList,
         renderStats,
-        renderUnassignedMails,
-        renderAssignResults,
-        populateVersichererFilter,
+        updateTabCounts,
+        renderKundenTable,
+        renderMaklerTable,
+        renderEmailsTable,
 
         // Modals
         openCaseModal,
         closeCaseModal,
-        openAssignModal,
-        closeAssignModal,
+        openMaklerModal,
+        closeMaklerModal,
 
         // Tabs
         switchTab,
@@ -613,7 +557,9 @@ const UI = (function() {
 
         // Formulare
         getCaseFormData,
-        getFilterValues,
+        getKundenFilterValues,
+        getMaklerSearchValue,
+        getEmailFilterValues,
 
         // Hilfsfunktionen
         formatDate,

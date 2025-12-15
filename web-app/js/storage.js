@@ -17,7 +17,6 @@ const Storage = (function() {
     // Standard-Einstellungen
     const DEFAULT_SETTINGS = {
         autoMatch: true,
-        showConfidence: true,
         confirmDelete: true,
         demoLoaded: false
     };
@@ -219,31 +218,92 @@ const Storage = (function() {
     }
 
     /**
-     * Statistiken berechnen
+     * Statistiken berechnen (vereinfacht für neue UI)
      */
     function getStats() {
         const cases = getCasesArray();
         const stats = {
             total: cases.length,
-            neu: 0,
-            angefragt: 0,
-            'in-bearbeitung': 0,
             bestaetigt: 0,
             abgelehnt: 0,
-            erledigt: 0,
-            flagged: 0
+            offen: 0
         };
 
+        const closedStatuses = ['bestaetigt', 'abgelehnt'];
+
         cases.forEach(c => {
-            if (stats[c.status] !== undefined) {
-                stats[c.status]++;
-            }
-            if (c.flagged) {
-                stats.flagged++;
+            if (c.status === 'bestaetigt') {
+                stats.bestaetigt++;
+            } else if (c.status === 'abgelehnt') {
+                stats.abgelehnt++;
+            } else {
+                stats.offen++;
             }
         });
 
         return stats;
+    }
+
+    /**
+     * Makler-Statistiken berechnen
+     */
+    function getMaklerStats() {
+        const cases = getCasesArray();
+        const maklerMap = {};
+
+        cases.forEach(c => {
+            const maklerName = c.makler?.name || 'Unbekannt';
+            const maklerEmail = c.makler?.email || '';
+
+            if (!maklerMap[maklerName]) {
+                maklerMap[maklerName] = {
+                    name: maklerName,
+                    email: maklerEmail,
+                    total: 0,
+                    bestaetigt: 0,
+                    abgelehnt: 0,
+                    offen: 0,
+                    cases: []
+                };
+            }
+
+            maklerMap[maklerName].total++;
+            maklerMap[maklerName].cases.push(c);
+
+            if (c.status === 'bestaetigt') {
+                maklerMap[maklerName].bestaetigt++;
+            } else if (c.status === 'abgelehnt') {
+                maklerMap[maklerName].abgelehnt++;
+            } else {
+                maklerMap[maklerName].offen++;
+            }
+        });
+
+        return Object.values(maklerMap).sort((a, b) => b.total - a.total);
+    }
+
+    /**
+     * Alle E-Mails aus allen Vorgängen holen
+     */
+    function getAllEmails() {
+        const cases = getCasesArray();
+        const emails = [];
+
+        cases.forEach(c => {
+            if (c.messages && c.messages.length > 0) {
+                c.messages.forEach(msg => {
+                    emails.push({
+                        ...msg,
+                        caseId: c.id,
+                        kundeName: c.kunde?.name || 'Unbekannt',
+                        status: c.status
+                    });
+                });
+            }
+        });
+
+        // Nach Datum sortieren (neueste zuerst)
+        return emails.sort((a, b) => new Date(b.receivedTime) - new Date(a.receivedTime));
     }
 
     /**
@@ -280,6 +340,19 @@ const Storage = (function() {
         return cases.filter(c => {
             if (!c.kunde || !c.kunde.name) return false;
             return c.kunde.name.toLowerCase().includes(normalizedName);
+        });
+    }
+
+    /**
+     * Vorgänge nach Makler finden
+     */
+    function findCasesByMakler(maklerName) {
+        if (!maklerName) return [];
+        const cases = getCasesArray();
+        const normalizedName = maklerName.toLowerCase();
+        return cases.filter(c => {
+            if (!c.makler || !c.makler.name) return false;
+            return c.makler.name.toLowerCase().includes(normalizedName);
         });
     }
 
@@ -397,6 +470,7 @@ const Storage = (function() {
         findCaseByConversationId,
         findCaseByVsNr,
         findCasesByKunde,
+        findCasesByMakler,
         addMessagesToCase,
         addStatusHistory,
 
@@ -418,6 +492,8 @@ const Storage = (function() {
 
         // Statistiken
         getStats,
+        getMaklerStats,
+        getAllEmails,
 
         // Utilities
         generateId,

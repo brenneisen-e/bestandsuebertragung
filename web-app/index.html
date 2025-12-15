@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bestandsübertragung - ERGO Maklertool</title>
+    <title>ERGO Bestandsübertragung</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -11,144 +11,178 @@
     <header class="header">
         <div class="header-left">
             <div class="logo">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                    <rect width="40" height="40" rx="8" fill="#C8102E"/>
-                    <text x="20" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">BÜ</text>
+                <svg width="100" height="36" viewBox="0 0 100 36" fill="none">
+                    <rect width="100" height="36" rx="4" fill="#C8102E"/>
+                    <text x="50" y="24" text-anchor="middle" fill="white" font-size="16" font-weight="bold">ERGO</text>
                 </svg>
             </div>
             <h1>Bestandsübertragung</h1>
         </div>
         <div class="header-actions">
-            <label class="btn btn-secondary" id="importBtn">
+            <label class="btn btn-secondary">
                 <span class="icon">↓</span> JSON Import
                 <input type="file" id="fileInput" accept=".json" hidden>
             </label>
-            <button class="btn btn-secondary" id="exportCsvBtn">
+            <button class="btn btn-primary" id="exportCsvBtn">
                 <span class="icon">↑</span> CSV Export
-            </button>
-            <button class="btn btn-outline" id="resetDemoBtn">
-                <span class="icon">⟳</span> Demo Reset
             </button>
         </div>
     </header>
 
-    <!-- Warnbereich für nicht zugeordnete Mails -->
-    <section class="warning-section" id="warningSection" style="display: none;">
-        <div class="warning-header">
-            <span class="warning-icon">△</span>
-            <span class="warning-title">Nicht zugeordnete Mails</span>
-            <span class="warning-count" id="warningCount">0</span>
+    <!-- Statistik-Leiste -->
+    <section class="stats-bar">
+        <div class="stat-main">
+            <span class="stat-number" id="statTotal">0</span>
+            <span class="stat-label">Vorgänge gesamt</span>
         </div>
-        <div class="unassigned-mails" id="unassignedMails"></div>
+        <div class="stat-divider"></div>
+        <div class="stat-group">
+            <div class="stat-item stat-bestaetigt">
+                <span class="stat-number" id="statBestaetigt">0</span>
+                <span class="stat-label">bestätigt</span>
+            </div>
+            <div class="stat-item stat-abgelehnt">
+                <span class="stat-number" id="statAbgelehnt">0</span>
+                <span class="stat-label">abgelehnt</span>
+            </div>
+            <div class="stat-item stat-offen">
+                <span class="stat-number" id="statOffen">0</span>
+                <span class="stat-label">offen</span>
+            </div>
+        </div>
     </section>
 
-    <!-- Filter-Bereich -->
-    <section class="filter-section">
-        <div class="filter-row">
+    <!-- Tab-Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="kunden">
+            Kunden
+            <span class="tab-count" id="kundenCount">0</span>
+        </button>
+        <button class="tab-btn" data-tab="makler">
+            Makler
+            <span class="tab-count" id="maklerCount">0</span>
+        </button>
+        <button class="tab-btn" data-tab="emails">
+            E-Mails
+            <span class="tab-count" id="emailsCount">0</span>
+        </button>
+    </nav>
+
+    <!-- Tab: Kunden -->
+    <section class="tab-content active" id="tab-kunden">
+        <div class="toolbar">
             <div class="search-box">
                 <span class="search-icon">⌕</span>
-                <input type="text" id="searchInput" placeholder="Suche nach Kunde, VS-Nr, Versicherer...">
+                <input type="text" id="kundenSearch" placeholder="Kunde oder VS-Nr suchen...">
             </div>
-            <div class="filter-group">
-                <select id="filterStatus">
-                    <option value="">Alle Status</option>
-                    <option value="neu">○ Neu</option>
-                    <option value="angefragt">◐ Angefragt</option>
-                    <option value="in-bearbeitung">◑ In Bearbeitung</option>
-                    <option value="bestaetigt">● Bestätigt</option>
-                    <option value="abgelehnt">✕ Abgelehnt</option>
-                    <option value="erledigt">✔ Erledigt</option>
-                </select>
-                <select id="filterVersicherer">
-                    <option value="">Alle Versicherer</option>
-                </select>
-                <select id="filterSparte">
-                    <option value="">Alle Sparten</option>
-                    <option value="KFZ">KFZ</option>
-                    <option value="Leben">Leben</option>
-                    <option value="Kranken">Kranken</option>
-                    <option value="Haftpflicht">Haftpflicht</option>
-                    <option value="Hausrat">Hausrat</option>
-                    <option value="Rechtsschutz">Rechtsschutz</option>
-                    <option value="Unfall">Unfall</option>
-                    <option value="BU">BU</option>
-                    <option value="Wohngebäude">Wohngebäude</option>
-                    <option value="Rente">Rente</option>
-                </select>
-            </div>
+            <select id="filterStatus">
+                <option value="">Alle Status</option>
+                <option value="neu">○ Neu</option>
+                <option value="angefragt">◐ Angefragt</option>
+                <option value="in-bearbeitung">◑ In Bearbeitung</option>
+                <option value="bestaetigt">● Bestätigt</option>
+                <option value="abgelehnt">✕ Abgelehnt</option>
+            </select>
+            <select id="filterSparte">
+                <option value="">Alle Sparten</option>
+                <option value="KFZ">KFZ</option>
+                <option value="Leben">Leben</option>
+                <option value="Kranken">Kranken</option>
+                <option value="Haftpflicht">Haftpflicht</option>
+                <option value="Hausrat">Hausrat</option>
+                <option value="Rechtsschutz">Rechtsschutz</option>
+                <option value="Unfall">Unfall</option>
+                <option value="BU">BU</option>
+                <option value="Wohngebäude">Wohngebäude</option>
+                <option value="Rente">Rente</option>
+            </select>
+            <button class="btn btn-primary" id="newCaseBtn">+ Neuer Vorgang</button>
         </div>
-        <div class="filter-row filter-checkboxes">
-            <label class="checkbox-label">
-                <input type="checkbox" id="filterFlagged">
-                <span class="checkmark"></span>
-                <span class="icon">⚑</span> Nur geflaggte
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="filterOpen">
-                <span class="checkmark"></span>
-                Nur offene
-            </label>
+
+        <div class="table-container">
+            <table class="data-table" id="kundenTable">
+                <thead>
+                    <tr>
+                        <th class="col-status">Status</th>
+                        <th class="col-kunde sortable" data-sort="kunde">Kunde (VN)</th>
+                        <th class="col-vsnr">VS-Nr</th>
+                        <th class="col-sparte">Sparte</th>
+                        <th class="col-makler sortable" data-sort="makler">Makler</th>
+                        <th class="col-datum">Gültig ab</th>
+                        <th class="col-aktivitaet sortable active" data-sort="updatedAt">Letzte Aktivität ↓</th>
+                        <th class="col-mails">Mails</th>
+                    </tr>
+                </thead>
+                <tbody id="kundenTableBody">
+                </tbody>
+            </table>
+            <div class="empty-state" id="kundenEmpty" style="display: none;">
+                <p>Keine Vorgänge gefunden</p>
+            </div>
         </div>
     </section>
 
-    <!-- Statistik-Bereich -->
-    <section class="stats-section">
-        <div class="stat-item">
-            <span class="stat-value" id="statTotal">0</span>
-            <span class="stat-label">Gesamt</span>
+    <!-- Tab: Makler -->
+    <section class="tab-content" id="tab-makler">
+        <div class="toolbar">
+            <div class="search-box">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="maklerSearch" placeholder="Makler suchen...">
+            </div>
         </div>
-        <div class="stat-item stat-neu">
-            <span class="stat-value" id="statNeu">0</span>
-            <span class="stat-label">○ Neu</span>
-        </div>
-        <div class="stat-item stat-angefragt">
-            <span class="stat-value" id="statAngefragt">0</span>
-            <span class="stat-label">◐ Angefragt</span>
-        </div>
-        <div class="stat-item stat-bearbeitung">
-            <span class="stat-value" id="statBearbeitung">0</span>
-            <span class="stat-label">◑ In Bearb.</span>
-        </div>
-        <div class="stat-item stat-bestaetigt">
-            <span class="stat-value" id="statBestaetigt">0</span>
-            <span class="stat-label">● Bestätigt</span>
-        </div>
-        <div class="stat-item stat-abgelehnt">
-            <span class="stat-value" id="statAbgelehnt">0</span>
-            <span class="stat-label">✕ Abgelehnt</span>
-        </div>
-        <div class="stat-item stat-erledigt">
-            <span class="stat-value" id="statErledigt">0</span>
-            <span class="stat-label">✔ Erledigt</span>
-        </div>
-        <div class="stat-item stat-flagged">
-            <span class="stat-value" id="statFlagged">0</span>
-            <span class="stat-label">⚑ Geflaggt</span>
+
+        <div class="table-container">
+            <table class="data-table" id="maklerTable">
+                <thead>
+                    <tr>
+                        <th class="col-makler-name sortable" data-sort="name">Maklerbüro</th>
+                        <th class="col-makler-email">E-Mail</th>
+                        <th class="col-number sortable" data-sort="total">Vorgänge</th>
+                        <th class="col-number sortable" data-sort="bestaetigt">Bestätigt</th>
+                        <th class="col-number sortable" data-sort="offen">Offen</th>
+                        <th class="col-number sortable" data-sort="abgelehnt">Abgelehnt</th>
+                    </tr>
+                </thead>
+                <tbody id="maklerTableBody">
+                </tbody>
+            </table>
+            <div class="empty-state" id="maklerEmpty" style="display: none;">
+                <p>Keine Makler gefunden</p>
+            </div>
         </div>
     </section>
 
-    <!-- Vorgangsliste -->
-    <section class="cases-section">
-        <div class="cases-header">
-            <button class="btn btn-primary" id="newCaseBtn">
-                <span class="icon">+</span> Neuer Vorgang
-            </button>
-            <div class="sort-options">
-                <label>Sortieren:</label>
-                <select id="sortSelect">
-                    <option value="updatedAt-desc">Letzte Aktivität ↓</option>
-                    <option value="updatedAt-asc">Letzte Aktivität ↑</option>
-                    <option value="createdAt-desc">Erstellt ↓</option>
-                    <option value="createdAt-asc">Erstellt ↑</option>
-                    <option value="kunde-asc">Kunde A-Z</option>
-                    <option value="kunde-desc">Kunde Z-A</option>
-                </select>
+    <!-- Tab: E-Mails -->
+    <section class="tab-content" id="tab-emails">
+        <div class="toolbar">
+            <div class="search-box">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="emailSearch" placeholder="In E-Mails suchen...">
             </div>
+            <select id="emailSort">
+                <option value="desc">Neueste zuerst</option>
+                <option value="asc">Älteste zuerst</option>
+            </select>
         </div>
-        <div class="cases-list" id="casesList"></div>
-        <div class="cases-empty" id="casesEmpty" style="display: none;">
-            <span class="empty-icon">◯</span>
-            <p>Keine Vorgänge gefunden</p>
+
+        <div class="table-container">
+            <table class="data-table" id="emailsTable">
+                <thead>
+                    <tr>
+                        <th class="col-direction"></th>
+                        <th class="col-datum sortable active" data-sort="date">Datum ↓</th>
+                        <th class="col-sender">Von / An</th>
+                        <th class="col-subject">Betreff</th>
+                        <th class="col-kunde">Kunde</th>
+                        <th class="col-status">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="emailsTableBody">
+                </tbody>
+            </table>
+            <div class="empty-state" id="emailsEmpty" style="display: none;">
+                <p>Keine E-Mails gefunden</p>
+            </div>
         </div>
     </section>
 
@@ -156,71 +190,26 @@
     <div class="modal-overlay" id="caseModal" style="display: none;">
         <div class="modal">
             <div class="modal-header">
-                <h2 id="modalTitle">Vorgang bearbeiten</h2>
+                <h2 id="modalTitle">Vorgang</h2>
                 <button class="modal-close" id="modalClose">×</button>
             </div>
             <div class="modal-body">
-                <div class="modal-tabs">
-                    <button class="tab-btn active" data-tab="details">Details</button>
-                    <button class="tab-btn" data-tab="messages">Mails <span class="tab-count" id="messagesCount">0</span></button>
-                    <button class="tab-btn" data-tab="history">Historie</button>
-                </div>
+                <form id="caseForm">
+                    <input type="hidden" id="caseId">
 
-                <!-- Tab: Details -->
-                <div class="tab-content active" id="tab-details">
-                    <form id="caseForm">
-                        <input type="hidden" id="caseId">
-
+                    <div class="form-section">
+                        <h3>Kunde (Versicherungsnehmer)</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="caseKunde">Kunde (Nachname, Vorname)</label>
-                                <input type="text" id="caseKunde" placeholder="z.B. Müller, Thomas">
-                                <div class="confidence-indicator" id="kundeConfidence"></div>
+                                <label for="caseKunde">Name</label>
+                                <input type="text" id="caseKunde" placeholder="Nachname, Vorname">
                             </div>
                             <div class="form-group">
-                                <label for="caseVsNr">Versicherungsnummer</label>
-                                <input type="text" id="caseVsNr" placeholder="z.B. ERG-12345678">
-                                <div class="confidence-indicator" id="vsNrConfidence"></div>
+                                <label for="caseVsNr">VS-Nr</label>
+                                <input type="text" id="caseVsNr" placeholder="ERG-12345678">
                             </div>
                         </div>
-
                         <div class="form-row">
-                            <div class="form-group">
-                                <label for="caseVersicherer">Versicherer</label>
-                                <select id="caseVersicherer">
-                                    <option value="">-- Auswählen --</option>
-                                    <option value="ERGO">ERGO</option>
-                                    <option value="Allianz">Allianz</option>
-                                    <option value="AXA">AXA</option>
-                                    <option value="HDI">HDI</option>
-                                    <option value="Zurich">Zurich</option>
-                                    <option value="Generali">Generali</option>
-                                    <option value="Debeka">Debeka</option>
-                                    <option value="Signal Iduna">Signal Iduna</option>
-                                    <option value="HUK-Coburg">HUK-Coburg</option>
-                                    <option value="Nürnberger">Nürnberger</option>
-                                    <option value="Gothaer">Gothaer</option>
-                                    <option value="Barmenia">Barmenia</option>
-                                    <option value="R+V">R+V</option>
-                                    <option value="LVM">LVM</option>
-                                    <option value="DEVK">DEVK</option>
-                                    <option value="Continentale">Continentale</option>
-                                    <option value="WWK">WWK</option>
-                                    <option value="Basler">Basler</option>
-                                    <option value="HanseMerkur">HanseMerkur</option>
-                                    <option value="INTER">INTER</option>
-                                    <option value="Volkswohl Bund">Volkswohl Bund</option>
-                                    <option value="Swiss Life">Swiss Life</option>
-                                    <option value="Canada Life">Canada Life</option>
-                                    <option value="Condor">Condor</option>
-                                    <option value="Alte Leipziger">Alte Leipziger</option>
-                                    <option value="Hallesche">Hallesche</option>
-                                    <option value="Provinzial">Provinzial</option>
-                                    <option value="SV SparkassenVersicherung">SV SparkassenVersicherung</option>
-                                    <option value="WGV">WGV</option>
-                                    <option value="Sonstige">Sonstige</option>
-                                </select>
-                            </div>
                             <div class="form-group">
                                 <label for="caseSparte">Sparte</label>
                                 <select id="caseSparte">
@@ -237,8 +226,29 @@
                                     <option value="Rente">Rente</option>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <label for="caseDatum">Gültig ab</label>
+                                <input type="text" id="caseDatum" placeholder="TT.MM.JJJJ">
+                            </div>
                         </div>
+                    </div>
 
+                    <div class="form-section">
+                        <h3>Makler</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="caseMaklerName">Maklerbüro</label>
+                                <input type="text" id="caseMaklerName" placeholder="Name des Maklerbüros">
+                            </div>
+                            <div class="form-group">
+                                <label for="caseMaklerEmail">E-Mail</label>
+                                <input type="email" id="caseMaklerEmail" placeholder="makler@beispiel.de">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Status & Notizen</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="caseStatus">Status</label>
@@ -248,47 +258,24 @@
                                     <option value="in-bearbeitung">◑ In Bearbeitung</option>
                                     <option value="bestaetigt">● Bestätigt</option>
                                     <option value="abgelehnt">✕ Abgelehnt</option>
-                                    <option value="erledigt">✔ Erledigt</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label for="caseDatum">Gültigkeitsdatum</label>
-                                <input type="text" id="caseDatum" placeholder="TT.MM.JJJJ">
-                                <div class="confidence-indicator" id="datumConfidence"></div>
-                            </div>
                         </div>
-
                         <div class="form-group">
                             <label for="caseNotes">Notizen</label>
-                            <textarea id="caseNotes" rows="3" placeholder="Interne Notizen..."></textarea>
+                            <textarea id="caseNotes" rows="2" placeholder="Interne Notizen..."></textarea>
                         </div>
-
-                        <div class="form-group form-checkbox">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="caseFlagged">
-                                <span class="checkmark"></span>
-                                <span class="icon">⚑</span> Als wichtig markieren
-                            </label>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Tab: Mails -->
-                <div class="tab-content" id="tab-messages">
-                    <div class="messages-timeline" id="messagesTimeline"></div>
-                    <div class="messages-empty" id="messagesEmpty">
-                        <span class="empty-icon">✉</span>
-                        <p>Keine E-Mails vorhanden</p>
                     </div>
-                </div>
+                </form>
 
-                <!-- Tab: Historie -->
-                <div class="tab-content" id="tab-history">
-                    <div class="history-timeline" id="historyTimeline"></div>
+                <!-- E-Mail Verlauf -->
+                <div class="form-section">
+                    <h3>E-Mail Verlauf <span class="badge" id="modalMailCount">0</span></h3>
+                    <div class="email-timeline" id="emailTimeline"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" id="deleteCase">Löschen</button>
+                <button class="btn btn-danger" id="deleteCase">Löschen</button>
                 <div class="modal-footer-right">
                     <button class="btn btn-secondary" id="cancelCase">Abbrechen</button>
                     <button class="btn btn-primary" id="saveCase">Speichern</button>
@@ -297,24 +284,31 @@
         </div>
     </div>
 
-    <!-- Modal: Mail zuordnen -->
-    <div class="modal-overlay" id="assignModal" style="display: none;">
-        <div class="modal modal-small">
+    <!-- Modal: Makler Details -->
+    <div class="modal-overlay" id="maklerModal" style="display: none;">
+        <div class="modal modal-large">
             <div class="modal-header">
-                <h2>Mail zuordnen</h2>
-                <button class="modal-close" id="assignModalClose">×</button>
+                <h2 id="maklerModalTitle">Makler</h2>
+                <button class="modal-close" id="maklerModalClose">×</button>
             </div>
             <div class="modal-body">
-                <div class="mail-preview" id="assignMailPreview"></div>
-                <div class="form-group">
-                    <label>Vorgang auswählen</label>
-                    <input type="text" id="assignSearch" placeholder="Suche nach Kunde, VS-Nr...">
-                    <div class="assign-results" id="assignResults"></div>
-                </div>
+                <div class="makler-info" id="maklerInfo"></div>
+                <h3>Vorgänge dieses Maklers</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Kunde</th>
+                            <th>VS-Nr</th>
+                            <th>Sparte</th>
+                            <th>Letzte Aktivität</th>
+                        </tr>
+                    </thead>
+                    <tbody id="maklerCasesBody"></tbody>
+                </table>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" id="assignCancel">Abbrechen</button>
-                <button class="btn btn-primary" id="assignConfirm" disabled>Zuordnen</button>
+                <button class="btn btn-secondary" id="closeMaklerModal">Schließen</button>
             </div>
         </div>
     </div>
@@ -340,4 +334,3 @@
     <script src="js/app.js"></script>
 </body>
 </html>
-<!-- Trigger rebuild -->

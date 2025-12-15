@@ -11,12 +11,12 @@ const Export = (function() {
         { key: 'id', label: 'ID' },
         { key: 'kunde.name', label: 'Kunde' },
         { key: 'versicherungsnummer.value', label: 'VS-Nr' },
-        { key: 'versicherer.name', label: 'Versicherer' },
         { key: 'sparte', label: 'Sparte' },
         { key: 'status', label: 'Status' },
-        { key: 'gueltigkeitsdatum.value', label: 'Gültigkeitsdatum' },
+        { key: 'gueltigkeitsdatum.value', label: 'Gültig ab' },
+        { key: 'makler.name', label: 'Makler' },
+        { key: 'makler.email', label: 'Makler E-Mail' },
         { key: 'notes', label: 'Notizen' },
-        { key: 'flagged', label: 'Geflaggt' },
         { key: 'messageCount', label: 'Mails' },
         { key: 'createdAt', label: 'Erstellt' },
         { key: 'updatedAt', label: 'Aktualisiert' }
@@ -28,8 +28,7 @@ const Export = (function() {
         'angefragt': 'Angefragt',
         'in-bearbeitung': 'In Bearbeitung',
         'bestaetigt': 'Bestätigt',
-        'abgelehnt': 'Abgelehnt',
-        'erledigt': 'Erledigt'
+        'abgelehnt': 'Abgelehnt'
     };
 
     /**
@@ -37,12 +36,11 @@ const Export = (function() {
      */
     function exportToCSV(cases, filename) {
         if (!cases || cases.length === 0) {
-            UI.showToast('Keine Daten zum Exportieren', 'warning');
             return false;
         }
 
         // Dateiname generieren
-        filename = filename || `bestandsuebertragung_${formatDateForFilename(new Date())}.csv`;
+        filename = filename || `ergo_bestandsuebertragung_${formatDateForFilename(new Date())}.csv`;
 
         // CSV-Header
         const headers = CSV_COLUMNS.map(col => col.label);
@@ -68,7 +66,6 @@ const Export = (function() {
         // Download
         downloadBlob(blob, filename);
 
-        UI.showToast(`${cases.length} Vorgänge exportiert`, 'success');
         return true;
     }
 
@@ -179,7 +176,7 @@ const Export = (function() {
     function exportToJSON(filename) {
         const data = Storage.exportData();
 
-        filename = filename || `bestandsuebertragung_backup_${formatDateForFilename(new Date())}.json`;
+        filename = filename || `ergo_bestandsuebertragung_backup_${formatDateForFilename(new Date())}.json`;
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         downloadBlob(blob, filename);
@@ -293,37 +290,26 @@ const Export = (function() {
      */
     function generateReport(cases) {
         const stats = Storage.getStats();
+        const maklerStats = Storage.getMaklerStats();
         const now = new Date();
 
-        let report = `Bestandsübertragung Report\n`;
+        let report = `ERGO Bestandsübertragung Report\n`;
         report += `Erstellt: ${now.toLocaleDateString('de-DE')} ${now.toLocaleTimeString('de-DE')}\n`;
         report += `${'='.repeat(50)}\n\n`;
 
         report += `ÜBERSICHT\n`;
         report += `${'-'.repeat(50)}\n`;
         report += `Gesamt Vorgänge:     ${stats.total}\n`;
-        report += `Neu:                 ${stats.neu}\n`;
-        report += `Angefragt:           ${stats.angefragt}\n`;
-        report += `In Bearbeitung:      ${stats['in-bearbeitung']}\n`;
         report += `Bestätigt:           ${stats.bestaetigt}\n`;
         report += `Abgelehnt:           ${stats.abgelehnt}\n`;
-        report += `Erledigt:            ${stats.erledigt}\n`;
-        report += `Geflaggt:            ${stats.flagged}\n\n`;
+        report += `Offen:               ${stats.offen}\n\n`;
 
-        // Nach Versicherer gruppieren
-        const byVersicherer = {};
-        cases.forEach(c => {
-            const v = c.versicherer?.name || 'Unbekannt';
-            byVersicherer[v] = (byVersicherer[v] || 0) + 1;
-        });
-
-        report += `NACH VERSICHERER\n`;
+        // Nach Makler
+        report += `NACH MAKLER\n`;
         report += `${'-'.repeat(50)}\n`;
-        Object.entries(byVersicherer)
-            .sort((a, b) => b[1] - a[1])
-            .forEach(([versicherer, count]) => {
-                report += `${versicherer.padEnd(25)} ${count}\n`;
-            });
+        maklerStats.forEach(m => {
+            report += `${m.name.padEnd(30)} ${m.total} (${m.bestaetigt}/${m.offen}/${m.abgelehnt})\n`;
+        });
 
         report += `\n`;
 
@@ -350,7 +336,7 @@ const Export = (function() {
      */
     function exportReport(cases, filename) {
         const report = generateReport(cases);
-        filename = filename || `bestandsuebertragung_report_${formatDateForFilename(new Date())}.txt`;
+        filename = filename || `ergo_bestandsuebertragung_report_${formatDateForFilename(new Date())}.txt`;
 
         const blob = new Blob([report], { type: 'text/plain;charset=utf-8;' });
         downloadBlob(blob, filename);

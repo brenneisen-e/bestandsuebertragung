@@ -7,10 +7,11 @@ const App = (function() {
     'use strict';
 
     // Aktueller Zustand
-    let currentCases = [];
-    let currentUnassigned = [];
-    let selectedAssignCaseId = null;
-    let currentAssignMailId = null;
+    let currentTab = 'kunden';
+    let kundenSortField = 'updatedAt';
+    let kundenSortDir = 'desc';
+    let maklerSortField = 'total';
+    let maklerSortDir = 'desc';
 
     /**
      * Anwendung initialisieren
@@ -43,17 +44,48 @@ const App = (function() {
         // Header Buttons
         document.getElementById('fileInput')?.addEventListener('change', handleFileImport);
         document.getElementById('exportCsvBtn')?.addEventListener('click', handleCsvExport);
-        document.getElementById('resetDemoBtn')?.addEventListener('click', handleDemoReset);
         document.getElementById('newCaseBtn')?.addEventListener('click', () => openCaseModal(null));
 
-        // Filter
-        document.getElementById('searchInput')?.addEventListener('input', debounce(refreshCasesList, 300));
-        document.getElementById('filterStatus')?.addEventListener('change', refreshCasesList);
-        document.getElementById('filterVersicherer')?.addEventListener('change', refreshCasesList);
-        document.getElementById('filterSparte')?.addEventListener('change', refreshCasesList);
-        document.getElementById('filterFlagged')?.addEventListener('change', refreshCasesList);
-        document.getElementById('filterOpen')?.addEventListener('change', refreshCasesList);
-        document.getElementById('sortSelect')?.addEventListener('change', refreshCasesList);
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentTab = btn.dataset.tab;
+                UI.switchTab(currentTab);
+                refreshCurrentTab();
+            });
+        });
+
+        // Kunden Tab - Filter und Suche
+        document.getElementById('kundenSearch')?.addEventListener('input', debounce(refreshKundenTab, 300));
+        document.getElementById('filterStatus')?.addEventListener('change', refreshKundenTab);
+        document.getElementById('filterSparte')?.addEventListener('change', refreshKundenTab);
+
+        // Kunden Tab - Sortierbare Spalten
+        document.querySelectorAll('#tab-kunden th.sortable').forEach(th => {
+            th.addEventListener('click', () => handleKundenSort(th.dataset.sort));
+        });
+
+        // Makler Tab - Suche und Sortierung
+        document.getElementById('maklerSearch')?.addEventListener('input', debounce(refreshMaklerTab, 300));
+        document.querySelectorAll('#tab-makler th.sortable').forEach(th => {
+            th.addEventListener('click', () => handleMaklerSort(th.dataset.sort));
+        });
+
+        // E-Mails Tab - Suche und Sortierung
+        document.getElementById('emailSearch')?.addEventListener('input', debounce(refreshEmailsTab, 300));
+        document.getElementById('emailSort')?.addEventListener('change', refreshEmailsTab);
+
+        // Kunden-Tabelle Klick
+        document.getElementById('kundenTableBody')?.addEventListener('click', handleKundenRowClick);
+
+        // Makler-Tabelle Klick
+        document.getElementById('maklerTableBody')?.addEventListener('click', handleMaklerRowClick);
+
+        // E-Mails-Tabelle Klick
+        document.getElementById('emailsTableBody')?.addEventListener('click', handleEmailRowClick);
+
+        // Makler Modal - Vorgang Klick
+        document.getElementById('maklerCasesBody')?.addEventListener('click', handleMaklerCaseClick);
 
         // Case Modal
         document.getElementById('modalClose')?.addEventListener('click', () => UI.closeCaseModal());
@@ -61,22 +93,9 @@ const App = (function() {
         document.getElementById('saveCase')?.addEventListener('click', handleSaveCase);
         document.getElementById('deleteCase')?.addEventListener('click', handleDeleteCase);
 
-        // Tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => UI.switchTab(btn.dataset.tab));
-        });
-
-        // Assign Modal
-        document.getElementById('assignModalClose')?.addEventListener('click', () => UI.closeAssignModal());
-        document.getElementById('assignCancel')?.addEventListener('click', () => UI.closeAssignModal());
-        document.getElementById('assignSearch')?.addEventListener('input', debounce(handleAssignSearch, 300));
-        document.getElementById('assignConfirm')?.addEventListener('click', handleAssignConfirm);
-
-        // Cases Liste - Klick auf Karte
-        document.getElementById('casesList')?.addEventListener('click', handleCaseCardClick);
-
-        // Assign Results - Klick auf Ergebnis
-        document.getElementById('assignResults')?.addEventListener('click', handleAssignResultClick);
+        // Makler Modal
+        document.getElementById('maklerModalClose')?.addEventListener('click', () => UI.closeMaklerModal());
+        document.getElementById('closeMaklerModal')?.addEventListener('click', () => UI.closeMaklerModal());
 
         // Drag & Drop
         setupDragAndDrop();
@@ -85,15 +104,15 @@ const App = (function() {
         document.getElementById('caseModal')?.addEventListener('click', (e) => {
             if (e.target.id === 'caseModal') UI.closeCaseModal();
         });
-        document.getElementById('assignModal')?.addEventListener('click', (e) => {
-            if (e.target.id === 'assignModal') UI.closeAssignModal();
+        document.getElementById('maklerModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'maklerModal') UI.closeMaklerModal();
         });
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 UI.closeCaseModal();
-                UI.closeAssignModal();
+                UI.closeMaklerModal();
             }
         });
     }
@@ -140,43 +159,58 @@ const App = (function() {
         const stats = Storage.getStats();
         UI.renderStats(stats);
 
-        // Versicherer-Filter befüllen
-        currentCases = Storage.getCasesArray();
-        UI.populateVersichererFilter(currentCases);
+        // Tab Counts aktualisieren
+        const cases = Storage.getCasesArray();
+        const maklerStats = Storage.getMaklerStats();
+        const emails = Storage.getAllEmails();
+        UI.updateTabCounts(cases.length, maklerStats.length, emails.length);
 
-        // Vorgangsliste aktualisieren
-        refreshCasesList();
-
-        // Nicht zugeordnete Mails aktualisieren
-        refreshUnassigned();
+        // Aktuellen Tab aktualisieren
+        refreshCurrentTab();
     }
 
     /**
-     * Vorgangsliste aktualisieren (mit Filter/Sortierung)
+     * Aktuellen Tab aktualisieren
      */
-    function refreshCasesList() {
-        const filters = UI.getFilterValues();
+    function refreshCurrentTab() {
+        switch (currentTab) {
+            case 'kunden':
+                refreshKundenTab();
+                break;
+            case 'makler':
+                refreshMaklerTab();
+                break;
+            case 'emails':
+                refreshEmailsTab();
+                break;
+        }
+    }
+
+    /**
+     * Kunden Tab aktualisieren
+     */
+    function refreshKundenTab() {
+        const filters = UI.getKundenFilterValues();
         let cases = Storage.getCasesArray();
 
         // Filtern
-        cases = filterCases(cases, filters);
+        cases = filterKunden(cases, filters);
 
         // Sortieren
-        cases = sortCases(cases, filters.sort);
+        cases = sortKunden(cases, kundenSortField, kundenSortDir);
 
         // Rendern
-        currentCases = cases;
-        UI.renderCasesList(cases);
+        UI.renderKundenTable(cases);
 
-        // Statistiken aktualisieren
+        // Stats aktualisieren
         const stats = Storage.getStats();
         UI.renderStats(stats);
     }
 
     /**
-     * Vorgänge filtern
+     * Kunden filtern
      */
-    function filterCases(cases, filters) {
+    function filterKunden(cases, filters) {
         return cases.filter(c => {
             // Textsuche
             if (filters.search) {
@@ -184,7 +218,7 @@ const App = (function() {
                 const searchFields = [
                     c.kunde?.name,
                     c.versicherungsnummer?.value,
-                    c.versicherer?.name,
+                    c.makler?.name,
                     c.sparte,
                     c.notes
                 ].filter(Boolean).join(' ').toLowerCase();
@@ -199,27 +233,9 @@ const App = (function() {
                 return false;
             }
 
-            // Versicherer
-            if (filters.versicherer && c.versicherer?.name !== filters.versicherer) {
-                return false;
-            }
-
             // Sparte
             if (filters.sparte && c.sparte !== filters.sparte) {
                 return false;
-            }
-
-            // Nur geflaggte
-            if (filters.flaggedOnly && !c.flagged) {
-                return false;
-            }
-
-            // Nur offene (nicht erledigt, nicht bestätigt, nicht abgelehnt)
-            if (filters.openOnly) {
-                const closedStates = ['erledigt', 'bestaetigt', 'abgelehnt'];
-                if (closedStates.includes(c.status)) {
-                    return false;
-                }
             }
 
             return true;
@@ -227,10 +243,9 @@ const App = (function() {
     }
 
     /**
-     * Vorgänge sortieren
+     * Kunden sortieren
      */
-    function sortCases(cases, sortOption) {
-        const [field, direction] = sortOption.split('-');
+    function sortKunden(cases, field, direction) {
         const multiplier = direction === 'desc' ? -1 : 1;
 
         return cases.sort((a, b) => {
@@ -241,13 +256,13 @@ const App = (function() {
                     valueA = new Date(a.updatedAt || 0);
                     valueB = new Date(b.updatedAt || 0);
                     break;
-                case 'createdAt':
-                    valueA = new Date(a.createdAt || 0);
-                    valueB = new Date(b.createdAt || 0);
-                    break;
                 case 'kunde':
                     valueA = (a.kunde?.name || '').toLowerCase();
                     valueB = (b.kunde?.name || '').toLowerCase();
+                    break;
+                case 'makler':
+                    valueA = (a.makler?.name || '').toLowerCase();
+                    valueB = (b.makler?.name || '').toLowerCase();
                     break;
                 default:
                     return 0;
@@ -260,94 +275,212 @@ const App = (function() {
     }
 
     /**
-     * Nicht zugeordnete Mails aktualisieren
+     * Kunden-Sortierung Handler
      */
-    function refreshUnassigned() {
-        currentUnassigned = Storage.getUnassignedMails();
-        UI.renderUnassignedMails(currentUnassigned);
-    }
-
-    /**
-     * Datei-Import Handler
-     */
-    function handleFileImport(e) {
-        const file = e.target.files[0];
-        if (file) {
-            processImportFile(file);
+    function handleKundenSort(field) {
+        if (kundenSortField === field) {
+            kundenSortDir = kundenSortDir === 'desc' ? 'asc' : 'desc';
+        } else {
+            kundenSortField = field;
+            kundenSortDir = 'desc';
         }
-        // Input zurücksetzen für erneuten Import
-        e.target.value = '';
+
+        // Sortier-Indikatoren aktualisieren
+        updateSortIndicators('#tab-kunden', field, kundenSortDir);
+
+        refreshKundenTab();
     }
 
     /**
-     * Import-Datei verarbeiten
+     * Makler Tab aktualisieren
      */
-    async function processImportFile(file) {
-        try {
-            const result = await Export.importFromJSON(file);
+    function refreshMaklerTab() {
+        const search = UI.getMaklerSearchValue();
+        let maklerStats = Storage.getMaklerStats();
 
-            if (result.type === 'backup') {
-                UI.showToast('Backup erfolgreich importiert', 'success');
-                refreshData();
-            } else if (result.type === 'outlook') {
-                const processResult = Export.processOutlookExport(result.data);
+        // Suche filtern
+        if (search) {
+            maklerStats = maklerStats.filter(m =>
+                m.name.toLowerCase().includes(search) ||
+                m.email.toLowerCase().includes(search)
+            );
+        }
 
-                let message = `${processResult.processed} E-Mails verarbeitet`;
-                if (processResult.matched > 0) {
-                    message += `, ${processResult.matched} automatisch zugeordnet`;
-                }
-                if (processResult.unmatched > 0) {
-                    message += `, ${processResult.unmatched} nicht zugeordnet`;
-                }
+        // Sortieren
+        maklerStats = sortMakler(maklerStats, maklerSortField, maklerSortDir);
 
-                UI.showToast(message, processResult.matched > 0 ? 'success' : 'info');
-                refreshData();
+        // Rendern
+        UI.renderMaklerTable(maklerStats);
+    }
+
+    /**
+     * Makler sortieren
+     */
+    function sortMakler(maklerStats, field, direction) {
+        const multiplier = direction === 'desc' ? -1 : 1;
+
+        return maklerStats.sort((a, b) => {
+            let valueA, valueB;
+
+            switch (field) {
+                case 'name':
+                    valueA = a.name.toLowerCase();
+                    valueB = b.name.toLowerCase();
+                    break;
+                case 'total':
+                    valueA = a.total;
+                    valueB = b.total;
+                    break;
+                case 'bestaetigt':
+                    valueA = a.bestaetigt;
+                    valueB = b.bestaetigt;
+                    break;
+                case 'offen':
+                    valueA = a.offen;
+                    valueB = b.offen;
+                    break;
+                case 'abgelehnt':
+                    valueA = a.abgelehnt;
+                    valueB = b.abgelehnt;
+                    break;
+                default:
+                    return 0;
             }
-        } catch (error) {
-            console.error('Import-Fehler:', error);
-            UI.showToast(error.message, 'error');
-        }
+
+            if (valueA < valueB) return -1 * multiplier;
+            if (valueA > valueB) return 1 * multiplier;
+            return 0;
+        });
     }
 
     /**
-     * CSV Export Handler
+     * Makler-Sortierung Handler
      */
-    function handleCsvExport() {
-        const filters = UI.getFilterValues();
-        let cases = Storage.getCasesArray();
-        cases = filterCases(cases, filters);
-        cases = sortCases(cases, filters.sort);
-
-        if (cases.length === 0) {
-            UI.showToast('Keine Daten zum Exportieren', 'warning');
-            return;
+    function handleMaklerSort(field) {
+        if (maklerSortField === field) {
+            maklerSortDir = maklerSortDir === 'desc' ? 'asc' : 'desc';
+        } else {
+            maklerSortField = field;
+            maklerSortDir = 'desc';
         }
 
-        Export.exportToCSV(cases);
+        // Sortier-Indikatoren aktualisieren
+        updateSortIndicators('#tab-makler', field, maklerSortDir);
+
+        refreshMaklerTab();
     }
 
     /**
-     * Demo Reset Handler
+     * E-Mails Tab aktualisieren
      */
-    function handleDemoReset() {
-        if (confirm('Alle Daten werden gelöscht und durch 50 Demo-Vorgänge ersetzt. Fortfahren?')) {
-            DemoData.resetDemoData();
-            UI.showToast('Demo-Daten wurden zurückgesetzt', 'success');
-            refreshData();
+    function refreshEmailsTab() {
+        const filters = UI.getEmailFilterValues();
+        let emails = Storage.getAllEmails();
+
+        // Suche filtern
+        if (filters.search) {
+            emails = emails.filter(e => {
+                const searchFields = [
+                    e.subject,
+                    e.senderEmail,
+                    e.kundeName,
+                    e.bodyPlain
+                ].filter(Boolean).join(' ').toLowerCase();
+
+                return searchFields.includes(filters.search);
+            });
         }
+
+        // Sortieren
+        if (filters.sort === 'asc') {
+            emails.sort((a, b) => new Date(a.receivedTime) - new Date(b.receivedTime));
+        } else {
+            emails.sort((a, b) => new Date(b.receivedTime) - new Date(a.receivedTime));
+        }
+
+        // Rendern
+        UI.renderEmailsTable(emails);
     }
 
     /**
-     * Klick auf Vorgangs-Karte
+     * Sortier-Indikatoren aktualisieren
      */
-    function handleCaseCardClick(e) {
-        const card = e.target.closest('.case-card');
-        if (!card) return;
+    function updateSortIndicators(tableSelector, activeField, direction) {
+        const arrow = direction === 'desc' ? ' ↓' : ' ↑';
 
-        const caseId = card.dataset.caseId;
+        document.querySelectorAll(`${tableSelector} th.sortable`).forEach(th => {
+            const field = th.dataset.sort;
+            const text = th.textContent.replace(/ [↓↑]$/, '');
+
+            if (field === activeField) {
+                th.classList.add('active');
+                th.textContent = text + arrow;
+            } else {
+                th.classList.remove('active');
+                th.textContent = text;
+            }
+        });
+    }
+
+    /**
+     * Klick auf Kunden-Zeile
+     */
+    function handleKundenRowClick(e) {
+        const row = e.target.closest('tr.clickable-row');
+        if (!row) return;
+
+        const caseId = row.dataset.caseId;
         const caseData = Storage.getCase(caseId);
 
         if (caseData) {
+            openCaseModal(caseData);
+        }
+    }
+
+    /**
+     * Klick auf Makler-Zeile
+     */
+    function handleMaklerRowClick(e) {
+        const row = e.target.closest('tr.clickable-row');
+        if (!row) return;
+
+        const maklerName = row.dataset.maklerName;
+        const maklerStats = Storage.getMaklerStats();
+        const maklerData = maklerStats.find(m => m.name === maklerName);
+
+        if (maklerData) {
+            const cases = Storage.findCasesByMakler(maklerName);
+            UI.openMaklerModal(maklerData, cases);
+        }
+    }
+
+    /**
+     * Klick auf E-Mail-Zeile
+     */
+    function handleEmailRowClick(e) {
+        const row = e.target.closest('tr.clickable-row');
+        if (!row) return;
+
+        const caseId = row.dataset.caseId;
+        const caseData = Storage.getCase(caseId);
+
+        if (caseData) {
+            openCaseModal(caseData);
+        }
+    }
+
+    /**
+     * Klick auf Vorgang in Makler-Modal
+     */
+    function handleMaklerCaseClick(e) {
+        const row = e.target.closest('tr.clickable-row');
+        if (!row) return;
+
+        const caseId = row.dataset.caseId;
+        const caseData = Storage.getCase(caseId);
+
+        if (caseData) {
+            UI.closeMaklerModal();
             openCaseModal(caseData);
         }
     }
@@ -391,24 +524,13 @@ const App = (function() {
             const oldStatus = caseData.status;
 
             // Daten aktualisieren
-            caseData.kunde.name = formData.kunde.name;
-            if (!caseData.kunde.source || formData.kunde.name !== caseData.kunde.name) {
-                caseData.kunde.source = 'manual';
-                caseData.kunde.confidence = 1.0;
-            }
-
-            caseData.versicherungsnummer.value = formData.versicherungsnummer.value;
-            if (!caseData.versicherungsnummer.source || formData.versicherungsnummer.value !== caseData.versicherungsnummer.value) {
-                caseData.versicherungsnummer.source = 'manual';
-                caseData.versicherungsnummer.confidence = 1.0;
-            }
-
-            caseData.versicherer = formData.versicherer;
+            caseData.kunde = formData.kunde;
+            caseData.versicherungsnummer = formData.versicherungsnummer;
             caseData.sparte = formData.sparte;
             caseData.status = formData.status;
             caseData.gueltigkeitsdatum = formData.gueltigkeitsdatum;
+            caseData.makler = formData.makler;
             caseData.notes = formData.notes;
-            caseData.flagged = formData.flagged;
 
             // Status-Historie aktualisieren
             if (oldStatus !== formData.status) {
@@ -459,130 +581,63 @@ const App = (function() {
     }
 
     /**
-     * Neuen Vorgang aus nicht zugeordneter Mail erstellen
+     * Datei-Import Handler
      */
-    function createCaseFromMail(mailId) {
-        const mail = currentUnassigned.find(m => m.entryID === mailId);
-
-        if (!mail) {
-            UI.showToast('Mail nicht gefunden', 'error');
-            return;
+    function handleFileImport(e) {
+        const file = e.target.files[0];
+        if (file) {
+            processImportFile(file);
         }
+        // Input zurücksetzen für erneuten Import
+        e.target.value = '';
+    }
 
-        const newCase = Matcher.createCaseFromEmail(mail);
+    /**
+     * Import-Datei verarbeiten
+     */
+    async function processImportFile(file) {
+        try {
+            const result = await Export.importFromJSON(file);
 
-        if (newCase) {
-            // Mail aus unassigned entfernen
-            Storage.removeUnassignedMail(mailId);
+            if (result.type === 'backup') {
+                UI.showToast('Backup erfolgreich importiert', 'success');
+                refreshData();
+            } else if (result.type === 'outlook') {
+                const processResult = Export.processOutlookExport(result.data);
 
-            UI.showToast('Vorgang erstellt', 'success');
-            refreshData();
+                let message = `${processResult.processed} E-Mails verarbeitet`;
+                if (processResult.matched > 0) {
+                    message += `, ${processResult.matched} automatisch zugeordnet`;
+                }
+                if (processResult.unmatched > 0) {
+                    message += `, ${processResult.unmatched} nicht zugeordnet`;
+                }
 
-            // Modal öffnen
-            openCaseModal(newCase);
-        } else {
-            UI.showToast('Fehler beim Erstellen', 'error');
+                UI.showToast(message, processResult.matched > 0 ? 'success' : 'info');
+                refreshData();
+            }
+        } catch (error) {
+            console.error('Import-Fehler:', error);
+            UI.showToast(error.message, 'error');
         }
     }
 
     /**
-     * Zuordnungs-Modal anzeigen
+     * CSV Export Handler
      */
-    function showAssignModal(mailId) {
-        const mail = currentUnassigned.find(m => m.entryID === mailId);
-
-        if (!mail) {
-            UI.showToast('Mail nicht gefunden', 'error');
-            return;
-        }
-
-        currentAssignMailId = mailId;
-        selectedAssignCaseId = null;
-
-        const cases = Storage.getCasesArray();
-        UI.openAssignModal(mail, cases);
-    }
-
-    /**
-     * Zuordnungs-Suche
-     */
-    function handleAssignSearch() {
-        const searchTerm = document.getElementById('assignSearch').value.trim().toLowerCase();
+    function handleCsvExport() {
+        const filters = UI.getKundenFilterValues();
         let cases = Storage.getCasesArray();
+        cases = filterKunden(cases, filters);
+        cases = sortKunden(cases, kundenSortField, kundenSortDir);
 
-        if (searchTerm) {
-            cases = cases.filter(c => {
-                const searchFields = [
-                    c.kunde?.name,
-                    c.versicherungsnummer?.value,
-                    c.versicherer?.name
-                ].filter(Boolean).join(' ').toLowerCase();
-
-                return searchFields.includes(searchTerm);
-            });
-        }
-
-        // Maximal 10 Ergebnisse
-        cases = cases.slice(0, 10);
-
-        UI.renderAssignResults(cases);
-    }
-
-    /**
-     * Klick auf Zuordnungs-Ergebnis
-     */
-    function handleAssignResultClick(e) {
-        const item = e.target.closest('.assign-result-item');
-        if (!item) return;
-
-        // Alte Auswahl entfernen
-        document.querySelectorAll('.assign-result-item.selected').forEach(el => {
-            el.classList.remove('selected');
-        });
-
-        // Neue Auswahl
-        item.classList.add('selected');
-        selectedAssignCaseId = item.dataset.caseId;
-
-        // Button aktivieren
-        document.getElementById('assignConfirm').disabled = false;
-    }
-
-    /**
-     * Zuordnung bestätigen
-     */
-    function handleAssignConfirm() {
-        if (!selectedAssignCaseId || !currentAssignMailId) {
+        if (cases.length === 0) {
+            UI.showToast('Keine Daten zum Exportieren', 'warning');
             return;
         }
 
-        const mail = currentUnassigned.find(m => m.entryID === currentAssignMailId);
-
-        if (!mail) {
-            UI.showToast('Mail nicht gefunden', 'error');
-            UI.closeAssignModal();
-            return;
-        }
-
-        // Mail zum Vorgang hinzufügen
-        const result = Storage.addMessagesToCase(selectedAssignCaseId, [mail]);
-
-        if (result) {
-            // Mail als verarbeitet markieren
-            Storage.markMessageProcessed(mail.entryID);
-
-            // Aus unassigned entfernen
-            Storage.removeUnassignedMail(mail.entryID);
-
-            // Status ggf. aktualisieren
-            Matcher.updateStatusFromEmail(selectedAssignCaseId, mail);
-
-            UI.showToast('Mail zugeordnet', 'success');
-            UI.closeAssignModal();
-            refreshData();
-        } else {
-            UI.showToast('Fehler bei Zuordnung', 'error');
-        }
+        Export.exportToCSV(cases);
+        UI.showToast(`${cases.length} Vorgänge exportiert`, 'success');
     }
 
     /**
@@ -600,11 +655,9 @@ const App = (function() {
         };
     }
 
-    // Öffentliche API (für onclick in HTML)
+    // Öffentliche API
     return {
         init,
-        createCaseFromMail,
-        showAssignModal,
         refreshData
     };
 })();
