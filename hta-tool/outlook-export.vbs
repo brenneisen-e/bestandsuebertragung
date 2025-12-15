@@ -96,6 +96,7 @@ End Function
 Sub CollectEmails(folder, emails)
     Dim items, item, i, subFolder
     Dim dateFrom, receivedTime, subject
+    Dim entryId, convId, sender, body, folderName, recTime
 
     dateFrom = DateAdd("d", -DAYS_BACK, Date)
 
@@ -118,16 +119,24 @@ Sub CollectEmails(folder, emails)
 
                     ' Betreff-Filter pruefen
                     If InStr(1, subject, SUBJECT_FILTER, vbTextCompare) > 0 Then
+                        ' Alle Werte VORHER in Variablen speichern
+                        entryId = "" & item.EntryID
+                        convId = GetConvID(item)
+                        sender = GetSender(item)
+                        body = TruncBody(item.Body)
+                        folderName = "" & folder.Name
+                        recTime = FormatDateTime(receivedTime, vbGeneralDate)
+
                         emailCount = emailCount + 1
-                        emails.Add "email_" & emailCount, Array( _
-                            "" & item.EntryID, _
-                            GetConvID(item), _
-                            CleanStr(subject), _
-                            GetSender(item), _
-                            FormatDateTime(receivedTime, vbGeneralDate), _
-                            CleanStr(TruncBody(item.Body)), _
-                            "" & folder.Name _
-                        )
+
+                        ' Als einzelne Strings speichern (kein Array)
+                        emails.Add "e" & emailCount & "_entryID", entryId
+                        emails.Add "e" & emailCount & "_convID", convId
+                        emails.Add "e" & emailCount & "_subject", CleanStr(subject)
+                        emails.Add "e" & emailCount & "_sender", sender
+                        emails.Add "e" & emailCount & "_time", recTime
+                        emails.Add "e" & emailCount & "_body", CleanStr(body)
+                        emails.Add "e" & emailCount & "_folder", folderName
                     End If
                 End If
             End If
@@ -211,7 +220,7 @@ End Function
 
 ' JSON erstellen
 Function BuildJSON(emails, mailboxName)
-    Dim json, keys, i, e
+    Dim json, i
 
     json = "{" & vbCrLf
     json = json & "  ""exportDate"": """ & FormatDateTime(Now, vbGeneralDate) & """," & vbCrLf
@@ -220,20 +229,17 @@ Function BuildJSON(emails, mailboxName)
     json = json & "  ""totalEmails"": " & emailCount & "," & vbCrLf
     json = json & "  ""emails"": [" & vbCrLf
 
-    keys = emails.Keys
-    For i = 0 To emails.Count - 1
-        e = emails.Item(keys(i))
-
-        If i > 0 Then json = json & "," & vbCrLf
+    For i = 1 To emailCount
+        If i > 1 Then json = json & "," & vbCrLf
 
         json = json & "    {"
-        json = json & """entryID"": """ & e(0) & """, "
-        json = json & """conversationID"": """ & e(1) & """, "
-        json = json & """subject"": """ & e(2) & """, "
-        json = json & """senderEmail"": """ & e(3) & """, "
-        json = json & """receivedTime"": """ & e(4) & """, "
-        json = json & """bodyPlain"": """ & e(5) & """, "
-        json = json & """folder"": """ & e(6) & """"
+        json = json & """entryID"": """ & emails.Item("e" & i & "_entryID") & """, "
+        json = json & """conversationID"": """ & emails.Item("e" & i & "_convID") & """, "
+        json = json & """subject"": """ & emails.Item("e" & i & "_subject") & """, "
+        json = json & """senderEmail"": """ & emails.Item("e" & i & "_sender") & """, "
+        json = json & """receivedTime"": """ & emails.Item("e" & i & "_time") & """, "
+        json = json & """bodyPlain"": """ & emails.Item("e" & i & "_body") & """, "
+        json = json & """folder"": """ & emails.Item("e" & i & "_folder") & """"
         json = json & "}"
     Next
 
