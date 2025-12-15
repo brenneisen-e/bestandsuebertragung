@@ -194,7 +194,17 @@ const Export = (function() {
 
             reader.onload = function(e) {
                 try {
-                    const data = JSON.parse(e.target.result);
+                    // BOM entfernen falls vorhanden (UTF-8: EF BB BF, UTF-16: FE FF oder FF FE)
+                    let content = e.target.result;
+                    if (content.charCodeAt(0) === 0xFEFF || content.charCodeAt(0) === 0xFFFE) {
+                        content = content.substring(1);
+                    }
+                    // UTF-8 BOM kann als 3 Zeichen erscheinen
+                    if (content.charCodeAt(0) === 0xEF && content.charCodeAt(1) === 0xBB && content.charCodeAt(2) === 0xBF) {
+                        content = content.substring(3);
+                    }
+
+                    const data = JSON.parse(content);
 
                     // Prüfen ob es ein Backup oder ein Outlook-Export ist
                     if (data.cases && data.processed) {
@@ -205,8 +215,8 @@ const Export = (function() {
                         } else {
                             reject(new Error('Backup-Import fehlgeschlagen'));
                         }
-                    } else if (data.conversations) {
-                        // Outlook-Export
+                    } else if (data.conversations || data.emails) {
+                        // Outlook-Export (conversations oder emails Format)
                         resolve({ type: 'outlook', data: data });
                     } else {
                         reject(new Error('Unbekanntes Dateiformat'));
@@ -226,22 +236,31 @@ const Export = (function() {
 
     /**
      * Outlook-Export verarbeiten
+     * Unterstützt sowohl 'conversations' als auch 'emails' Format
      */
     function processOutlookExport(data) {
-        if (!data.conversations) {
-            return { processed: 0, matched: 0, unmatched: 0, errors: [] };
-        }
-
         const allMessages = [];
 
-        // Alle Nachrichten aus Konversationen extrahieren
-        for (const [convId, conv] of Object.entries(data.conversations)) {
-            if (conv.messages) {
-                conv.messages.forEach(msg => {
-                    msg.conversationID = convId;
-                    allMessages.push(msg);
-                });
+        // Format 1: conversations (gruppiert nach ConversationID)
+        if (data.conversations) {
+            for (const [convId, conv] of Object.entries(data.conversations)) {
+                if (conv.messages) {
+                    conv.messages.forEach(msg => {
+                        msg.conversationID = convId;
+                        allMessages.push(msg);
+                    });
+                }
             }
+        }
+        // Format 2: emails (flache Liste aus VBScript-Export)
+        else if (data.emails) {
+            data.emails.forEach(email => {
+                allMessages.push(email);
+            });
+        }
+
+        if (allMessages.length === 0) {
+            return { processed: 0, matched: 0, unmatched: 0, created: 0, errors: [] };
         }
 
         // Bereits verarbeitete Nachrichten filtern
@@ -254,6 +273,7 @@ const Export = (function() {
                 processed: 0,
                 matched: 0,
                 unmatched: 0,
+                created: 0,
                 errors: [],
                 message: 'Alle Nachrichten wurden bereits verarbeitet'
             };
@@ -266,21 +286,33 @@ const Export = (function() {
         // Automatische Zuordnungen durchführen
         const assignResult = Matcher.autoAssign(matchResult.matched);
 
-        // Nicht zugeordnete Mails speichern
-        matchResult.unmatched.forEach(mail => {
-            Storage.addUnassignedMail(mail);
+        // Neue Fälle aus nicht zugeordneten E-Mails erstellen
+        let createdCases = 0;
+        const unmatchedEmails = [...matchResult.unmatched, ...matchResult.suggested.map(s => s.email)];
+
+        // E-Mails nach ConversationID gruppieren
+        const byConversation = {};
+        unmatchedEmails.forEach(email => {
+            const convId = email.conversationID || email.entryID;
+            if (!byConversation[convId]) {
+                byConversation[convId] = [];
+            }
+            byConversation[convId].push(email);
         });
 
-        // Vorschläge auch als nicht zugeordnet behandeln
-        matchResult.suggested.forEach(item => {
-            Storage.addUnassignedMail(item.email);
-        });
+        // Für jede Konversation einen neuen Fall erstellen
+        for (const [convId, emails] of Object.entries(byConversation)) {
+            const newCase = Matcher.createCaseFromEmail(emails[0], emails);
+            if (newCase) {
+                createdCases++;
+            }
+        }
 
         return {
             processed: newMessages.length,
             matched: assignResult.assigned.length,
-            unmatched: matchResult.unmatched.length + matchResult.suggested.length,
-            suggested: matchResult.suggested.length,
+            unmatched: 0, // Alle werden jetzt als neue Fälle erstellt
+            created: createdCases,
             errors: assignResult.failed
         };
     }

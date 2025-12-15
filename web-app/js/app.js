@@ -801,14 +801,14 @@ const App = (function() {
                 const processResult = Export.processOutlookExport(result.data);
 
                 let message = `${processResult.processed} E-Mails verarbeitet`;
-                if (processResult.matched > 0) {
-                    message += `, ${processResult.matched} automatisch zugeordnet`;
+                if (processResult.created > 0) {
+                    message += `, ${processResult.created} neue Vorgänge erstellt`;
                 }
-                if (processResult.unmatched > 0) {
-                    message += `, ${processResult.unmatched} nicht zugeordnet`;
+                if (processResult.matched > 0) {
+                    message += `, ${processResult.matched} zugeordnet`;
                 }
 
-                UI.showToast(message, processResult.matched > 0 ? 'success' : 'info');
+                UI.showToast(message, (processResult.created > 0 || processResult.matched > 0) ? 'success' : 'info');
                 refreshData();
             }
         } catch (error) {
