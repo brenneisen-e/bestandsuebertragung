@@ -273,8 +273,19 @@ const App = (function() {
         // Filtern
         cases = filterVorgaenge(cases, filters);
 
-        // Sortieren nach Aktualisierungsdatum (neueste zuerst)
-        cases.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+        // Sortieren: Zuerst Sammelmail-Vorgänge (linkedCaseIds), dann nach Datum
+        cases.sort((a, b) => {
+            const aHasLinked = a.linkedCaseIds && a.linkedCaseIds.length > 0 ? 1 : 0;
+            const bHasLinked = b.linkedCaseIds && b.linkedCaseIds.length > 0 ? 1 : 0;
+
+            // Sammelmail-Vorgänge zuerst
+            if (bHasLinked !== aHasLinked) {
+                return bHasLinked - aHasLinked;
+            }
+
+            // Innerhalb der Gruppen nach Aktualisierungsdatum sortieren
+            return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+        });
 
         // Rendern
         UI.renderCaseTiles(cases);

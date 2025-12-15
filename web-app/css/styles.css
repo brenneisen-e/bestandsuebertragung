@@ -727,6 +727,22 @@ body {
     cursor: pointer;
 }
 
+.data-table tbody tr.date-header-row {
+    background: var(--gray-100);
+}
+
+.data-table tbody tr.date-header-row:hover {
+    background: var(--gray-100);
+}
+
+.data-table tbody td.date-header {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--gray-200);
+}
+
 .data-table.compact td {
     padding: var(--spacing-sm) var(--spacing-md);
 }

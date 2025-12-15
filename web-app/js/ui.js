@@ -211,7 +211,7 @@ const UI = (function() {
     }
 
     /**
-     * Letzte Aktivitäten rendern
+     * Letzte Aktivitäten rendern (nach Datum geclustert)
      */
     function renderRecentActivity(activities, filterStatus, sortOrder) {
         if (!elements.recentActivityBody) return;
@@ -234,19 +234,45 @@ const UI = (function() {
             return;
         }
 
-        elements.recentActivityBody.innerHTML = filtered.map(a => {
-            const statusLabel = STATUS_LABELS[a.to] || a.to;
-            const statusIcon = STATUS_ICONS[a.to] || '○';
+        // Nach Datum gruppieren
+        const groupedByDate = {};
+        filtered.forEach(a => {
+            const dateKey = formatDate(a.date);
+            if (!groupedByDate[dateKey]) {
+                groupedByDate[dateKey] = [];
+            }
+            groupedByDate[dateKey].push(a);
+        });
 
-            return `
-                <tr class="clickable-row" data-case-id="${a.caseId}">
-                    <td>${formatDate(a.date)}</td>
-                    <td>${escapeHtml(a.kundeName)}</td>
-                    <td>${escapeHtml(a.maklerName)}</td>
-                    <td><span class="status-badge status-${a.to}">${statusIcon} ${statusLabel}</span></td>
+        // HTML mit Datums-Headern generieren
+        let html = '';
+        Object.keys(groupedByDate).forEach(dateKey => {
+            const activitiesForDate = groupedByDate[dateKey];
+
+            // Datums-Header-Zeile
+            html += `
+                <tr class="date-header-row">
+                    <td colspan="4" class="date-header">${dateKey}</td>
                 </tr>
             `;
-        }).join('');
+
+            // Aktivitäten für dieses Datum
+            activitiesForDate.forEach(a => {
+                const statusLabel = STATUS_LABELS[a.to] || a.to;
+                const statusIcon = STATUS_ICONS[a.to] || '○';
+
+                html += `
+                    <tr class="clickable-row" data-case-id="${a.caseId}">
+                        <td></td>
+                        <td>${escapeHtml(a.kundeName)}</td>
+                        <td>${escapeHtml(a.maklerName)}</td>
+                        <td><span class="status-badge status-${a.to}">${statusIcon} ${statusLabel}</span></td>
+                    </tr>
+                `;
+            });
+        });
+
+        elements.recentActivityBody.innerHTML = html;
     }
 
     /**
