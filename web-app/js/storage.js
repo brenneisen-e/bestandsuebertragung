@@ -725,6 +725,128 @@ const Storage = (function() {
         return caseData && caseData.linkedCaseIds && caseData.linkedCaseIds.length > 0;
     }
 
+    /**
+     * Duplikate finden basierend auf VS-Nr, Kunde+Makler, oder Kunde+Versicherer
+     * Gibt Gruppen von Duplikaten zurück
+     */
+    function findDuplicates() {
+        const cases = getCasesArray();
+        const duplicateGroups = [];
+        const processed = new Set();
+
+        // Hilfsfunktionen für Normalisierung
+        const normalizeVsNr = (vsNr) => vsNr ? vsNr.replace(/[-\s.]/g, '').toUpperCase() : '';
+        const normalizeKunde = (name) => {
+            if (!name) return '';
+            return name.toLowerCase()
+                .replace(/[,\s]+/g, ' ')
+                .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+                .trim();
+        };
+
+        cases.forEach((caseA, indexA) => {
+            if (processed.has(caseA.id)) return;
+
+            const duplicates = [caseA];
+            const vsNrA = normalizeVsNr(caseA.versicherungsnummer?.value);
+            const kundeA = normalizeKunde(caseA.kunde?.name);
+            const maklerA = caseA.makler?.email?.toLowerCase() || '';
+            const versichererA = caseA.versicherer?.name || '';
+
+            cases.forEach((caseB, indexB) => {
+                if (indexA >= indexB || processed.has(caseB.id)) return;
+
+                const vsNrB = normalizeVsNr(caseB.versicherungsnummer?.value);
+                const kundeB = normalizeKunde(caseB.kunde?.name);
+                const maklerB = caseB.makler?.email?.toLowerCase() || '';
+                const versichererB = caseB.versicherer?.name || '';
+
+                let isDuplicate = false;
+                let reason = '';
+
+                // Prüfung 1: Gleiche VS-Nr (wenn vorhanden)
+                if (vsNrA && vsNrB && vsNrA === vsNrB) {
+                    isDuplicate = true;
+                    reason = 'VS-Nr';
+                }
+                // Prüfung 2: Gleicher Kunde + Makler
+                else if (kundeA && kundeB && maklerA && maklerB && kundeA === kundeB && maklerA === maklerB) {
+                    isDuplicate = true;
+                    reason = 'Kunde+Makler';
+                }
+                // Prüfung 3: Gleicher Kunde + Versicherer
+                else if (kundeA && kundeB && versichererA && versichererB && kundeA === kundeB && versichererA === versichererB) {
+                    isDuplicate = true;
+                    reason = 'Kunde+Versicherer';
+                }
+
+                if (isDuplicate) {
+                    duplicates.push({ ...caseB, _duplicateReason: reason });
+                    processed.add(caseB.id);
+                }
+            });
+
+            if (duplicates.length > 1) {
+                processed.add(caseA.id);
+                duplicateGroups.push(duplicates);
+            }
+        });
+
+        return duplicateGroups;
+    }
+
+    /**
+     * Duplikate zusammenführen
+     * Behält den ältesten Vorgang und fügt E-Mails der anderen hinzu
+     */
+    function mergeDuplicates() {
+        const duplicateGroups = findDuplicates();
+        let mergedCount = 0;
+        let deletedCount = 0;
+
+        duplicateGroups.forEach(group => {
+            // Sortiere nach Erstellungsdatum (ältester zuerst)
+            group.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+            const primary = group[0]; // Ältester Vorgang bleibt
+            const duplicates = group.slice(1); // Rest wird zusammengeführt
+
+            duplicates.forEach(dup => {
+                // E-Mails übernehmen
+                if (dup.messages && dup.messages.length > 0) {
+                    addMessagesToCase(primary.id, dup.messages);
+                }
+
+                // Notizen zusammenführen
+                if (dup.notes && dup.notes.trim()) {
+                    const primaryCase = getCase(primary.id);
+                    if (primaryCase) {
+                        const existingNotes = primaryCase.notes || '';
+                        primaryCase.notes = existingNotes + (existingNotes ? '\n---\n' : '') +
+                            `[Zusammengeführt aus ${dup.id}]: ` + dup.notes;
+                        saveCase(primaryCase);
+                    }
+                }
+
+                // Status-Historie Eintrag
+                addStatusHistory(primary.id, primary.status, primary.status,
+                    `Duplikat ${dup.kunde?.name || dup.id} zusammengeführt (${dup._duplicateReason || 'manuell'})`);
+
+                // Duplikat löschen
+                deleteCase(dup.id);
+                deletedCount++;
+            });
+
+            mergedCount++;
+        });
+
+        return {
+            groupsFound: duplicateGroups.length,
+            mergedInto: mergedCount,
+            deleted: deletedCount
+        };
+    }
+
     // Öffentliche API
     return {
         // Vorgänge
@@ -780,6 +902,10 @@ const Storage = (function() {
         // Verknüpfungen
         getLinkedCases,
         hasLinkedCases,
+
+        // Duplikat-Bereinigung
+        findDuplicates,
+        mergeDuplicates,
 
         // Utilities
         generateId,
