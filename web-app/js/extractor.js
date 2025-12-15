@@ -349,6 +349,49 @@ const Extractor = (function() {
     }
 
     /**
+     * Makler-Name aus E-Mail-Body extrahieren
+     * Sucht nach Signaturen wie "Mit freundlichen Grüßen\nThomas Meier\nVersicherungsmakler"
+     */
+    function extractMaklerFromBody(text) {
+        if (!text) return null;
+
+        // Pattern 1: Nach "Mit freundlichen Grüßen" + Name + Makler-Bezeichnung
+        const mfgPattern = /Mit freundlichen Grüßen\s*\n+\s*([A-ZÄÖÜß][a-zäöüß]+\s+[A-ZÄÖÜß][a-zäöüß]+)\s*\n+\s*(?:Versicherungsmakler|Versicherungsmaklerin|Makler|Maklerin)/gi;
+        let match = mfgPattern.exec(text);
+        if (match) {
+            return {
+                name: match[1].trim(),
+                confidence: 0.9,
+                source: 'signature'
+            };
+        }
+
+        // Pattern 2: "Ihr Makler" / "Ihre Maklerin" + Name
+        const ihrMaklerPattern = /(?:Ihr(?:e)?\s+(?:Versicherungs)?makler(?:in)?)\s*[:\n]\s*([A-ZÄÖÜß][a-zäöüß]+\s+[A-ZÄÖÜß][a-zäöüß]+)/gi;
+        match = ihrMaklerPattern.exec(text);
+        if (match) {
+            return {
+                name: match[1].trim(),
+                confidence: 0.85,
+                source: 'signature'
+            };
+        }
+
+        // Pattern 3: Name + "Versicherungsmakler(in)" in der selben oder nächsten Zeile
+        const maklerPattern = /([A-ZÄÖÜß][a-zäöüß]+\s+[A-ZÄÖÜß][a-zäöüß]+)\s*\n*\s*Versicherungsmakler(?:in)?/gi;
+        match = maklerPattern.exec(text);
+        if (match) {
+            return {
+                name: match[1].trim(),
+                confidence: 0.8,
+                source: 'signature'
+            };
+        }
+
+        return null;
+    }
+
+    /**
      * Confidence-Score berechnen
      */
     function calculateConfidence(match, pattern) {
@@ -371,13 +414,36 @@ const Extractor = (function() {
     function extractFromEmail(email) {
         const text = (email.subject || '') + '\n' + (email.bodyPlain || email.body || '');
 
+        // Makler aus Body extrahieren
+        const maklerFromBody = extractMaklerFromBody(text);
+
+        // Makler-Info zusammenstellen
+        let makler = null;
+        if (maklerFromBody) {
+            makler = {
+                name: maklerFromBody.name,
+                email: email.senderEmail || '',
+                confidence: maklerFromBody.confidence,
+                source: maklerFromBody.source
+            };
+        } else if (email.senderEmail) {
+            // Fallback: Sender-E-Mail als Makler-Email verwenden
+            makler = {
+                name: '',
+                email: email.senderEmail,
+                confidence: 0.5,
+                source: 'sender'
+            };
+        }
+
         return {
             versicherungsnummer: extractVersicherungsnummer(text),
             kunde: extractKundenname(text),
             gueltigkeitsdatum: extractDatum(text),
             status: extractStatus(text),
             sparte: extractSparte(text),
-            versicherer: extractVersichererFromEmail(email.senderEmail)
+            versicherer: extractVersichererFromEmail(email.senderEmail),
+            makler: makler
         };
     }
 
@@ -394,7 +460,8 @@ const Extractor = (function() {
             gueltigkeitsdatum: null,
             status: null,
             sparte: null,
-            versicherer: null
+            versicherer: null,
+            makler: null
         };
 
         // Durch alle Nachrichten iterieren
@@ -456,6 +523,7 @@ const Extractor = (function() {
         extractStatus,
         extractSparte,
         extractVersichererFromEmail,
+        extractMaklerFromBody,
         extractFromEmail,
         extractFromConversation,
         extractFromSubject,

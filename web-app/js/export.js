@@ -236,6 +236,51 @@ const Export = (function() {
     }
 
     /**
+     * UTF-8 Mojibake korrigieren (wenn UTF-8 als Windows-1252 gelesen wurde)
+     */
+    function fixMojibake(text) {
+        if (!text) return text;
+        // Häufige UTF-8 Mojibake-Muster
+        const replacements = {
+            'Ã¼': 'ü', 'Ã¶': 'ö', 'Ã¤': 'ä', 'ÃŸ': 'ß',
+            'Ãœ': 'Ü', 'Ã–': 'Ö', 'Ã„': 'Ä',
+            'Ã©': 'é', 'Ã¨': 'è', 'Ã ': 'à', 'Ã¢': 'â',
+            'Ã®': 'î', 'Ã´': 'ô', 'Ã»': 'û', 'Ã§': 'ç',
+            'â€"': '–', 'â€"': '—', 'â€˜': ''', 'â€™': ''',
+            'â€œ': '"', 'â€': '"', 'â€¢': '•', 'â€¦': '…',
+            'Â ': ' ', 'Â§': '§', 'Â©': '©', 'Â®': '®',
+            'â‚¬': '€'
+        };
+        let result = text;
+        for (const [bad, good] of Object.entries(replacements)) {
+            result = result.split(bad).join(good);
+        }
+        return result;
+    }
+
+    /**
+     * E-Mail-Felder korrigieren (Encoding)
+     */
+    function fixEmailEncoding(email) {
+        return {
+            ...email,
+            subject: fixMojibake(email.subject),
+            bodyPlain: fixMojibake(email.bodyPlain),
+            folder: fixMojibake(email.folder)
+        };
+    }
+
+    /**
+     * VS-Nr aus E-Mail-Text extrahieren
+     */
+    function extractVsNrFromEmail(email) {
+        const text = (email.subject || '') + '\n' + (email.bodyPlain || '');
+        // ERG-Nummer Pattern
+        const match = text.match(/ERG[-\s]?\d{6,8}/i);
+        return match ? match[0].toUpperCase().replace(/\s/g, '-') : null;
+    }
+
+    /**
      * Outlook-Export verarbeiten
      * Unterstützt sowohl 'conversations' als auch 'emails' Format
      */
@@ -248,7 +293,7 @@ const Export = (function() {
                 if (conv.messages) {
                     conv.messages.forEach(msg => {
                         msg.conversationID = convId;
-                        allMessages.push(msg);
+                        allMessages.push(fixEmailEncoding(msg));
                     });
                 }
             }
@@ -256,7 +301,7 @@ const Export = (function() {
         // Format 2: emails (flache Liste aus VBScript-Export)
         else if (data.emails) {
             data.emails.forEach(email => {
-                allMessages.push(email);
+                allMessages.push(fixEmailEncoding(email));
             });
         }
 
@@ -301,18 +346,19 @@ const Export = (function() {
         let createdCases = 0;
         const unmatchedEmails = matchResult.unmatched;
 
-        // E-Mails nach ConversationID gruppieren
-        const byConversation = {};
+        // E-Mails nach VS-Nr gruppieren (nicht nach ConversationID!)
+        // Das ist wichtig, wenn mehrere Vorgänge in derselben Konversation sind
+        const byVsNr = {};
         unmatchedEmails.forEach(email => {
-            const convId = email.conversationID || email.entryID;
-            if (!byConversation[convId]) {
-                byConversation[convId] = [];
+            const vsNr = extractVsNrFromEmail(email) || `unknown-${email.entryID}`;
+            if (!byVsNr[vsNr]) {
+                byVsNr[vsNr] = [];
             }
-            byConversation[convId].push(email);
+            byVsNr[vsNr].push(email);
         });
 
-        // Für jede Konversation einen neuen Fall erstellen
-        for (const [convId, emails] of Object.entries(byConversation)) {
+        // Für jede VS-Nr einen neuen Fall erstellen
+        for (const [vsNr, emails] of Object.entries(byVsNr)) {
             const newCase = Matcher.createCaseFromEmail(emails[0], emails);
             if (newCase) {
                 createdCases++;
