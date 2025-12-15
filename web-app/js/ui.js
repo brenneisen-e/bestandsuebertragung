@@ -110,6 +110,11 @@ const UI = (function() {
             stepPvValidated: document.getElementById('stepPvValidated'),
             stepExported: document.getElementById('stepExported'),
 
+            // Linked Cases
+            linkedCasesCard: document.getElementById('linkedCasesCard'),
+            linkedCasesCount: document.getElementById('linkedCasesCount'),
+            linkedCasesList: document.getElementById('linkedCasesList'),
+
             // Makler Modal
             maklerModal: document.getElementById('maklerModal'),
             maklerModalTitle: document.getElementById('maklerModalTitle'),
@@ -403,17 +408,58 @@ const UI = (function() {
             // Keywords rendern
             renderKeywords(caseData);
 
+            // Verknüpfte Vorgänge rendern
+            renderLinkedCases(caseData);
+
             // E-Mail Timeline mit Highlighting rendern
             renderEmailTimelineWithHighlights(caseData.messages || [], caseData);
         } else {
             elements.caseId.value = '';
             renderWorkflowTimeline({});
             renderKeywords(null);
+            renderLinkedCases(null);
             renderEmailTimelineWithHighlights([], null);
         }
 
         // Modal anzeigen
         elements.caseModal.style.display = 'flex';
+    }
+
+    /**
+     * Verknüpfte Vorgänge rendern (aus Sammelmail)
+     */
+    function renderLinkedCases(caseData) {
+        if (!elements.linkedCasesCard || !elements.linkedCasesList) return;
+
+        // Verknüpfte Vorgänge laden
+        const linkedCases = caseData && caseData.id ? Storage.getLinkedCases(caseData.id) : [];
+
+        if (linkedCases.length === 0) {
+            elements.linkedCasesCard.style.display = 'none';
+            return;
+        }
+
+        elements.linkedCasesCard.style.display = 'block';
+        elements.linkedCasesCount.textContent = linkedCases.length;
+
+        elements.linkedCasesList.innerHTML = linkedCases.map(c => {
+            const kunde = c.kunde?.name || 'Unbekannt';
+            const vsNr = c.versicherungsnummer?.value || '-';
+            const sparte = c.sparte || '-';
+
+            return `
+                <div class="linked-case-item" data-case-id="${c.id}">
+                    <div class="linked-case-status">
+                        <span class="status-badge status-${c.status}">${STATUS_ICONS[c.status] || '○'}</span>
+                    </div>
+                    <div class="linked-case-info">
+                        <div class="linked-case-kunde">${escapeHtml(kunde)}</div>
+                        <div class="linked-case-details">${escapeHtml(vsNr)} · ${escapeHtml(sparte)}</div>
+                    </div>
+                    <div class="linked-case-arrow">→</div>
+                </div>
+            `;
+        }).join('');
     }
 
     /**

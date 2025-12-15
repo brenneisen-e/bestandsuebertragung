@@ -115,6 +115,20 @@ const App = (function() {
             if (e.target.id === 'exportModal') UI.closeExportModal();
         });
 
+        // Klick auf verknüpften Vorgang
+        document.getElementById('linkedCasesList')?.addEventListener('click', (e) => {
+            const linkedItem = e.target.closest('.linked-case-item');
+            if (linkedItem) {
+                const caseId = linkedItem.dataset.caseId;
+                if (caseId) {
+                    const caseData = Storage.getCase(caseId);
+                    if (caseData) {
+                        UI.openCaseModal(caseData);
+                    }
+                }
+            }
+        });
+
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {

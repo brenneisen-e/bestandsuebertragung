@@ -643,6 +643,30 @@ const Storage = (function() {
         }
     }
 
+    /**
+     * Verknüpfte Vorgänge laden (aus derselben E-Mail)
+     */
+    function getLinkedCases(caseId) {
+        const caseData = getCase(caseId);
+        if (!caseData) return [];
+
+        const linkedIds = caseData.linkedCaseIds || [];
+        if (linkedIds.length === 0) return [];
+
+        const cases = getCases();
+        return linkedIds
+            .filter(id => cases[id])
+            .map(id => cases[id]);
+    }
+
+    /**
+     * Prüfen ob Vorgang verknüpft ist (Teil einer Sammelmail)
+     */
+    function hasLinkedCases(caseId) {
+        const caseData = getCase(caseId);
+        return caseData && caseData.linkedCaseIds && caseData.linkedCaseIds.length > 0;
+    }
+
     // Öffentliche API
     return {
         // Vorgänge
@@ -691,6 +715,10 @@ const Storage = (function() {
         // Export
         getExportReadyCases,
         markCasesExported,
+
+        // Verknüpfungen
+        getLinkedCases,
+        hasLinkedCases,
 
         // Utilities
         generateId,

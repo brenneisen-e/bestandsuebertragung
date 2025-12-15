@@ -1046,6 +1046,227 @@ Versicherungsmakler`
             ]
         };
 
+        // ============================================
+        // SAMMELMAIL 1: 3 verschiedene Kunden in einer E-Mail
+        // Makler: Thomas Meier sendet eine Sammelanfrage für 3 Kunden
+        // ============================================
+        const sammelmail1Id = 'email-sammel-001';
+        const sammelmail1 = {
+            entryID: sammelmail1Id,
+            folder: 'sent',
+            subject: 'Sammelanfrage Bestandsübertragung - 3 Kunden',
+            senderEmail: MAKLER[0].email,
+            receivedTime: daysAgo(12),
+            bodyPlain: `Sehr geehrte Damen und Herren,
+
+hiermit beantragen wir die Bestandsübertragung für folgende Kunden:
+
+1. Kunde: Anna Bergmann
+   Versicherungsnummer: ERG-1111111
+   Sparte: KFZ
+   Übertragung zum: 01.02.2026
+
+2. Kunde: Klaus Dietrich
+   Versicherungsnummer: ERG-2222222
+   Sparte: Hausrat
+   Übertragung zum: 01.02.2026
+
+3. Kunde: Monika Eckert
+   Versicherungsnummer: ERG-3333333
+   Sparte: Haftpflicht
+   Übertragung zum: 01.02.2026
+
+Die unterschriebenen Maklervollmachten für alle drei Kunden liegen bei.
+
+Mit freundlichen Grüßen
+Thomas Meier
+Versicherungsmakler`
+        };
+
+        // FALL 21: Aus Sammelmail 1 - Kunde 1
+        cases['case-021'] = {
+            id: 'case-021',
+            createdAt: daysAgo(12),
+            updatedAt: daysAgo(11),
+            kunde: { name: "Bergmann, Anna", source: "auto", confidence: 0.96 },
+            versicherungsnummer: { value: "ERG-1111111", source: "auto", confidence: 0.99 },
+            gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.95 },
+            status: 'angefragt',
+            sparte: 'KFZ',
+            makler: MAKLER[0],
+            notes: "",
+            sourceEmailId: sammelmail1Id,
+            linkedCaseIds: ['case-022', 'case-023'],
+            workflow: {
+                mailReceived: daysAgo(12),
+                mailUploaded: daysAgo(11),
+                kiRecognized: daysAgo(11)
+            },
+            messages: [sammelmail1],
+            statusHistory: [
+                { date: daysAgo(12).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+            ]
+        };
+
+        // FALL 22: Aus Sammelmail 1 - Kunde 2
+        cases['case-022'] = {
+            id: 'case-022',
+            createdAt: daysAgo(12),
+            updatedAt: daysAgo(11),
+            kunde: { name: "Dietrich, Klaus", source: "auto", confidence: 0.97 },
+            versicherungsnummer: { value: "ERG-2222222", source: "auto", confidence: 0.98 },
+            gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.94 },
+            status: 'angefragt',
+            sparte: 'Hausrat',
+            makler: MAKLER[0],
+            notes: "",
+            sourceEmailId: sammelmail1Id,
+            linkedCaseIds: ['case-021', 'case-023'],
+            workflow: {
+                mailReceived: daysAgo(12),
+                mailUploaded: daysAgo(11),
+                kiRecognized: daysAgo(11)
+            },
+            messages: [sammelmail1],
+            statusHistory: [
+                { date: daysAgo(12).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+            ]
+        };
+
+        // FALL 23: Aus Sammelmail 1 - Kunde 3
+        cases['case-023'] = {
+            id: 'case-023',
+            createdAt: daysAgo(12),
+            updatedAt: daysAgo(11),
+            kunde: { name: "Eckert, Monika", source: "auto", confidence: 0.95 },
+            versicherungsnummer: { value: "ERG-3333333", source: "auto", confidence: 0.99 },
+            gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.93 },
+            status: 'angefragt',
+            sparte: 'Haftpflicht',
+            makler: MAKLER[0],
+            notes: "",
+            sourceEmailId: sammelmail1Id,
+            linkedCaseIds: ['case-021', 'case-022'],
+            workflow: {
+                mailReceived: daysAgo(12),
+                mailUploaded: daysAgo(11),
+                kiRecognized: daysAgo(11)
+            },
+            messages: [sammelmail1],
+            statusHistory: [
+                { date: daysAgo(12).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+            ]
+        };
+
+        // ============================================
+        // SAMMELMAIL 2: 1 Kunde mit 3 verschiedenen Verträgen
+        // Makler: Sandra Schmidt sendet Anfrage für einen Kunden mit 3 Verträgen
+        // ============================================
+        const sammelmail2Id = 'email-sammel-002';
+        const sammelmail2 = {
+            entryID: sammelmail2Id,
+            folder: 'sent',
+            subject: 'Bestandsübertragung Familie Huber - 3 Verträge',
+            senderEmail: MAKLER[1].email,
+            receivedTime: daysAgo(9),
+            bodyPlain: `Sehr geehrte Damen und Herren,
+
+für unseren Kunden Herrn Franz Huber beantragen wir die Übertragung folgender Verträge:
+
+1. KFZ-Versicherung
+   Versicherungsnummer: ERG-4444444
+   Übertragung zum: 15.02.2026
+
+2. Hausratversicherung
+   Versicherungsnummer: ERG-5555555
+   Übertragung zum: 15.02.2026
+
+3. Wohngebäudeversicherung
+   Versicherungsnummer: ERG-6666666
+   Übertragung zum: 15.02.2026
+
+Die Maklervollmacht für alle drei Verträge liegt diesem Schreiben bei.
+
+Mit freundlichen Grüßen
+Sandra Schmidt
+Versicherungsmaklerin`
+        };
+
+        // FALL 24: Aus Sammelmail 2 - Vertrag 1 (KFZ)
+        cases['case-024'] = {
+            id: 'case-024',
+            createdAt: daysAgo(9),
+            updatedAt: daysAgo(8),
+            kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
+            versicherungsnummer: { value: "ERG-4444444", source: "auto", confidence: 0.99 },
+            gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
+            status: 'angefragt',
+            sparte: 'KFZ',
+            makler: MAKLER[1],
+            notes: "",
+            sourceEmailId: sammelmail2Id,
+            linkedCaseIds: ['case-025', 'case-026'],
+            workflow: {
+                mailReceived: daysAgo(9),
+                mailUploaded: daysAgo(8),
+                kiRecognized: daysAgo(8)
+            },
+            messages: [sammelmail2],
+            statusHistory: [
+                { date: daysAgo(9).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+            ]
+        };
+
+        // FALL 25: Aus Sammelmail 2 - Vertrag 2 (Hausrat)
+        cases['case-025'] = {
+            id: 'case-025',
+            createdAt: daysAgo(9),
+            updatedAt: daysAgo(8),
+            kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
+            versicherungsnummer: { value: "ERG-5555555", source: "auto", confidence: 0.99 },
+            gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
+            status: 'angefragt',
+            sparte: 'Hausrat',
+            makler: MAKLER[1],
+            notes: "",
+            sourceEmailId: sammelmail2Id,
+            linkedCaseIds: ['case-024', 'case-026'],
+            workflow: {
+                mailReceived: daysAgo(9),
+                mailUploaded: daysAgo(8),
+                kiRecognized: daysAgo(8)
+            },
+            messages: [sammelmail2],
+            statusHistory: [
+                { date: daysAgo(9).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+            ]
+        };
+
+        // FALL 26: Aus Sammelmail 2 - Vertrag 3 (Wohngebäude)
+        cases['case-026'] = {
+            id: 'case-026',
+            createdAt: daysAgo(9),
+            updatedAt: daysAgo(8),
+            kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
+            versicherungsnummer: { value: "ERG-6666666", source: "auto", confidence: 0.99 },
+            gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
+            status: 'angefragt',
+            sparte: 'Wohngebäude',
+            makler: MAKLER[1],
+            notes: "",
+            sourceEmailId: sammelmail2Id,
+            linkedCaseIds: ['case-024', 'case-025'],
+            workflow: {
+                mailReceived: daysAgo(9),
+                mailUploaded: daysAgo(8),
+                kiRecognized: daysAgo(8)
+            },
+            messages: [sammelmail2],
+            statusHistory: [
+                { date: daysAgo(9).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+            ]
+        };
+
         return cases;
     }
 
