@@ -84,16 +84,42 @@ Function ConnectOutlook()
     On Error GoTo 0
 End Function
 
-' Postfach nach Name finden
+' Postfach nach Name finden (flexibel: exakt, teilweise, oder erstes Postfach)
 Function FindMailbox(mailboxName)
-    Dim folders, folder, i
+    Dim folders, folder, i, searchTerm
 
     Set FindMailbox = Nothing
     Set folders = objNamespace.Folders
 
+    ' Suchbegriff extrahieren (aus E-Mail: "ebrenneisen@..." wird "ebrenneisen")
+    searchTerm = LCase(mailboxName)
+    If InStr(searchTerm, "@") > 0 Then
+        searchTerm = Left(searchTerm, InStr(searchTerm, "@") - 1)
+    End If
+
+    ' 1. Versuch: Exakte Übereinstimmung
     For i = 1 To folders.Count
         Set folder = folders.Item(i)
         If LCase(folder.Name) = LCase(mailboxName) Then
+            Set FindMailbox = folder
+            Exit Function
+        End If
+    Next
+
+    ' 2. Versuch: Teilweise Übereinstimmung (Name enthält Suchbegriff)
+    For i = 1 To folders.Count
+        Set folder = folders.Item(i)
+        If InStr(1, LCase(folder.Name), searchTerm, vbTextCompare) > 0 Then
+            Set FindMailbox = folder
+            Exit Function
+        End If
+    Next
+
+    ' 3. Versuch: Erstes verfügbares Postfach (nicht "Öffentliche Ordner")
+    For i = 1 To folders.Count
+        Set folder = folders.Item(i)
+        If InStr(1, LCase(folder.Name), "öffentlich", vbTextCompare) = 0 And _
+           InStr(1, LCase(folder.Name), "public", vbTextCompare) = 0 Then
             Set FindMailbox = folder
             Exit Function
         End If
