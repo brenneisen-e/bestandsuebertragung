@@ -111,6 +111,15 @@
             </div>
         </div>
 
+        <!-- E-Mail Vorlagen -->
+        <div class="dashboard-card">
+            <h3>E-Mail Vorlagen</h3>
+            <p class="card-description">Vorgefertigte Textbausteine für häufige E-Mails.</p>
+            <button class="btn btn-secondary btn-large" id="emailTemplatesBtn">
+                <span class="icon">✉</span> Vorlagen anzeigen
+            </button>
+        </div>
+
         <!-- Letzte Aktivitäten -->
         <div class="dashboard-card dashboard-wide">
             <h3>Letzte Aktivitäten</h3>
@@ -141,6 +150,7 @@
             <select id="filterStatus">
                 <option value="">Alle Status</option>
                 <option value="neu">○ Neu</option>
+                <option value="unvollstaendig">◇ Unvollständig</option>
                 <option value="angefragt">◐ Angefragt</option>
                 <option value="in-bearbeitung">◑ In Bearbeitung</option>
                 <option value="bestaetigt">● Bestätigt</option>
@@ -348,6 +358,7 @@
                                         <label>Status</label>
                                         <select id="caseStatus">
                                             <option value="neu">○ Neu</option>
+                                            <option value="unvollstaendig">◇ Unvollständig</option>
                                             <option value="angefragt">◐ Angefragt</option>
                                             <option value="in-bearbeitung">◑ In Bearbeitung</option>
                                             <option value="bestaetigt">● Bestätigt</option>
@@ -450,6 +461,176 @@
                 <button class="btn btn-primary" id="confirmExport">
                     <span class="icon">↑</span> Exportieren
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Validierung Schritt-für-Schritt -->
+    <div class="modal-overlay" id="validationModal" style="display: none;">
+        <div class="modal modal-medium">
+            <div class="modal-header">
+                <h2>PV-Validierung</h2>
+                <div class="validation-progress">
+                    <span id="validationCurrent">1</span> / <span id="validationTotal">0</span>
+                </div>
+                <button class="modal-close" id="validationModalClose">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="validation-case-data">
+                    <div class="validation-field">
+                        <span class="field-label">Kunde (VN)</span>
+                        <span class="field-value" id="valKunde">-</span>
+                    </div>
+                    <div class="validation-field">
+                        <span class="field-label">VS-Nr</span>
+                        <span class="field-value" id="valVsNr">-</span>
+                    </div>
+                    <div class="validation-field">
+                        <span class="field-label">Sparte</span>
+                        <span class="field-value" id="valSparte">-</span>
+                    </div>
+                    <div class="validation-field">
+                        <span class="field-label">Gültig ab</span>
+                        <span class="field-value" id="valDatum">-</span>
+                    </div>
+                    <div class="validation-field">
+                        <span class="field-label">Makler</span>
+                        <span class="field-value" id="valMakler">-</span>
+                    </div>
+                    <div class="validation-field">
+                        <span class="field-label">Status</span>
+                        <span class="field-value" id="valStatus">-</span>
+                    </div>
+                </div>
+                <div class="validation-email-preview">
+                    <h4>E-Mail Auszug</h4>
+                    <div class="email-preview-content" id="valEmailPreview">-</div>
+                </div>
+            </div>
+            <div class="modal-footer validation-footer">
+                <button class="btn btn-secondary" id="validationSkip">
+                    Überspringen →
+                </button>
+                <button class="btn btn-primary" id="validationConfirm">
+                    <span class="icon">✓</span> Als validiert markieren
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: E-Mail Vorlagen -->
+    <div class="modal-overlay" id="emailTemplatesModal" style="display: none;">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2>E-Mail Vorlagen</h2>
+                <button class="modal-close" id="emailTemplatesModalClose">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="margin-bottom: 1rem;">Klicken Sie auf "Kopieren" um den Text in die Zwischenablage zu kopieren.</p>
+
+                <!-- Vorlage 1: Bestandsübertragung anfragen -->
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>1. Bestandsübertragung anfragen</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="template1">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="template1">Sehr geehrte Damen und Herren,
+
+hiermit beantragen wir die Bestandsübertragung für unseren Kunden [KUNDENNAME].
+
+Versicherungsnummer: [VS-NR]
+Sparte: [SPARTE]
+Gewünschter Übertragungstermin: [DATUM]
+
+Die unterschriebene Maklervollmacht liegt diesem Schreiben bei.
+
+Mit freundlichen Grüßen
+[IHR NAME]
+Versicherungsmakler</div>
+                </div>
+
+                <!-- Vorlage 2: Rückfrage VS-Nr -->
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>2. Rückfrage fehlende Versicherungsnummer</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="template2">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="template2">Sehr geehrte Damen und Herren,
+
+bezugnehmend auf unseren Antrag zur Bestandsübertragung für [KUNDENNAME] bitten wir um Mitteilung der korrekten Versicherungsnummer.
+
+In den uns vorliegenden Unterlagen konnte die VS-Nr nicht eindeutig identifiziert werden.
+
+Vielen Dank für Ihre Rückmeldung.
+
+Mit freundlichen Grüßen
+[IHR NAME]
+Versicherungsmakler</div>
+                </div>
+
+                <!-- Vorlage 3: Nachreichung Vollmacht -->
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>3. Nachreichung Maklervollmacht</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="template3">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="template3">Sehr geehrte Damen und Herren,
+
+in der Anlage übersende ich Ihnen die nachgeforderte Maklervollmacht für den Kunden [KUNDENNAME].
+
+Versicherungsnummer: [VS-NR]
+
+Ich bitte um Fortsetzung der Bestandsübertragung.
+
+Mit freundlichen Grüßen
+[IHR NAME]
+Versicherungsmakler</div>
+                </div>
+
+                <!-- Vorlage 4: Statusanfrage -->
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>4. Statusanfrage laufende Übertragung</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="template4">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="template4">Sehr geehrte Damen und Herren,
+
+ich erlaube mir, nach dem Stand unserer Bestandsübertragung zu fragen.
+
+Kunde: [KUNDENNAME]
+Versicherungsnummer: [VS-NR]
+Antragsdatum: [DATUM]
+
+Über eine zeitnahe Rückmeldung würde ich mich freuen.
+
+Mit freundlichen Grüßen
+[IHR NAME]
+Versicherungsmakler</div>
+                </div>
+
+                <!-- Vorlage 5: Bestätigung erhalten -->
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>5. Bestätigung an Makler weiterleiten</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="template5">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="template5">Sehr geehrte/r [MAKLER NAME],
+
+wir freuen uns, Ihnen mitteilen zu können, dass die Bestandsübertragung für Ihren Kunden [KUNDENNAME] bestätigt wurde.
+
+Versicherungsnummer: [VS-NR]
+Wirksam ab: [DATUM]
+
+Sie sind nun als betreuender Makler für diesen Vertrag hinterlegt.
+
+Bei Fragen stehen wir Ihnen gerne zur Verfügung.
+
+Mit freundlichen Grüßen
+ERGO Maklerservice</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeEmailTemplates">Schließen</button>
             </div>
         </div>
     </div>

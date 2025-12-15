@@ -21,6 +21,7 @@
     --status-bestaetigt: #22c55e;
     --status-abgelehnt: #ef4444;
     --status-exportiert: #8b5cf6;
+    --status-unvollstaendig: #f97316;
 
     /* Grautöne */
     --gray-50: #f9fafb;
@@ -332,6 +333,7 @@ body {
 .status-bar-fill.in-bearbeitung { background: var(--status-bearbeitung); }
 .status-bar-fill.bestaetigt { background: var(--status-bestaetigt); }
 .status-bar-fill.abgelehnt { background: var(--status-abgelehnt); }
+.status-bar-fill.unvollstaendig { background: var(--status-unvollstaendig); }
 
 .status-bar-count {
     width: 30px;
@@ -610,6 +612,11 @@ body {
     color: #b91c1c;
 }
 
+.status-badge.status-unvollstaendig {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
 /* Export Badge */
 .export-badge {
     display: inline-flex;
@@ -683,8 +690,118 @@ body {
     max-width: 900px;
 }
 
+.modal-medium {
+    max-width: 600px;
+}
+
 .modal-small {
     max-width: 400px;
+}
+
+/* Validation Modal */
+.validation-progress {
+    font-size: 0.9rem;
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.validation-case-data {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.validation-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.validation-field .field-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.validation-field .field-value {
+    font-size: 1rem;
+    color: var(--gray-800);
+    font-weight: 500;
+}
+
+.validation-email-preview {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.validation-email-preview h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-sm);
+}
+
+.email-preview-content {
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    white-space: pre-wrap;
+    max-height: 150px;
+    overflow-y: auto;
+    line-height: 1.5;
+}
+
+.validation-footer {
+    gap: var(--spacing-md);
+}
+
+.validation-footer .btn {
+    flex: 1;
+}
+
+/* Email Template Cards */
+.email-template-card {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    overflow: hidden;
+}
+
+.email-template-card .template-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.email-template-card .template-header h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin: 0;
+}
+
+.email-template-card .template-content {
+    padding: var(--spacing-md);
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    white-space: pre-wrap;
+    font-family: inherit;
+    line-height: 1.5;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.email-template-card .btn-copy {
+    font-size: 0.8rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
 }
 
 .modal-header {
@@ -1050,6 +1167,7 @@ body {
 .case-tile.status-in-bearbeitung { border-left-color: var(--status-bearbeitung); }
 .case-tile.status-bestaetigt { border-left-color: var(--status-bestaetigt); }
 .case-tile.status-abgelehnt { border-left-color: var(--status-abgelehnt); }
+.case-tile.status-unvollstaendig { border-left-color: var(--status-unvollstaendig); }
 
 .tile-header {
     display: flex;

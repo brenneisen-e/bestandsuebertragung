@@ -23,7 +23,7 @@ const App = (function() {
         // Demo-Daten laden (falls erster Start)
         if (DemoData.loadDemoData()) {
             console.log('Demo-Daten wurden geladen');
-            UI.showToast('50 Demo-Vorgänge wurden geladen', 'success');
+            UI.showToast('26 Demo-Vorgänge wurden geladen', 'success');
         }
 
         // Event-Listener registrieren
@@ -101,6 +101,24 @@ const App = (function() {
         document.getElementById('cancelExport')?.addEventListener('click', () => UI.closeExportModal());
         document.getElementById('confirmExport')?.addEventListener('click', handleConfirmExport);
 
+        // Validation Modal
+        document.getElementById('validationModalClose')?.addEventListener('click', () => UI.closeValidationModal());
+        document.getElementById('validationSkip')?.addEventListener('click', handleValidationSkip);
+        document.getElementById('validationConfirm')?.addEventListener('click', handleValidationConfirm);
+
+        // Email Templates Modal
+        document.getElementById('emailTemplatesBtn')?.addEventListener('click', openEmailTemplatesModal);
+        document.getElementById('emailTemplatesModalClose')?.addEventListener('click', closeEmailTemplatesModal);
+        document.getElementById('closeEmailTemplates')?.addEventListener('click', closeEmailTemplatesModal);
+        document.getElementById('emailTemplatesModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'emailTemplatesModal') closeEmailTemplatesModal();
+        });
+
+        // Copy buttons for email templates
+        document.querySelectorAll('.btn-copy').forEach(btn => {
+            btn.addEventListener('click', handleCopyTemplate);
+        });
+
         // Drag & Drop
         setupDragAndDrop();
 
@@ -135,7 +153,14 @@ const App = (function() {
                 UI.closeCaseModal();
                 UI.closeMaklerModal();
                 UI.closeExportModal();
+                UI.closeValidationModal();
+                closeEmailTemplatesModal();
             }
+        });
+
+        // Validation Modal Overlay Klick
+        document.getElementById('validationModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'validationModal') UI.closeValidationModal();
         });
     }
 
@@ -584,7 +609,7 @@ const App = (function() {
     }
 
     /**
-     * Offene Validierung Button Handler
+     * Offene Validierung Button Handler - öffnet Step-by-Step Modal
      */
     function handleValidateAll() {
         const pendingCases = Storage.getPendingValidationCases();
@@ -594,12 +619,80 @@ const App = (function() {
             return;
         }
 
-        if (confirm(`${pendingCases.length} Vorgänge als validiert markieren?`)) {
-            const caseIds = pendingCases.map(c => c.id);
-            const count = Storage.markCasesValidated(caseIds);
+        // Step-by-Step Validation Modal öffnen
+        UI.openValidationModal(pendingCases);
+    }
 
-            UI.showToast(`${count} Vorgänge erfolgreich validiert`, 'success');
+    /**
+     * Validation Modal: Überspringen
+     */
+    function handleValidationSkip() {
+        if (UI.hasMoreValidationCases()) {
+            UI.nextValidationCase();
+        } else {
+            UI.closeValidationModal();
+            UI.showToast('Validierung abgeschlossen', 'info');
             refreshData();
+        }
+    }
+
+    /**
+     * Validation Modal: Als validiert markieren
+     */
+    function handleValidationConfirm() {
+        const currentCase = UI.getCurrentValidationCase();
+
+        if (currentCase) {
+            // Einzelnen Vorgang validieren
+            Storage.markCasesValidated([currentCase.id]);
+        }
+
+        if (UI.hasMoreValidationCases()) {
+            UI.nextValidationCase();
+            UI.showToast('Vorgang validiert', 'success');
+        } else {
+            UI.closeValidationModal();
+            UI.showToast('Alle Vorgänge validiert', 'success');
+            refreshData();
+        }
+    }
+
+    /**
+     * Email Templates Modal öffnen
+     */
+    function openEmailTemplatesModal() {
+        const modal = document.getElementById('emailTemplatesModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    /**
+     * Email Templates Modal schließen
+     */
+    function closeEmailTemplatesModal() {
+        const modal = document.getElementById('emailTemplatesModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    /**
+     * Email Template in Zwischenablage kopieren
+     */
+    function handleCopyTemplate(e) {
+        const templateId = e.target.dataset.template;
+        const templateContent = document.getElementById(templateId);
+
+        if (templateContent) {
+            const text = templateContent.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                UI.showToast('Vorlage in Zwischenablage kopiert', 'success');
+                e.target.textContent = 'Kopiert!';
+                setTimeout(() => {
+                    e.target.textContent = 'Kopieren';
+                }, 2000);
+            }).catch(err => {
+                console.error('Kopieren fehlgeschlagen:', err);
+                UI.showToast('Kopieren fehlgeschlagen', 'error');
+            });
         }
     }
 

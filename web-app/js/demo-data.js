@@ -653,22 +653,23 @@ Stefan Zimmermann`
         };
 
         // ============================================
-        // FALL 12: Neu - Leben (importiert, KI noch nicht erkannt)
+        // FALL 12: Unvollständig - Leben (VS-Nr fehlt in Mail)
         // ============================================
         cases['case-012'] = {
             id: 'case-012',
             createdAt: daysAgo(1),
             updatedAt: daysAgo(1),
-            kunde: { name: "Seidel, Ralf", source: "auto", confidence: 0.72 },
-            versicherungsnummer: { value: "ERG-9912345", source: "auto", confidence: 0.78 },
-            gueltigkeitsdatum: { value: "01.07.2026", source: "auto", confidence: 0.65 },
-            status: 'neu',
+            kunde: { name: "Seidel, Ralf", source: "auto", confidence: 0.85 },
+            versicherungsnummer: { value: "", source: "auto", confidence: 0 },
+            gueltigkeitsdatum: { value: "01.07.2026", source: "auto", confidence: 0.75 },
+            status: 'unvollstaendig',
             sparte: 'Leben',
             makler: MAKLER[11],
-            notes: "",
+            notes: "VS-Nr fehlt in der Original-Mail - bitte manuell ergänzen",
             workflow: {
                 mailReceived: daysAgo(1),
-                mailUploaded: daysAgo(1)
+                mailUploaded: daysAgo(1),
+                kiRecognized: daysAgo(1)
             },
             messages: [
                 {
@@ -681,7 +682,7 @@ Stefan Zimmermann`
 
 für Herrn Ralf Seidel beantrage ich die Übertragung seiner Lebensversicherung.
 
-Vertrag: ERG-9912345
+Die Vertragsnummer finden Sie in den beigefügten Unterlagen.
 Termin: 01.07.2026
 
 Maklervollmacht im Anhang.
@@ -691,7 +692,7 @@ Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(1).split('T')[0], from: null, to: 'neu', note: 'Importiert - KI-Erkennung ausstehend' }
+                { date: daysAgo(1).split('T')[0], from: null, to: 'unvollstaendig', note: 'KI-Erkennung: VS-Nr nicht gefunden' }
             ]
         };
 

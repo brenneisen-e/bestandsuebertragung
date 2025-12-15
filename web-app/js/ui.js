@@ -12,7 +12,8 @@ const UI = (function() {
         'angefragt': '◐',
         'in-bearbeitung': '◑',
         'bestaetigt': '●',
-        'abgelehnt': '✕'
+        'abgelehnt': '✕',
+        'unvollstaendig': '◇'
     };
 
     // Status-Labels
@@ -21,7 +22,8 @@ const UI = (function() {
         'angefragt': 'Angefragt',
         'in-bearbeitung': 'In Bearbeitung',
         'bestaetigt': 'Bestätigt',
-        'abgelehnt': 'Abgelehnt'
+        'abgelehnt': 'Abgelehnt',
+        'unvollstaendig': 'Unvollständig'
     };
 
     // Cache für DOM-Elemente
@@ -124,7 +126,19 @@ const UI = (function() {
             // Export Modal
             exportModal: document.getElementById('exportModal'),
             exportCaseCount: document.getElementById('exportCaseCount'),
-            exporterName: document.getElementById('exporterName')
+            exporterName: document.getElementById('exporterName'),
+
+            // Validation Modal
+            validationModal: document.getElementById('validationModal'),
+            validationCurrent: document.getElementById('validationCurrent'),
+            validationTotal: document.getElementById('validationTotal'),
+            valKunde: document.getElementById('valKunde'),
+            valVsNr: document.getElementById('valVsNr'),
+            valSparte: document.getElementById('valSparte'),
+            valDatum: document.getElementById('valDatum'),
+            valMakler: document.getElementById('valMakler'),
+            valStatus: document.getElementById('valStatus'),
+            valEmailPreview: document.getElementById('valEmailPreview')
         };
     }
 
@@ -747,6 +761,97 @@ const UI = (function() {
         return elements.exporterName?.value.trim() || '';
     }
 
+    // Validation Modal State
+    let validationState = {
+        cases: [],
+        currentIndex: 0
+    };
+
+    /**
+     * Validation Modal öffnen mit Liste der zu validierenden Vorgänge
+     */
+    function openValidationModal(casesToValidate) {
+        if (!elements.validationModal || !casesToValidate || casesToValidate.length === 0) {
+            showToast('Keine Vorgänge zur Validierung vorhanden', 'info');
+            return;
+        }
+
+        validationState.cases = casesToValidate;
+        validationState.currentIndex = 0;
+
+        elements.validationTotal.textContent = casesToValidate.length;
+        renderValidationCase();
+        elements.validationModal.style.display = 'flex';
+    }
+
+    /**
+     * Validation Modal schließen
+     */
+    function closeValidationModal() {
+        if (elements.validationModal) {
+            elements.validationModal.style.display = 'none';
+        }
+        validationState.cases = [];
+        validationState.currentIndex = 0;
+    }
+
+    /**
+     * Aktuellen Vorgang im Validation Modal rendern
+     */
+    function renderValidationCase() {
+        const caseData = validationState.cases[validationState.currentIndex];
+        if (!caseData) return;
+
+        // Progress aktualisieren
+        elements.validationCurrent.textContent = validationState.currentIndex + 1;
+
+        // Export-relevante Felder anzeigen
+        elements.valKunde.textContent = caseData.kunde?.name || '-';
+        elements.valVsNr.textContent = caseData.versicherungsnummer?.value || '-';
+        elements.valSparte.textContent = caseData.sparte || '-';
+        elements.valDatum.textContent = caseData.gueltigkeitsdatum?.value || '-';
+        elements.valMakler.textContent = caseData.makler?.name || '-';
+        elements.valStatus.textContent = STATUS_LABELS[caseData.status] || caseData.status;
+
+        // E-Mail Preview - erste Mail kurz anzeigen
+        const firstMsg = caseData.messages?.[0];
+        if (firstMsg) {
+            const bodyPreview = truncateText(firstMsg.bodyPlain || firstMsg.body || '', 300);
+            elements.valEmailPreview.innerHTML = `
+                <div class="email-preview-subject">${escapeHtml(firstMsg.subject || 'Kein Betreff')}</div>
+                <div class="email-preview-body">${escapeHtml(bodyPreview)}</div>
+            `;
+        } else {
+            elements.valEmailPreview.innerHTML = '<span class="text-muted">Keine E-Mail vorhanden</span>';
+        }
+    }
+
+    /**
+     * Zum nächsten Vorgang in der Validierung springen
+     */
+    function nextValidationCase() {
+        if (validationState.currentIndex < validationState.cases.length - 1) {
+            validationState.currentIndex++;
+            renderValidationCase();
+            return true;
+        }
+        return false; // Letzter Vorgang erreicht
+    }
+
+    /**
+     * Aktuellen Vorgang zur Validierung holen
+     */
+    function getCurrentValidationCase() {
+        return validationState.cases[validationState.currentIndex] || null;
+    }
+
+    /**
+     * Prüfen ob noch weitere Vorgänge vorhanden sind
+     */
+    function hasMoreValidationCases() {
+        return validationState.currentIndex < validationState.cases.length - 1;
+    }
+
     /**
      * Toast-Benachrichtigung anzeigen
      */
@@ -927,6 +1032,11 @@ const UI = (function() {
         openExportModal,
         closeExportModal,
         getExporterName,
+        openValidationModal,
+        closeValidationModal,
+        nextValidationCase,
+        getCurrentValidationCase,
+        hasMoreValidationCases,
 
         // Notifications
         showToast,
