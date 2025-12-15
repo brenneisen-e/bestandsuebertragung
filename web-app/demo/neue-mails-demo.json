@@ -1,0 +1,128 @@
+{
+  "exportDate": "2025-12-15T14:00:00.000Z",
+  "mailboxName": "ERGO Makler Postfach",
+  "exportSettings": {
+    "dateRange": {
+      "from": "2025-12-08",
+      "to": "2025-12-15"
+    },
+    "folders": ["Posteingang", "Gesendete Elemente"],
+    "keywordFilter": ["bestandsübertragung", "maklervollmacht", "courtagezusage"]
+  },
+  "totalEmails": 12,
+  "conversationCount": 8,
+  "conversations": {
+    "conv-024": {
+      "conversationID": "conv-024",
+      "subject": "AW: Bestandsübertragung Lorenz KFZ AZ-112233",
+      "messages": [
+        {
+          "entryID": "msg-024-c",
+          "folder": "inbox",
+          "subject": "AW: Bestandsübertragung Lorenz KFZ AZ-112233",
+          "senderEmail": "maklerservice@allianz.de",
+          "receivedTime": "2025-12-15T09:30:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\ndie Bestandsübertragung für Frau Sabine Lorenz, Vertragsnummer AZ-112233, wurde bestätigt.\n\nWirksamkeit: 01.02.2026\n\nMit freundlichen Grüßen\nAllianz Maklerservice"
+        }
+      ]
+    },
+    "conv-025": {
+      "conversationID": "conv-025",
+      "subject": "AW: Courtagezusage Franke Leben ERG-445566",
+      "messages": [
+        {
+          "entryID": "msg-025-c",
+          "folder": "inbox",
+          "subject": "AW: Courtagezusage Franke Leben ERG-445566",
+          "senderEmail": "maklerservice@ergo.de",
+          "receivedTime": "2025-12-15T10:15:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\nwir benötigen noch die unterschriebene Maklervollmacht für Herrn Matthias Franke.\n\nBitte reichen Sie diese nach.\n\nMit freundlichen Grüßen\nERGO Maklerservice"
+        }
+      ]
+    },
+    "conv-027": {
+      "conversationID": "conv-027",
+      "subject": "AW: Maklervollmacht Arnold Hausrat AXA-667788",
+      "messages": [
+        {
+          "entryID": "msg-027-c",
+          "folder": "inbox",
+          "subject": "AW: Maklervollmacht Arnold Hausrat AXA-667788 - Bestätigung",
+          "senderEmail": "makler@axa.de",
+          "receivedTime": "2025-12-15T11:00:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\nvielen Dank für die Zusendung der Schadenhistorie.\n\nDie Courtagezusage für Herrn Ralf Arnold wurde erteilt.\n\nWirksamkeit ab 01.02.2026.\n\nMit freundlichen Grüßen\nAXA Maklerbetreuung"
+        }
+      ]
+    },
+    "conv-031": {
+      "conversationID": "conv-031",
+      "subject": "AW: Maklervollmacht Kaiser Wohngebäude SI-223344",
+      "messages": [
+        {
+          "entryID": "msg-031-c",
+          "folder": "inbox",
+          "subject": "AW: Maklervollmacht Kaiser Wohngebäude SI-223344",
+          "senderEmail": "maklerbetreuung@signal-iduna.de",
+          "receivedTime": "2025-12-15T08:45:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\ndie Maklervollmacht für Frau Brigitte Kaiser ist eingegangen.\n\nDie Übertragung wurde bestätigt. Wirksamkeit zum 01.02.2026.\n\nMit freundlichen Grüßen\nSignal Iduna"
+        }
+      ]
+    },
+    "conv-036": {
+      "conversationID": "conv-036",
+      "subject": "AW: Bestandsübertragung Peters Hausrat AZ-778899",
+      "messages": [
+        {
+          "entryID": "msg-036-b",
+          "folder": "inbox",
+          "subject": "AW: Bestandsübertragung Peters Hausrat AZ-778899",
+          "senderEmail": "maklerservice@allianz.de",
+          "receivedTime": "2025-12-15T13:00:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\nIhre Anfrage zur Bestandsübertragung für Frau Helga Peters ist eingegangen und wird geprüft.\n\nMit freundlichen Grüßen\nAllianz Maklerservice"
+        }
+      ]
+    },
+    "conv-NEW-001": {
+      "conversationID": "conv-NEW-001",
+      "subject": "Anfrage Bestandsübertragung Mustermann",
+      "messages": [
+        {
+          "entryID": "msg-NEW-001-a",
+          "folder": "inbox",
+          "subject": "Anfrage Bestandsübertragung Mustermann - ZUR-999888",
+          "senderEmail": "service@zurich.de",
+          "receivedTime": "2025-12-15T10:00:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\nwir haben Ihre Anfrage zur Übertragung für Herrn Max Mustermann erhalten.\n\nVertragsnummer: ZUR-999888\nSparte: Privathaftpflicht\n\nDie Anfrage wird geprüft. Der Versicherungsnehmer wird angeschrieben.\n\nMit freundlichen Grüßen\nZurich Maklerservice"
+        }
+      ]
+    },
+    "conv-NEW-002": {
+      "conversationID": "conv-NEW-002",
+      "subject": "Bestandsübertragung Schneider KFZ",
+      "messages": [
+        {
+          "entryID": "msg-NEW-002-a",
+          "folder": "inbox",
+          "subject": "Bestandsübertragung Schneider KFZ - HUK-567890",
+          "senderEmail": "maklerservice@huk-coburg.de",
+          "receivedTime": "2025-12-15T11:30:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\nbezüglich Ihrer Anfrage zur Bestandsübertragung für Frau Maria Schneider teilen wir Ihnen mit:\n\nVertragsnummer: HUK-567890\nSparte: KFZ-Versicherung\n\nDie Übertragung wurde bestätigt. Wirksamkeit ab 01.01.2026.\n\nMit freundlichen Grüßen\nHUK-COBURG Maklerservice"
+        }
+      ]
+    },
+    "conv-NEW-003": {
+      "conversationID": "conv-NEW-003",
+      "subject": "Rückfrage Bestandsübertragung Hoffmann",
+      "messages": [
+        {
+          "entryID": "msg-NEW-003-a",
+          "folder": "inbox",
+          "subject": "Rückfrage zur Bestandsübertragung Hoffmann Leben",
+          "senderEmail": "maklerbetreuung@hdi.de",
+          "receivedTime": "2025-12-15T12:00:00.000Z",
+          "bodyPlain": "Sehr geehrter Makler,\n\nzu Ihrer Anfrage zur Bestandsübertragung für Herrn Peter Hoffmann haben wir eine Rückfrage:\n\nVertragsnummer: HDI-234567\nSparte: Lebensversicherung\n\nBitte teilen Sie uns mit, ob der Vertrag in einen bestehenden Rahmenvertrag eingebunden werden soll.\n\nMit freundlichen Grüßen\nHDI Maklerbetreuung"
+        }
+      ]
+    }
+  }
+}
