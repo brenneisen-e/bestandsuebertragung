@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestandsübertragung - Outlook Export</title>
+    <style>
+        :root {
+            --primary: #C8102E;
+            --primary-dark: #A00D24;
+            --secondary: #1D1D1B;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--gray-800);
+            background: var(--gray-100);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--secondary);
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--gray-100);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .status-bar.status-ready { color: var(--gray-500); }
+        .status-bar.status-success { background: #dcfce7; color: #166534; }
+        .status-bar.status-error { background: #fee2e2; color: #b91c1c; }
+        .status-bar.status-working { background: #fef3c7; color: #92400e; }
+
+        .main-content {
+            padding: 1.5rem;
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .section h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 1rem;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-box.warning {
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        input[type="date"],
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .quick-select {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .btn-sm {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .export-info {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .export-info p {
+            margin: 0.25rem 0;
+        }
+
+        .demo-section {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .demo-section h2 {
+            color: var(--primary);
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Progress Overlay */
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .progress-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .progress-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">BÜ</div>
+            <h1>Bestandsübertragung Export</h1>
+        </header>
+
+        <!-- Status-Bereich -->
+        <div class="status-bar status-ready" id="statusBar">
+            <span class="status-icon">○</span>
+            <span class="status-text" id="statusText">Bereit</span>
+        </div>
+
+        <!-- Hauptbereich -->
+        <main class="main-content">
+            <!-- Info -->
+            <section class="section">
+                <div class="info-box warning">
+                    <p><strong>Hinweis:</strong> Der direkte Outlook-Zugriff funktioniert nur in der HTA-Version.
+                    Diese HTML-Version bietet den Demo-Export und manuelle JSON-Erstellung.</p>
+                </div>
+            </section>
+
+            <!-- Zeitraum-Filter -->
+            <section class="section">
+                <h2>1. Zeitraum festlegen</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dateFrom">Von:</label>
+                        <input type="date" id="dateFrom">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateTo">Bis:</label>
+                        <input type="date" id="dateTo">
+                    </div>
+                </div>
+                <div class="quick-select">
+                    <button class="btn btn-sm btn-secondary" onclick="setDateRange(7)">Letzte 7 Tage</button>
+                    <button class="btn btn-sm btn-secondary" onclick="setDateRange(14)">Letzte 14 Tage</button>
+                    <button class="btn btn-sm btn-secondary" onclick="setDateRange(30)">Letzte 30 Tage</button>
+                    <button class="btn btn-sm btn-secondary" onclick="setDateRange(90)">Letzte 90 Tage</button>
+                </div>
+            </section>
+
+            <!-- Schlagwort-Filter -->
+            <section class="section">
+                <h2>2. Schlagwort-Filter</h2>
+                <div class="form-group">
+                    <label for="keywords">Suchbegriffe (einer pro Zeile):</label>
+                    <textarea id="keywords" rows="4">bestandsübertragung
+maklervollmacht
+courtagezusage
+übertragung
+courtage</textarea>
+                </div>
+            </section>
+
+            <!-- Demo-Export -->
+            <section class="section demo-section">
+                <h2>Demo-Export erstellen</h2>
+                <p class="hint">Erstellt eine JSON-Datei mit realistischen Demo-Daten zum Testen der Web-App.</p>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="exportDemoData()">
+                        📥 Demo-JSON herunterladen
+                    </button>
+                </div>
+            </section>
+
+            <!-- Anleitung -->
+            <section class="section">
+                <h2>Anleitung: Manueller Export aus Outlook</h2>
+                <div class="info-box">
+                    <p>Falls Sie echte E-Mails exportieren möchten:</p>
+                    <ol style="margin: 0.5rem 0 0 1.5rem; font-size: 0.9rem;">
+                        <li>Öffnen Sie Outlook</li>
+                        <li>Wählen Sie die relevanten E-Mails aus</li>
+                        <li>Speichern Sie diese als .msg oder .txt Dateien</li>
+                        <li>Oder nutzen Sie die HTA-Version für automatischen Export</li>
+                    </ol>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Fortschrittsanzeige -->
+    <div class="progress-overlay" id="progressOverlay" style="display: none;">
+        <div class="progress-box">
+            <div class="progress-spinner"></div>
+            <p id="progressText">Verarbeite...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            setDateRange(14);
+        });
+
+        // Zeitraum setzen
+        function setDateRange(days) {
+            const today = new Date();
+            const from = new Date();
+            from.setDate(today.getDate() - days);
+
+            document.getElementById('dateTo').value = formatDate(today);
+            document.getElementById('dateFrom').value = formatDate(from);
+        }
+
+        // Datum formatieren
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Status aktualisieren
+        function updateStatus(message, type) {
+            const statusBar = document.getElementById('statusBar');
+            const statusText = document.getElementById('statusText');
+
+            statusBar.className = 'status-bar status-' + type;
+            statusText.textContent = message;
+        }
+
+        // Fortschrittsanzeige
+        function showProgress(text) {
+            document.getElementById('progressText').textContent = text;
+            document.getElementById('progressOverlay').style.display = 'flex';
+        }
+
+        function hideProgress() {
+            document.getElementById('progressOverlay').style.display = 'none';
+        }
+
+        // Demo-Export erstellen
+        function exportDemoData() {
+            updateStatus('Erstelle Demo-Export...', 'working');
+            showProgress('Erstelle Demo-Daten...');
+
+            setTimeout(function() {
+                try {
+                    const demoData = generateDemoData();
+                    downloadJson(demoData, 'bestandsuebertragung-demo-export.json');
+                    updateStatus('Demo-Export erstellt und heruntergeladen', 'success');
+                } catch (e) {
+                    updateStatus('Fehler: ' + e.message, 'error');
+                }
+                hideProgress();
+            }, 500);
+        }
+
+        // Demo-Daten generieren
+        function generateDemoData() {
+            const now = new Date();
+            const makler = [
+                { name: 'Thomas Müller', email: 't.mueller@mueller-makler.de' },
+                { name: 'Sabine Schmidt', email: 's.schmidt@schmidt-versicherungen.de' },
+                { name: 'Klaus Weber', email: 'k.weber@weber-finanz.de' },
+                { name: 'Andrea Fischer', email: 'a.fischer@fischer-makler.de' },
+                { name: 'Michael Braun', email: 'm.braun@braun-assekuranz.de' }
+            ];
+
+            const kunden = [
+                'Meier, Hans', 'Schulz, Anna', 'Hoffmann, Peter', 'Koch, Maria',
+                'Becker, Thomas', 'Wagner, Sandra', 'Richter, Michael', 'Klein, Julia',
+                'Wolf, Andreas', 'Schröder, Lisa', 'Neumann, Frank', 'Schwarz, Petra'
+            ];
+
+            const sparten = ['KFZ', 'Leben', 'Kranken', 'Haftpflicht', 'Hausrat', 'Rechtsschutz'];
+
+            const emails = [];
+
+            for (let i = 0; i < 15; i++) {
+                const daysAgo = Math.floor(Math.random() * 30);
+                const date = new Date(now);
+                date.setDate(date.getDate() - daysAgo);
+
+                const m = makler[Math.floor(Math.random() * makler.length)];
+                const kunde = kunden[Math.floor(Math.random() * kunden.length)];
+                const sparte = sparten[Math.floor(Math.random() * sparten.length)];
+                const vsNr = 'ERG-' + (1000000 + Math.floor(Math.random() * 9000000));
+
+                emails.push({
+                    entryID: 'demo-' + (i + 1),
+                    conversationID: 'conv-' + Math.floor(i / 2),
+                    subject: 'Bestandsübertragung ' + sparte + ' - ' + kunde,
+                    senderEmail: m.email,
+                    receivedTime: date.toISOString(),
+                    folder: Math.random() > 0.3 ? 'Posteingang' : 'Gesendete Elemente',
+                    bodyPlain: generateEmailBody(kunde, vsNr, sparte, m.name)
+                });
+            }
+
+            return {
+                exportDate: now.toISOString(),
+                exportedBy: 'Demo Export',
+                mailbox: 'Demo Postfach',
+                dateRange: {
+                    from: document.getElementById('dateFrom').value,
+                    to: document.getElementById('dateTo').value
+                },
+                totalEmails: emails.length,
+                emails: emails
+            };
+        }
+
+        // E-Mail Body generieren
+        function generateEmailBody(kunde, vsNr, sparte, makler) {
+            const templates = [
+                `Sehr geehrte Damen und Herren,
+
+hiermit beantrage ich die Bestandsübertragung für meinen Kunden ${kunde}.
+
+Versicherungsnummer: ${vsNr}
+Sparte: ${sparte}
+
+Die Maklervollmacht liegt bei.
+
+Mit freundlichen Grüßen
+${makler}`,
+
+                `Guten Tag,
+
+bitte übertragen Sie den Vertrag ${vsNr} (${sparte}) auf unser Haus.
+
+Kunde: ${kunde}
+
+Vollmacht im Anhang.
+
+Beste Grüße
+${makler}`,
+
+                `Betr.: Courtagezusage ${vsNr}
+
+für den Kunden ${kunde} bitte ich um Übertragung des ${sparte}-Vertrags.
+
+VS-Nr: ${vsNr}
+
+Maklervollmacht wurde bereits übermittelt.
+
+${makler}`
+            ];
+
+            return templates[Math.floor(Math.random() * templates.length)];
+        }
+
+        // JSON herunterladen
+        function downloadJson(data, filename) {
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
