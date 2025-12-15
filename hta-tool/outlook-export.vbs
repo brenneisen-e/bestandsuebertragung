@@ -8,7 +8,7 @@ Option Explicit
 ' Konfiguration
 Const MAX_EMAILS = 5000
 Const MAX_BODY_LENGTH = 10000
-Const SUBJECT_FILTER = "[EXT] Demo Bestandsübertragung"
+Const SUBJECT_FILTER = "[EXT] Demo Bestand"
 Const DAYS_BACK = 90
 
 ' Globale Variablen
@@ -73,10 +73,10 @@ Function ConnectOutlook()
     On Error GoTo 0
 End Function
 
-' E-Mails aus Standard-Ordnern exportieren (GetDefaultFolder)
-' Diese Methode findet automatisch die richtigen Ordner unabhängig vom Postfach
+' E-Mails aus Postfach exportieren
+' Durchsucht erst das konfigurierte Postfach (Nr. 9), dann Default-Folders als Fallback
 Function ExportEmailsFromDefaultFolders()
-    Dim inbox, sentFolder
+    Dim inbox, sentFolder, mailbox
     Dim inboxEmails, sentEmails
     Dim jsonContent
     Dim dateFrom, dateTo
@@ -89,27 +89,50 @@ Function ExportEmailsFromDefaultFolders()
     dateFrom = DateAdd("d", -DAYS_BACK, Date)
     dateTo = Date
 
-    ' Standard-Posteingang holen (olFolderInbox = 6)
-    Set inbox = objNamespace.GetDefaultFolder(6)
-    If Err.Number <> 0 Then
-        Err.Clear
-        Set inbox = Nothing
+    ' Versuche zuerst Postfach Nr. 9 (konfiguriertes Postfach)
+    Set mailbox = Nothing
+    If objNamespace.Folders.Count >= 9 Then
+        Set mailbox = objNamespace.Folders.Item(9)
     End If
 
-    ' Standard-Gesendete holen (olFolderSentMail = 5)
-    Set sentFolder = objNamespace.GetDefaultFolder(5)
-    If Err.Number <> 0 Then
-        Err.Clear
-        Set sentFolder = Nothing
+    ' Posteingang und Gesendete aus dem Postfach holen
+    Set inbox = Nothing
+    Set sentFolder = Nothing
+
+    If Not mailbox Is Nothing Then
+        mailboxName = mailbox.Name
+        ' Posteingang finden
+        Set inbox = FindFolderInMailbox(mailbox, Array("Posteingang", "Inbox"))
+        ' Gesendete finden
+        Set sentFolder = FindFolderInMailbox(mailbox, Array("Gesendete Elemente", "Sent Items", "Gesendet"))
     End If
 
-    ' Postfach-Name aus Inbox ermitteln
-    If Not inbox Is Nothing Then
-        mailboxName = inbox.Parent.Name
-    ElseIf Not sentFolder Is Nothing Then
-        mailboxName = sentFolder.Parent.Name
-    Else
-        mailboxName = "Unbekannt"
+    ' Fallback: Standard-Ordner wenn kein Postfach gefunden
+    If inbox Is Nothing Then
+        Set inbox = objNamespace.GetDefaultFolder(6) ' olFolderInbox
+        If Err.Number <> 0 Then
+            Err.Clear
+            Set inbox = Nothing
+        End If
+    End If
+
+    If sentFolder Is Nothing Then
+        Set sentFolder = objNamespace.GetDefaultFolder(5) ' olFolderSentMail
+        If Err.Number <> 0 Then
+            Err.Clear
+            Set sentFolder = Nothing
+        End If
+    End If
+
+    ' Postfach-Name ermitteln
+    If mailboxName = "" Then
+        If Not inbox Is Nothing Then
+            mailboxName = inbox.Parent.Name
+        ElseIf Not sentFolder Is Nothing Then
+            mailboxName = sentFolder.Parent.Name
+        Else
+            mailboxName = "Unbekannt"
+        End If
     End If
 
     ' E-Mails sammeln
@@ -162,6 +185,26 @@ Function ExportEmailsFromDefaultFolders()
 
     ExportEmailsFromDefaultFolders = True
 
+    On Error GoTo 0
+End Function
+
+' Ordner im Postfach finden
+Function FindFolderInMailbox(mailbox, folderNames)
+    Dim folders, folder, i, j
+
+    Set FindFolderInMailbox = Nothing
+    Set folders = mailbox.Folders
+
+    On Error Resume Next
+    For i = 1 To folders.Count
+        Set folder = folders.Item(i)
+        For j = 0 To UBound(folderNames)
+            If LCase(folder.Name) = LCase(folderNames(j)) Then
+                Set FindFolderInMailbox = folder
+                Exit Function
+            End If
+        Next
+    Next
     On Error GoTo 0
 End Function
 
