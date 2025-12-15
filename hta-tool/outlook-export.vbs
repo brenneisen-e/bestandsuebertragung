@@ -318,15 +318,39 @@ End Function
 
 ' String fuer JSON bereinigen
 Function CleanString(str)
-    Dim result
-    result = str
+    Dim result, i, c, code
+
+    If IsNull(str) Or IsEmpty(str) Then
+        CleanString = ""
+        Exit Function
+    End If
+
+    result = CStr(str)
+
+    ' Backslash zuerst escapen
     result = Replace(result, "\", "\\")
+    ' Anführungszeichen escapen
     result = Replace(result, """", "\""")
+    ' Zeilenumbrüche
     result = Replace(result, vbCrLf, "\n")
     result = Replace(result, vbCr, "\n")
     result = Replace(result, vbLf, "\n")
+    ' Tab
     result = Replace(result, vbTab, "\t")
-    CleanString = result
+
+    ' Steuerzeichen entfernen (ASCII 0-31 außer \n und \t)
+    Dim cleaned
+    cleaned = ""
+    For i = 1 To Len(result)
+        c = Mid(result, i, 1)
+        code = AscW(c)
+        ' Nur druckbare Zeichen und bereits escapte Sequenzen behalten
+        If code >= 32 Or code = 10 Or code = 9 Then
+            cleaned = cleaned & c
+        End If
+    Next
+
+    CleanString = cleaned
 End Function
 
 ' JSON Output erstellen (vereinfacht)
