@@ -28,9 +28,11 @@ const UI = (function() {
     let elements = {};
 
     // Workflow-Schritte Definition (monochrome icons)
+    // mailReceived = Datum der Original-Mail (aus Outlook)
+    // mailUploaded = Datum des JSON-Imports ins Tool
     const WORKFLOW_STEPS = [
         { key: 'mailReceived', label: 'Mail erhalten', icon: '◉' },
-        { key: 'mailUploaded', label: 'Mail hochgeladen', icon: '↑' },
+        { key: 'mailUploaded', label: 'Importiert', icon: '↑' },
         { key: 'kiRecognized', label: 'Von KI erkannt', icon: '◈' },
         { key: 'pvValidated', label: 'Von PV validiert', icon: '✓' },
         { key: 'exported', label: 'Exportiert', icon: '↗' }
