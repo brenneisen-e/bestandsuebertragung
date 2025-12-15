@@ -1125,7 +1125,7 @@ Versicherungsmakler`
             folder: 'sent',
             subject: 'Sammelanfrage Bestandsübertragung - 3 Kunden',
             senderEmail: MAKLER[0].email,
-            receivedTime: daysAgo(12),
+            receivedTime: daysAgo(0),
             bodyPlain: `Sehr geehrte Damen und Herren,
 
 hiermit beantragen wir die Bestandsübertragung für folgende Kunden:
@@ -1155,8 +1155,8 @@ Versicherungsmakler`
         // FALL 21: Aus Sammelmail 1 - Kunde 1
         cases['case-021'] = {
             id: 'case-021',
-            createdAt: daysAgo(12),
-            updatedAt: daysAgo(11),
+            createdAt: daysAgo(0),
+            updatedAt: daysAgo(0),
             kunde: { name: "Bergmann, Anna", source: "auto", confidence: 0.96 },
             versicherungsnummer: { value: "ERG-1111111", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.95 },
@@ -1167,21 +1167,21 @@ Versicherungsmakler`
             sourceEmailId: sammelmail1Id,
             linkedCaseIds: ['case-022', 'case-023'],
             workflow: {
-                mailReceived: daysAgo(12),
-                mailUploaded: daysAgo(11),
-                kiRecognized: daysAgo(11)
+                mailReceived: daysAgo(0),
+                mailUploaded: daysAgo(0),
+                kiRecognized: daysAgo(0)
             },
             messages: [sammelmail1],
             statusHistory: [
-                { date: daysAgo(12).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
         // FALL 22: Aus Sammelmail 1 - Kunde 2
         cases['case-022'] = {
             id: 'case-022',
-            createdAt: daysAgo(12),
-            updatedAt: daysAgo(11),
+            createdAt: daysAgo(0),
+            updatedAt: daysAgo(0),
             kunde: { name: "Dietrich, Klaus", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-2222222", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.94 },
@@ -1192,21 +1192,21 @@ Versicherungsmakler`
             sourceEmailId: sammelmail1Id,
             linkedCaseIds: ['case-021', 'case-023'],
             workflow: {
-                mailReceived: daysAgo(12),
-                mailUploaded: daysAgo(11),
-                kiRecognized: daysAgo(11)
+                mailReceived: daysAgo(0),
+                mailUploaded: daysAgo(0),
+                kiRecognized: daysAgo(0)
             },
             messages: [sammelmail1],
             statusHistory: [
-                { date: daysAgo(12).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
         // FALL 23: Aus Sammelmail 1 - Kunde 3
         cases['case-023'] = {
             id: 'case-023',
-            createdAt: daysAgo(12),
-            updatedAt: daysAgo(11),
+            createdAt: daysAgo(0),
+            updatedAt: daysAgo(0),
             kunde: { name: "Eckert, Monika", source: "auto", confidence: 0.95 },
             versicherungsnummer: { value: "ERG-3333333", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.93 },
@@ -1217,13 +1217,13 @@ Versicherungsmakler`
             sourceEmailId: sammelmail1Id,
             linkedCaseIds: ['case-021', 'case-022'],
             workflow: {
-                mailReceived: daysAgo(12),
-                mailUploaded: daysAgo(11),
-                kiRecognized: daysAgo(11)
+                mailReceived: daysAgo(0),
+                mailUploaded: daysAgo(0),
+                kiRecognized: daysAgo(0)
             },
             messages: [sammelmail1],
             statusHistory: [
-                { date: daysAgo(12).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
@@ -1237,7 +1237,7 @@ Versicherungsmakler`
             folder: 'sent',
             subject: 'Bestandsübertragung Familie Huber - 3 Verträge',
             senderEmail: MAKLER[1].email,
-            receivedTime: daysAgo(9),
+            receivedTime: daysAgo(0),
             bodyPlain: `Sehr geehrte Damen und Herren,
 
 für unseren Kunden Herrn Franz Huber beantragen wir die Übertragung folgender Verträge:
@@ -1264,8 +1264,8 @@ Versicherungsmaklerin`
         // FALL 24: Aus Sammelmail 2 - Vertrag 1 (KFZ)
         cases['case-024'] = {
             id: 'case-024',
-            createdAt: daysAgo(9),
-            updatedAt: daysAgo(8),
+            createdAt: daysAgo(0),
+            updatedAt: daysAgo(0),
             kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-4444444", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
@@ -1276,21 +1276,21 @@ Versicherungsmaklerin`
             sourceEmailId: sammelmail2Id,
             linkedCaseIds: ['case-025', 'case-026'],
             workflow: {
-                mailReceived: daysAgo(9),
-                mailUploaded: daysAgo(8),
-                kiRecognized: daysAgo(8)
+                mailReceived: daysAgo(0),
+                mailUploaded: daysAgo(0),
+                kiRecognized: daysAgo(0)
             },
             messages: [sammelmail2],
             statusHistory: [
-                { date: daysAgo(9).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
         // FALL 25: Aus Sammelmail 2 - Vertrag 2 (Hausrat)
         cases['case-025'] = {
             id: 'case-025',
-            createdAt: daysAgo(9),
-            updatedAt: daysAgo(8),
+            createdAt: daysAgo(0),
+            updatedAt: daysAgo(0),
             kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-5555555", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
@@ -1301,21 +1301,21 @@ Versicherungsmaklerin`
             sourceEmailId: sammelmail2Id,
             linkedCaseIds: ['case-024', 'case-026'],
             workflow: {
-                mailReceived: daysAgo(9),
-                mailUploaded: daysAgo(8),
-                kiRecognized: daysAgo(8)
+                mailReceived: daysAgo(0),
+                mailUploaded: daysAgo(0),
+                kiRecognized: daysAgo(0)
             },
             messages: [sammelmail2],
             statusHistory: [
-                { date: daysAgo(9).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
         // FALL 26: Aus Sammelmail 2 - Vertrag 3 (Wohngebäude)
         cases['case-026'] = {
             id: 'case-026',
-            createdAt: daysAgo(9),
-            updatedAt: daysAgo(8),
+            createdAt: daysAgo(0),
+            updatedAt: daysAgo(0),
             kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-6666666", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
@@ -1326,13 +1326,13 @@ Versicherungsmaklerin`
             sourceEmailId: sammelmail2Id,
             linkedCaseIds: ['case-024', 'case-025'],
             workflow: {
-                mailReceived: daysAgo(9),
-                mailUploaded: daysAgo(8),
-                kiRecognized: daysAgo(8)
+                mailReceived: daysAgo(0),
+                mailUploaded: daysAgo(0),
+                kiRecognized: daysAgo(0)
             },
             messages: [sammelmail2],
             statusHistory: [
-                { date: daysAgo(9).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
