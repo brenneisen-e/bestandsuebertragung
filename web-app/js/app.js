@@ -203,8 +203,6 @@ const App = (function() {
         const recentActivity = Storage.getRecentActivity(10);
 
         UI.renderDashboardKPIs(stats);
-        UI.renderStatusBars(stats);
-        UI.renderTopMaklerList(maklerStats);
         UI.renderSpartenList(spartenStats);
         UI.renderRecentActivity(recentActivity);
     }

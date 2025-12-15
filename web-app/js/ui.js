@@ -54,8 +54,6 @@ const UI = (function() {
 
             // Dashboard KPIs - Workflow-basiert
             kpiTotal: document.getElementById('kpiTotal'),
-            kpiMailReceived: document.getElementById('kpiMailReceived'),
-            kpiMailReceivedPct: document.getElementById('kpiMailReceivedPct'),
             kpiKiRecognized: document.getElementById('kpiKiRecognized'),
             kpiKiRecognizedPct: document.getElementById('kpiKiRecognizedPct'),
             kpiPvValidated: document.getElementById('kpiPvValidated'),
@@ -64,8 +62,6 @@ const UI = (function() {
             kpiExportiertPct: document.getElementById('kpiExportiertPct'),
 
             // Dashboard Charts
-            statusBars: document.getElementById('statusBars'),
-            topMaklerList: document.getElementById('topMaklerList'),
             spartenList: document.getElementById('spartenList'),
             validationPendingCount: document.getElementById('validationPendingCount'),
             exportReadyCount: document.getElementById('exportReadyCount'),
@@ -138,14 +134,12 @@ const UI = (function() {
 
         // KPI Werte - Workflow-Schritte
         if (elements.kpiTotal) elements.kpiTotal.textContent = total;
-        if (elements.kpiMailReceived) elements.kpiMailReceived.textContent = wf.mailReceived || 0;
         if (elements.kpiKiRecognized) elements.kpiKiRecognized.textContent = wf.kiRecognized || 0;
         if (elements.kpiPvValidated) elements.kpiPvValidated.textContent = wf.pvValidated || 0;
         if (elements.kpiExportiert) elements.kpiExportiert.textContent = wf.exported || 0;
 
         // Prozente
         if (total > 0) {
-            if (elements.kpiMailReceivedPct) elements.kpiMailReceivedPct.textContent = Math.round((wf.mailReceived || 0) / total * 100) + '%';
             if (elements.kpiKiRecognizedPct) elements.kpiKiRecognizedPct.textContent = Math.round((wf.kiRecognized || 0) / total * 100) + '%';
             if (elements.kpiPvValidatedPct) elements.kpiPvValidatedPct.textContent = Math.round((wf.pvValidated || 0) / total * 100) + '%';
             if (elements.kpiExportiertPct) elements.kpiExportiertPct.textContent = Math.round((wf.exported || 0) / total * 100) + '%';
@@ -161,51 +155,6 @@ const UI = (function() {
             const pendingValidation = (wf.kiRecognized || 0) - (wf.pvValidated || 0);
             elements.validationPendingCount.textContent = Math.max(0, pendingValidation);
         }
-    }
-
-    /**
-     * Status-Balken rendern
-     */
-    function renderStatusBars(stats) {
-        if (!elements.statusBars || !stats.byStatus) return;
-
-        const total = stats.total || 1;
-        const statusOrder = ['neu', 'angefragt', 'in-bearbeitung', 'bestaetigt', 'abgelehnt'];
-
-        elements.statusBars.innerHTML = statusOrder.map(status => {
-            const count = stats.byStatus[status] || 0;
-            const pct = Math.round(count / total * 100);
-            return `
-                <div class="status-bar-item">
-                    <span class="status-bar-label">${STATUS_LABELS[status]}</span>
-                    <div class="status-bar-track">
-                        <div class="status-bar-fill ${status}" style="width: ${pct}%"></div>
-                    </div>
-                    <span class="status-bar-count">${count}</span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    /**
-     * Top-Makler Liste rendern
-     */
-    function renderTopMaklerList(maklerStats) {
-        if (!elements.topMaklerList) return;
-
-        const top5 = maklerStats.slice(0, 5);
-
-        if (top5.length === 0) {
-            elements.topMaklerList.innerHTML = '<p class="text-muted">Keine Makler vorhanden</p>';
-            return;
-        }
-
-        elements.topMaklerList.innerHTML = top5.map(m => `
-            <div class="top-list-item">
-                <span class="top-list-name" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
-                <span class="top-list-count">${m.total}</span>
-            </div>
-        `).join('');
     }
 
     /**
@@ -912,8 +861,6 @@ const UI = (function() {
 
         // Dashboard
         renderDashboardKPIs,
-        renderStatusBars,
-        renderTopMaklerList,
         renderSpartenList,
         renderRecentActivity,
 
