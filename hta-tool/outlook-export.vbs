@@ -9,12 +9,14 @@ Option Explicit
 Const MAX_EMAILS = 5000
 Const MAX_BODY_LENGTH = 10000
 Const SUBJECT_FILTER = "[EXT] Demo Bestand"
-Const DAYS_BACK = 90
+Const DAYS_BACK = 365
 
 ' Globale Variablen
 Dim objOutlook, objNamespace
 Dim fso, outputFile
 Dim emailCount, outputPath
+Dim allEmails()
+Dim debugInfo
 
 ' Globale Variable fuer ausgewaehltes Postfach
 Dim selectedMailbox
@@ -22,6 +24,8 @@ Dim selectedMailbox
 ' Hauptprogramm
 Sub Main()
     Dim result
+
+    debugInfo = ""
 
     ' Mit Outlook verbinden
     If Not ConnectOutlook() Then
@@ -52,7 +56,8 @@ Sub Main()
     Else
         MsgBox "Export fehlgeschlagen oder keine E-Mails gefunden." & vbCrLf & vbCrLf & _
             "Postfach: " & selectedMailbox.Name & vbCrLf & _
-            "Betreff-Filter: " & SUBJECT_FILTER, _
+            "Betreff-Filter: " & SUBJECT_FILTER & vbCrLf & vbCrLf & _
+            "DEBUG INFO:" & vbCrLf & debugInfo, _
             vbExclamation, "Exportergebnis"
     End If
 End Sub
@@ -114,10 +119,8 @@ Function ConnectOutlook()
     On Error GoTo 0
 End Function
 
-' E-Mails aus ausgewaehltem Postfach exportieren
+' E-Mails aus ausgewaehltem Postfach exportieren (ALLE Ordner rekursiv)
 Function ExportEmailsFromMailbox(mailbox)
-    Dim inbox, sentFolder
-    Dim inboxEmails, sentEmails
     Dim jsonContent
     Dim dateFrom, dateTo
     Dim mailboxName
@@ -130,22 +133,18 @@ Function ExportEmailsFromMailbox(mailbox)
     dateTo = Date
     mailboxName = mailbox.Name
 
-    ' Posteingang und Gesendete aus dem Postfach holen
-    Set inbox = FindFolderInMailbox(mailbox, Array("Posteingang", "Inbox"))
-    Set sentFolder = FindFolderInMailbox(mailbox, Array("Gesendete Elemente", "Sent Items", "Gesendet"))
-
-    ' E-Mails sammeln
+    ' E-Mails sammeln - REKURSIV alle Ordner durchsuchen
     emailCount = 0
-    ReDim inboxEmails(0)
-    ReDim sentEmails(0)
+    ReDim allEmails(0)
 
-    If Not inbox Is Nothing Then
-        inboxEmails = GetEmailsFromFolder(inbox, dateFrom, dateTo, "inbox")
-    End If
+    debugInfo = debugInfo & "Durchsuche Postfach: " & mailboxName & vbCrLf
+    debugInfo = debugInfo & "Datumsbereich: " & dateFrom & " bis " & dateTo & vbCrLf
+    debugInfo = debugInfo & "Filter: " & SUBJECT_FILTER & vbCrLf & vbCrLf
 
-    If Not sentFolder Is Nothing Then
-        sentEmails = GetEmailsFromFolder(sentFolder, dateFrom, dateTo, "sent")
-    End If
+    ' Rekursiv alle Ordner durchsuchen
+    SearchFolderRecursive mailbox, dateFrom, dateTo, 0
+
+    debugInfo = debugInfo & vbCrLf & "Gefundene E-Mails: " & emailCount
 
     ' Pruefen ob E-Mails gefunden
     If emailCount = 0 Then
@@ -154,7 +153,7 @@ Function ExportEmailsFromMailbox(mailbox)
     End If
 
     ' JSON erstellen und speichern
-    jsonContent = BuildJsonOutput(inboxEmails, sentEmails, mailboxName, dateFrom, dateTo)
+    jsonContent = BuildJsonOutputSimple(allEmails, mailboxName, dateFrom, dateTo)
 
     ' UTF-8 ohne BOM schreiben (ADODB.Stream)
     Dim stream
@@ -187,25 +186,73 @@ Function ExportEmailsFromMailbox(mailbox)
     On Error GoTo 0
 End Function
 
-' Ordner im Postfach finden
-Function FindFolderInMailbox(mailbox, folderNames)
-    Dim folders, folder, i, j
-
-    Set FindFolderInMailbox = Nothing
-    Set folders = mailbox.Folders
+' Ordner rekursiv durchsuchen
+Sub SearchFolderRecursive(folder, dateFrom, dateTo, level)
+    Dim items, item, i
+    Dim subFolder
+    Dim receivedTime, senderEmail, subject
+    Dim indent, foundInFolder
 
     On Error Resume Next
-    For i = 1 To folders.Count
-        Set folder = folders.Item(i)
-        For j = 0 To UBound(folderNames)
-            If LCase(folder.Name) = LCase(folderNames(j)) Then
-                Set FindFolderInMailbox = folder
-                Exit Function
+
+    indent = String(level * 2, " ")
+    foundInFolder = 0
+
+    ' Aktuellen Ordner durchsuchen
+    Set items = folder.Items
+    If Err.Number = 0 And Not items Is Nothing Then
+        items.Sort "[ReceivedTime]", True
+
+        For i = 1 To items.Count
+            If emailCount >= MAX_EMAILS Then Exit For
+
+            Set item = items.Item(i)
+
+            ' Nur Mail-Items (Class = 43)
+            If item.Class = 43 Then
+                receivedTime = item.ReceivedTime
+
+                ' Datum pruefen
+                If receivedTime >= dateFrom And receivedTime <= dateTo Then
+                    subject = item.Subject
+
+                    ' BETREFF-FILTER pruefen
+                    If InStr(1, subject, SUBJECT_FILTER, vbTextCompare) > 0 Then
+                        emailCount = emailCount + 1
+                        foundInFolder = foundInFolder + 1
+                        ReDim Preserve allEmails(emailCount)
+
+                        senderEmail = GetSenderEmail(item)
+
+                        allEmails(emailCount) = Array( _
+                            item.EntryID, _
+                            GetConversationID(item), _
+                            CleanString(subject), _
+                            senderEmail, _
+                            FormatDateTime(receivedTime, vbGeneralDate), _
+                            TruncateBody(item.Body), _
+                            folder.Name _
+                        )
+                    End If
+                End If
             End If
         Next
+    End If
+
+    ' Debug: Ordner und gefundene Mails anzeigen
+    If foundInFolder > 0 Then
+        debugInfo = debugInfo & indent & folder.Name & ": " & foundInFolder & " E-Mails" & vbCrLf
+    Else
+        debugInfo = debugInfo & indent & folder.Name & ": 0" & vbCrLf
+    End If
+
+    ' Unterordner rekursiv durchsuchen
+    For Each subFolder In folder.Folders
+        SearchFolderRecursive subFolder, dateFrom, dateTo, level + 1
     Next
+
     On Error GoTo 0
-End Function
+End Sub
 
 ' Speicherort festlegen (Downloads-Ordner)
 Function GetSavePath()
@@ -222,61 +269,6 @@ Function GetSavePath()
     GetSavePath = downloadsPath & "\" & filename
 
     Set shell = Nothing
-End Function
-
-
-' E-Mails aus Ordner holen (nur mit Betreff-Filter)
-Function GetEmailsFromFolder(folder, dateFrom, dateTo, folderType)
-    Dim items, item, i, emails(), count
-    Dim receivedTime, senderEmail, subject
-
-    On Error Resume Next
-
-    count = 0
-    ReDim emails(0)
-
-    Set items = folder.Items
-    items.Sort "[ReceivedTime]", True
-
-    For i = 1 To items.Count
-        If count >= MAX_EMAILS Then Exit For
-
-        Set item = items.Item(i)
-
-        ' Nur Mail-Items
-        If item.Class = 43 Then
-            receivedTime = item.ReceivedTime
-
-            ' Datum pruefen
-            If receivedTime < dateFrom Then Exit For
-            If receivedTime <= dateTo Then
-                ' BETREFF-FILTER: Nur Mails mit "Demo Bestandsübertragung"
-                subject = item.Subject
-                If InStr(1, subject, SUBJECT_FILTER, vbTextCompare) > 0 Then
-                    count = count + 1
-                    ReDim Preserve emails(count)
-
-                    senderEmail = GetSenderEmail(item)
-
-                    emails(count) = Array( _
-                        item.EntryID, _
-                        GetConversationID(item), _
-                        CleanString(subject), _
-                        senderEmail, _
-                        FormatDateTime(receivedTime, vbGeneralDate), _
-                        TruncateBody(item.Body), _
-                        folderType _
-                    )
-
-                    emailCount = emailCount + 1
-                End If
-            End If
-        End If
-    Next
-
-    GetEmailsFromFolder = emails
-
-    On Error GoTo 0
 End Function
 
 ' Sender E-Mail extrahieren
@@ -337,8 +329,8 @@ Function CleanString(str)
     CleanString = result
 End Function
 
-' JSON Output erstellen
-Function BuildJsonOutput(inboxEmails, sentEmails, mailboxName, dateFrom, dateTo)
+' JSON Output erstellen (vereinfacht)
+Function BuildJsonOutputSimple(emails, mailboxName, dateFrom, dateTo)
     Dim json, i, email
 
     json = "{" & vbCrLf
@@ -356,32 +348,20 @@ Function BuildJsonOutput(inboxEmails, sentEmails, mailboxName, dateFrom, dateTo)
     Dim firstEmail
     firstEmail = True
 
-    ' Inbox-Mails
-    For i = 1 To UBound(inboxEmails)
+    For i = 1 To UBound(emails)
         If Not firstEmail Then
             json = json & "," & vbCrLf
         End If
         firstEmail = False
 
-        email = inboxEmails(i)
-        json = json & BuildEmailJson(email)
-    Next
-
-    ' Sent-Mails
-    For i = 1 To UBound(sentEmails)
-        If Not firstEmail Then
-            json = json & "," & vbCrLf
-        End If
-        firstEmail = False
-
-        email = sentEmails(i)
+        email = emails(i)
         json = json & BuildEmailJson(email)
     Next
 
     json = json & vbCrLf & "  ]" & vbCrLf
     json = json & "}" & vbCrLf
 
-    BuildJsonOutput = json
+    BuildJsonOutputSimple = json
 End Function
 
 ' Einzelne E-Mail als JSON
