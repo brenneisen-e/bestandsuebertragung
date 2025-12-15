@@ -611,44 +611,87 @@ Versicherungsmaklerin`
         };
 
         // ============================================
-        // FALL 11: Neu - KFZ (noch nicht versendet)
+        // FALL 11: Neu - KFZ (importiert, KI noch nicht erkannt)
         // ============================================
         cases['case-011'] = {
             id: 'case-011',
             createdAt: daysAgo(2),
             updatedAt: daysAgo(2),
-            kunde: { name: "Franke, Birgit", source: "manual", confidence: 1.0 },
-            versicherungsnummer: { value: "ERG-4432109", source: "manual", confidence: 1.0 },
-            gueltigkeitsdatum: { value: "01.06.2026", source: "manual", confidence: 1.0 },
+            kunde: { name: "Franke, Birgit", source: "auto", confidence: 0.75 },
+            versicherungsnummer: { value: "ERG-4432109", source: "auto", confidence: 0.80 },
+            gueltigkeitsdatum: { value: "01.06.2026", source: "auto", confidence: 0.70 },
             status: 'neu',
             sparte: 'KFZ',
             makler: MAKLER[10],
-            notes: "Kunde muss Vollmacht noch unterschreiben",
-            workflow: {},
-            messages: [],
+            notes: "Vollmacht noch nicht unterschrieben - Rückfrage nötig",
+            workflow: {
+                mailReceived: daysAgo(2),
+                mailUploaded: daysAgo(2)
+            },
+            messages: [
+                {
+                    entryID: 'msg-011-a',
+                    folder: 'sent',
+                    subject: 'Bestandsübertragung KFZ',
+                    senderEmail: MAKLER[10].email,
+                    receivedTime: daysAgo(2),
+                    bodyPlain: `Hallo,
+
+anbei die Unterlagen für Frau Franke, Birgit.
+
+KFZ-Versicherung ERG-4432109
+Übertragung gewünscht zum 01.06.2026
+
+Vollmacht folgt.
+
+Stefan Zimmermann`
+                }
+            ],
             statusHistory: [
-                { date: daysAgo(2).split('T')[0], from: null, to: 'neu', note: 'Manuell erstellt' }
+                { date: daysAgo(2).split('T')[0], from: null, to: 'neu', note: 'Importiert - KI-Erkennung ausstehend' }
             ]
         };
 
         // ============================================
-        // FALL 12: Neu - Leben
+        // FALL 12: Neu - Leben (importiert, KI noch nicht erkannt)
         // ============================================
         cases['case-012'] = {
             id: 'case-012',
             createdAt: daysAgo(1),
             updatedAt: daysAgo(1),
-            kunde: { name: "Seidel, Ralf", source: "manual", confidence: 1.0 },
-            versicherungsnummer: { value: "ERG-9912345", source: "manual", confidence: 1.0 },
-            gueltigkeitsdatum: { value: "01.07.2026", source: "manual", confidence: 1.0 },
+            kunde: { name: "Seidel, Ralf", source: "auto", confidence: 0.72 },
+            versicherungsnummer: { value: "ERG-9912345", source: "auto", confidence: 0.78 },
+            gueltigkeitsdatum: { value: "01.07.2026", source: "auto", confidence: 0.65 },
             status: 'neu',
             sparte: 'Leben',
             makler: MAKLER[11],
             notes: "",
-            workflow: {},
-            messages: [],
+            workflow: {
+                mailReceived: daysAgo(1),
+                mailUploaded: daysAgo(1)
+            },
+            messages: [
+                {
+                    entryID: 'msg-012-a',
+                    folder: 'sent',
+                    subject: 'Übertragung Lebensversicherung Seidel',
+                    senderEmail: MAKLER[11].email,
+                    receivedTime: daysAgo(1),
+                    bodyPlain: `Sehr geehrte Damen und Herren,
+
+für Herrn Ralf Seidel beantrage ich die Übertragung seiner Lebensversicherung.
+
+Vertrag: ERG-9912345
+Termin: 01.07.2026
+
+Maklervollmacht im Anhang.
+
+Martina Koch
+Versicherungsmaklerin`
+                }
+            ],
             statusHistory: [
-                { date: daysAgo(1).split('T')[0], from: null, to: 'neu', note: 'Manuell erstellt' }
+                { date: daysAgo(1).split('T')[0], from: null, to: 'neu', note: 'Importiert - KI-Erkennung ausstehend' }
             ]
         };
 
@@ -981,23 +1024,46 @@ ERGO Maklerservice`
         };
 
         // ============================================
-        // FALL 19: Neu - Rechtsschutz
+        // FALL 19: Neu - Rechtsschutz (importiert, KI noch nicht erkannt)
         // ============================================
         cases['case-019'] = {
             id: 'case-019',
             createdAt: daysAgo(1),
             updatedAt: daysAgo(1),
-            kunde: { name: "Engel, Tanja", source: "manual", confidence: 1.0 },
-            versicherungsnummer: { value: "ERG-7776543", source: "manual", confidence: 1.0 },
-            gueltigkeitsdatum: { value: "01.08.2026", source: "manual", confidence: 1.0 },
+            kunde: { name: "Engel, Tanja", source: "auto", confidence: 0.68 },
+            versicherungsnummer: { value: "ERG-7776543", source: "auto", confidence: 0.74 },
+            gueltigkeitsdatum: { value: "01.08.2026", source: "auto", confidence: 0.60 },
             status: 'neu',
             sparte: 'Rechtsschutz',
             makler: MAKLER[18],
             notes: "Vollmacht wird per Post erwartet",
-            workflow: {},
-            messages: [],
+            workflow: {
+                mailReceived: daysAgo(1),
+                mailUploaded: daysAgo(1)
+            },
+            messages: [
+                {
+                    entryID: 'msg-019-a',
+                    folder: 'sent',
+                    subject: 'Rechtsschutz Engel - Übertragung',
+                    senderEmail: MAKLER[18].email,
+                    receivedTime: daysAgo(1),
+                    bodyPlain: `Guten Tag,
+
+ich möchte die Rechtsschutzversicherung von Frau Tanja Engel übertragen.
+
+VS-Nr: ERG-7776543
+Gewünschter Termin: 01.08.2026
+
+Vollmacht kommt per Post.
+
+Mit freundlichen Grüßen
+Elisabeth Vogt
+Versicherungsmaklerin`
+                }
+            ],
             statusHistory: [
-                { date: daysAgo(1).split('T')[0], from: null, to: 'neu', note: 'Manuell erstellt' }
+                { date: daysAgo(1).split('T')[0], from: null, to: 'neu', note: 'Importiert - KI-Erkennung ausstehend' }
             ]
         };
 
