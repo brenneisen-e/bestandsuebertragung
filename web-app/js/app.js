@@ -68,6 +68,10 @@ const App = (function() {
         document.getElementById('dashboardSearch')?.addEventListener('input', debounce(handleDashboardSearch, 300));
         document.getElementById('dashboardSearchResults')?.addEventListener('click', handleDashboardSearchClick);
 
+        // Dashboard: Activity Filter
+        document.getElementById('activityStatusFilter')?.addEventListener('change', refreshDashboard);
+        document.getElementById('activitySort')?.addEventListener('change', refreshDashboard);
+
         // Vorgänge View
         document.getElementById('newCaseBtn')?.addEventListener('click', () => openCaseModal(null));
         document.getElementById('vorgaengeSearch')?.addEventListener('input', debounce(refreshVorgaengeView, 300));
@@ -245,11 +249,14 @@ const App = (function() {
         const stats = Storage.getDetailedStats();
         const maklerStats = Storage.getMaklerStats();
         const spartenStats = Storage.getSpartenStats();
-        const recentActivity = Storage.getRecentActivity(10);
+        const recentActivity = Storage.getRecentActivity(50);
+        const importExportHistory = Storage.getImportExportHistory();
+        const activityFilters = UI.getActivityFilterValues();
 
         UI.renderDashboardKPIs(stats);
         UI.renderSpartenList(spartenStats);
-        UI.renderRecentActivity(recentActivity);
+        UI.renderRecentActivity(recentActivity, activityFilters.status, activityFilters.sort);
+        UI.renderImportExportHistory(importExportHistory);
     }
 
     /**
@@ -727,7 +734,56 @@ const App = (function() {
         const currentCase = UI.getCurrentValidationCase();
 
         if (currentCase) {
-            // Einzelnen Vorgang validieren
+            // Formulardaten lesen
+            const formData = UI.getValidationFormData();
+
+            // Prüfen ob Daten geändert wurden
+            const changes = [];
+            if (formData.kunde !== (currentCase.kunde?.name || '')) {
+                changes.push('Kunde');
+            }
+            if (formData.vsNr !== (currentCase.versicherungsnummer?.value || '')) {
+                changes.push('VS-Nr');
+            }
+            if (formData.sparte !== (currentCase.sparte || '')) {
+                changes.push('Sparte');
+            }
+            if (formData.makler !== (currentCase.makler?.name || '')) {
+                changes.push('Makler');
+            }
+            if (formData.status !== (currentCase.status || 'angefragt')) {
+                changes.push('Status');
+            }
+
+            // Änderungen anwenden
+            if (!currentCase.kunde) currentCase.kunde = {};
+            currentCase.kunde.name = formData.kunde;
+
+            if (!currentCase.versicherungsnummer) currentCase.versicherungsnummer = {};
+            currentCase.versicherungsnummer.value = formData.vsNr;
+
+            currentCase.sparte = formData.sparte;
+
+            if (!currentCase.gueltigkeitsdatum) currentCase.gueltigkeitsdatum = {};
+            currentCase.gueltigkeitsdatum.value = formData.datum;
+
+            if (!currentCase.makler) currentCase.makler = {};
+            currentCase.makler.name = formData.makler;
+
+            currentCase.status = formData.status;
+            currentCase.updatedAt = new Date().toISOString();
+
+            // Workflow-Änderung protokollieren
+            if (!currentCase.validationHistory) currentCase.validationHistory = [];
+            currentCase.validationHistory.push({
+                date: new Date().toISOString(),
+                user: 'PV-Bearbeiter',
+                action: 'validiert',
+                changes: changes.length > 0 ? changes : null
+            });
+
+            // Speichern und als validiert markieren
+            Storage.saveCase(currentCase);
             Storage.markCasesValidated([currentCase.id]);
         }
 
@@ -814,6 +870,9 @@ const App = (function() {
         // Als exportiert markieren
         const count = Storage.markCasesExported(caseIds, exporterName);
 
+        // Export in Historie loggen
+        Storage.logImportExport('export', count, exporterName);
+
         UI.closeExportModal();
         UI.showToast(`${count} Vorgänge exportiert und als "exportiert" markiert`, 'success');
         refreshData();
@@ -851,6 +910,8 @@ const App = (function() {
             const result = await Export.importFromJSON(file);
 
             if (result.type === 'backup') {
+                const cases = Storage.getCasesArray();
+                Storage.logImportExport('import', cases.length, 'Backup-Import');
                 UI.showToast('Backup erfolgreich importiert', 'success');
                 refreshData();
             } else if (result.type === 'outlook') {
@@ -862,6 +923,12 @@ const App = (function() {
                 }
                 if (processResult.matched > 0) {
                     message += `, ${processResult.matched} zugeordnet`;
+                }
+
+                // Import in Historie loggen
+                const importCount = processResult.created + processResult.matched;
+                if (importCount > 0) {
+                    Storage.logImportExport('import', importCount, 'Outlook-Import');
                 }
 
                 UI.showToast(message, (processResult.created > 0 || processResult.matched > 0) ? 'success' : 'info');

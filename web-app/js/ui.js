@@ -75,6 +75,11 @@ const UI = (function() {
             dashboardSearch: document.getElementById('dashboardSearch'),
             dashboardSearchResults: document.getElementById('dashboardSearchResults'),
 
+            // Activity Filter & History
+            activityStatusFilter: document.getElementById('activityStatusFilter'),
+            activitySort: document.getElementById('activitySort'),
+            importExportHistory: document.getElementById('importExportHistory'),
+
             // Vorgänge Tab (Status-gruppierte Liste)
             vorgaengeSearch: document.getElementById('vorgaengeSearch'),
             filterSparte: document.getElementById('filterSparte'),
@@ -206,29 +211,76 @@ const UI = (function() {
     /**
      * Letzte Aktivitäten rendern
      */
-    function renderRecentActivity(activities) {
+    function renderRecentActivity(activities, filterStatus, sortOrder) {
         if (!elements.recentActivityBody) return;
 
-        if (!activities || activities.length === 0) {
-            elements.recentActivityBody.innerHTML = '<tr><td colspan="5" class="text-muted">Keine Aktivitäten</td></tr>';
+        // Filtern nach Status
+        let filtered = activities || [];
+        if (filterStatus) {
+            filtered = filtered.filter(a => a.to === filterStatus);
+        }
+
+        // Sortieren
+        if (sortOrder === 'asc') {
+            filtered = filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+        } else {
+            filtered = filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        if (filtered.length === 0) {
+            elements.recentActivityBody.innerHTML = '<tr><td colspan="4" class="text-muted">Keine Aktivitäten</td></tr>';
             return;
         }
 
-        elements.recentActivityBody.innerHTML = activities.map(a => {
-            const action = a.from
-                ? `${STATUS_ICONS[a.from] || ''} → ${STATUS_ICONS[a.to] || ''} ${STATUS_LABELS[a.to] || a.to}`
-                : `${STATUS_ICONS[a.to] || ''} ${STATUS_LABELS[a.to] || a.to}`;
+        elements.recentActivityBody.innerHTML = filtered.map(a => {
+            const statusLabel = STATUS_LABELS[a.to] || a.to;
+            const statusIcon = STATUS_ICONS[a.to] || '○';
 
             return `
                 <tr class="clickable-row" data-case-id="${a.caseId}">
                     <td>${formatDate(a.date)}</td>
                     <td>${escapeHtml(a.kundeName)}</td>
                     <td>${escapeHtml(a.maklerName)}</td>
-                    <td>${action}</td>
-                    <td><span class="status-badge status-${a.to}">${STATUS_ICONS[a.to] || ''}</span></td>
+                    <td><span class="status-badge status-${a.to}">${statusIcon} ${statusLabel}</span></td>
                 </tr>
             `;
         }).join('');
+    }
+
+    /**
+     * Import/Export Historie rendern
+     */
+    function renderImportExportHistory(history) {
+        if (!elements.importExportHistory) return;
+
+        if (!history || history.length === 0) {
+            elements.importExportHistory.innerHTML = '<tr><td colspan="4" class="text-muted">Keine Historie vorhanden</td></tr>';
+            return;
+        }
+
+        elements.importExportHistory.innerHTML = history.map(h => {
+            const typeLabel = h.type === 'import' ? 'Import' : 'Export';
+            const typeClass = h.type === 'import' ? 'status-angefragt' : 'status-exportiert';
+
+            return `
+                <tr>
+                    <td>${formatDateTime(h.date)}</td>
+                    <td><span class="status-badge ${typeClass}">${typeLabel}</span></td>
+                    <td>${h.count} Vorgänge</td>
+                    <td>${escapeHtml(h.user || 'Unbekannt')}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Activity Filter Werte auslesen
+     */
+    function getActivityFilterValues() {
+        return {
+            status: elements.activityStatusFilter?.value || '',
+            sort: elements.activitySort?.value || 'desc'
+        };
     }
 
     /**
@@ -909,25 +961,95 @@ const UI = (function() {
         // Progress aktualisieren
         elements.validationCurrent.textContent = validationState.currentIndex + 1;
 
-        // Export-relevante Felder anzeigen
-        elements.valKunde.textContent = caseData.kunde?.name || '-';
-        elements.valVsNr.textContent = caseData.versicherungsnummer?.value || '-';
-        elements.valSparte.textContent = caseData.sparte || '-';
-        elements.valDatum.textContent = caseData.gueltigkeitsdatum?.value || '-';
-        elements.valMakler.textContent = caseData.makler?.name || '-';
-        elements.valStatus.textContent = STATUS_LABELS[caseData.status] || caseData.status;
+        // Extrahierte Werte für Highlighting sammeln
+        const extractedValues = [];
 
-        // E-Mail Preview - erste Mail kurz anzeigen
+        // Export-relevante Felder als Eingabefelder setzen
+        const kundeName = caseData.kunde?.name || '';
+        if (elements.valKunde) {
+            elements.valKunde.value = kundeName;
+            if (kundeName) extractedValues.push(kundeName);
+        }
+
+        const vsNr = caseData.versicherungsnummer?.value || '';
+        if (elements.valVsNr) {
+            elements.valVsNr.value = vsNr;
+            if (vsNr) extractedValues.push(vsNr);
+        }
+
+        const sparte = caseData.sparte || '';
+        if (elements.valSparte) {
+            elements.valSparte.value = sparte;
+            if (sparte) extractedValues.push(sparte);
+        }
+
+        const datum = caseData.gueltigkeitsdatum?.value || '';
+        if (elements.valDatum) {
+            elements.valDatum.value = datum;
+            if (datum) extractedValues.push(datum);
+        }
+
+        const maklerName = caseData.makler?.name || '';
+        if (elements.valMakler) {
+            elements.valMakler.value = maklerName;
+            if (maklerName) extractedValues.push(maklerName);
+        }
+
+        if (elements.valStatus) {
+            elements.valStatus.value = caseData.status || 'angefragt';
+        }
+
+        // E-Mail Preview mit Keyword-Highlighting
         const firstMsg = caseData.messages?.[0];
         if (firstMsg) {
-            const bodyPreview = truncateText(firstMsg.bodyPlain || firstMsg.body || '', 300);
+            const bodyText = firstMsg.bodyPlain || firstMsg.body || '';
+            const bodyPreview = truncateText(bodyText, 500);
+            const highlightedBody = highlightKeywords(escapeHtml(bodyPreview), extractedValues);
+
             elements.valEmailPreview.innerHTML = `
                 <div class="email-preview-subject">${escapeHtml(firstMsg.subject || 'Kein Betreff')}</div>
-                <div class="email-preview-body">${escapeHtml(bodyPreview)}</div>
+                <div class="email-preview-body">${highlightedBody}</div>
             `;
         } else {
             elements.valEmailPreview.innerHTML = '<span class="text-muted">Keine E-Mail vorhanden</span>';
         }
+    }
+
+    /**
+     * Keywords im Text hervorheben
+     */
+    function highlightKeywords(text, keywords) {
+        if (!keywords || keywords.length === 0) return text;
+
+        let result = text;
+        keywords.forEach(keyword => {
+            if (!keyword || keyword.length < 2) return;
+            // Case-insensitive Ersetzung
+            const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
+            result = result.replace(regex, '<mark>$1</mark>');
+        });
+        return result;
+    }
+
+    /**
+     * RegExp-Sonderzeichen escapen
+     */
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    /**
+     * Validierungsdaten aus Formular lesen
+     */
+    function getValidationFormData() {
+        return {
+            kunde: elements.valKunde?.value?.trim() || '',
+            vsNr: elements.valVsNr?.value?.trim() || '',
+            sparte: elements.valSparte?.value || '',
+            datum: elements.valDatum?.value || '',
+            makler: elements.valMakler?.value?.trim() || '',
+            status: elements.valStatus?.value || 'angefragt'
+        };
     }
 
     /**
@@ -1117,7 +1239,9 @@ const UI = (function() {
         renderDashboardKPIs,
         renderSpartenList,
         renderRecentActivity,
+        renderImportExportHistory,
         renderDashboardSearchResults,
+        getActivityFilterValues,
 
         // Navigation
         updateNavCounts,
@@ -1141,6 +1265,7 @@ const UI = (function() {
         nextValidationCase,
         getCurrentValidationCase,
         hasMoreValidationCases,
+        getValidationFormData,
 
         // Notifications
         showToast,

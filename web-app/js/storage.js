@@ -443,6 +443,35 @@ const Storage = (function() {
     }
 
     /**
+     * Import/Export Historie abrufen
+     */
+    function getImportExportHistory() {
+        try {
+            const historyJson = localStorage.getItem('importExportHistory');
+            return historyJson ? JSON.parse(historyJson) : [];
+        } catch (e) {
+            console.error('Error reading import/export history:', e);
+            return [];
+        }
+    }
+
+    /**
+     * Import/Export Event speichern
+     */
+    function logImportExport(type, count, user) {
+        const history = getImportExportHistory();
+        history.unshift({
+            date: new Date().toISOString(),
+            type: type, // 'import' oder 'export'
+            count: count,
+            user: user || 'Unbekannt'
+        });
+        // Nur letzte 50 Einträge behalten
+        const limited = history.slice(0, 50);
+        localStorage.setItem('importExportHistory', JSON.stringify(limited));
+    }
+
+    /**
      * Makler-Statistiken berechnen
      */
     function getMaklerStats() {
@@ -719,6 +748,8 @@ const Storage = (function() {
         getSpartenStats,
         getAllEmails,
         getRecentActivity,
+        getImportExportHistory,
+        logImportExport,
 
         // Validierung
         getPendingValidationCases,

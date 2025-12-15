@@ -133,18 +133,50 @@
 
         <!-- Letzte Aktivitäten -->
         <div class="dashboard-card dashboard-wide">
-            <h3>Letzte Aktivitäten</h3>
+            <div class="activity-header">
+                <h3>Letzte Aktivitäten</h3>
+                <div class="activity-controls">
+                    <select id="activityStatusFilter">
+                        <option value="">Alle Status</option>
+                        <option value="neu">○ Neu</option>
+                        <option value="unvollstaendig">◇ Unvollständig</option>
+                        <option value="angefragt">◐ Angefragt</option>
+                        <option value="in-bearbeitung">◑ In Bearbeitung</option>
+                        <option value="bestaetigt">● Bestätigt</option>
+                        <option value="abgelehnt">✕ Abgelehnt</option>
+                    </select>
+                    <select id="activitySort">
+                        <option value="desc">Neueste zuerst</option>
+                        <option value="asc">Älteste zuerst</option>
+                    </select>
+                </div>
+            </div>
             <table class="data-table compact">
                 <thead>
                     <tr>
                         <th>Datum</th>
                         <th>Kunde</th>
                         <th>Makler</th>
-                        <th>Aktion</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody id="recentActivityBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Import/Export Historie -->
+        <div class="dashboard-card dashboard-wide">
+            <h3>Import/Export Historie</h3>
+            <table class="data-table compact">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Typ</th>
+                        <th>Anzahl</th>
+                        <th>Bearbeiter</th>
+                    </tr>
+                </thead>
+                <tbody id="importExportHistory"></tbody>
             </table>
         </div>
     </section>
@@ -802,35 +834,54 @@ ERGO Maklerservice</div>
                 </div>
                 <button class="modal-close" id="validationModalClose">×</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body validation-body">
                 <div class="validation-case-data">
+                    <p class="validation-hint">Klicken Sie auf ein Feld zum Bearbeiten. Änderungen werden gespeichert.</p>
                     <div class="validation-field">
-                        <span class="field-label">Kunde (VN)</span>
-                        <span class="field-value" id="valKunde">-</span>
+                        <label class="field-label">Kunde (VN)</label>
+                        <input type="text" class="field-input" id="valKunde" placeholder="-">
                     </div>
                     <div class="validation-field">
-                        <span class="field-label">VS-Nr</span>
-                        <span class="field-value" id="valVsNr">-</span>
+                        <label class="field-label">VS-Nr</label>
+                        <input type="text" class="field-input" id="valVsNr" placeholder="-">
                     </div>
                     <div class="validation-field">
-                        <span class="field-label">Sparte</span>
-                        <span class="field-value" id="valSparte">-</span>
+                        <label class="field-label">Sparte</label>
+                        <select class="field-input" id="valSparte">
+                            <option value="">-</option>
+                            <option value="KFZ">KFZ</option>
+                            <option value="Leben">Leben</option>
+                            <option value="Kranken">Kranken</option>
+                            <option value="Haftpflicht">Haftpflicht</option>
+                            <option value="Hausrat">Hausrat</option>
+                            <option value="Rechtsschutz">Rechtsschutz</option>
+                            <option value="Unfall">Unfall</option>
+                            <option value="BU">BU</option>
+                            <option value="Wohngebäude">Wohngebäude</option>
+                            <option value="Rente">Rente</option>
+                        </select>
                     </div>
                     <div class="validation-field">
-                        <span class="field-label">Gültig ab</span>
-                        <span class="field-value" id="valDatum">-</span>
+                        <label class="field-label">Gültig ab</label>
+                        <input type="date" class="field-input" id="valDatum">
                     </div>
                     <div class="validation-field">
-                        <span class="field-label">Makler</span>
-                        <span class="field-value" id="valMakler">-</span>
+                        <label class="field-label">Makler</label>
+                        <input type="text" class="field-input" id="valMakler" placeholder="-">
                     </div>
                     <div class="validation-field">
-                        <span class="field-label">Status</span>
-                        <span class="field-value" id="valStatus">-</span>
+                        <label class="field-label">Status</label>
+                        <select class="field-input" id="valStatus">
+                            <option value="neu">○ Neu</option>
+                            <option value="angefragt">◐ Angefragt</option>
+                            <option value="in-bearbeitung">◑ In Bearbeitung</option>
+                            <option value="bestaetigt">● Bestätigt</option>
+                            <option value="abgelehnt">✕ Abgelehnt</option>
+                        </select>
                     </div>
                 </div>
                 <div class="validation-email-preview">
-                    <h4>E-Mail Auszug</h4>
+                    <h4>E-Mail Auszug <span class="highlight-hint">(Stichworte markiert)</span></h4>
                     <div class="email-preview-content" id="valEmailPreview">-</div>
                 </div>
             </div>
