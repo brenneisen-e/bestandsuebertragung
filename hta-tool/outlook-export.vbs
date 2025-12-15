@@ -130,7 +130,7 @@ Function ExportEmailsFromMailbox(mailbox)
     Set fso = CreateObject("Scripting.FileSystemObject")
 
     dateFrom = DateAdd("d", -DAYS_BACK, Date)
-    dateTo = Date
+    dateTo = DateAdd("d", 1, Date)  ' Morgen, damit heute komplett dabei ist
     mailboxName = mailbox.Name
 
     ' E-Mails sammeln - REKURSIV alle Ordner durchsuchen
