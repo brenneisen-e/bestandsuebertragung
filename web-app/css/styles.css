@@ -223,6 +223,37 @@ body {
     transform: translateY(0);
 }
 
+/* KPI Card mit Hover-Button */
+.kpi-card-with-action {
+    position: relative;
+}
+
+.kpi-hover-action {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.2s, transform 0.2s, background 0.15s;
+}
+
+.kpi-card-with-action:hover .kpi-hover-action {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.kpi-hover-action:hover {
+    background: var(--primary-dark);
+}
+
 .kpi-value {
     font-size: 2rem;
     font-weight: 700;

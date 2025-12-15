@@ -61,6 +61,9 @@ const App = (function() {
         // Dashboard: Export Ready Button
         document.getElementById('exportReadyBtn')?.addEventListener('click', handleExportReady);
 
+        // Dashboard: Export to Robotics (hover button)
+        document.getElementById('exportToRoboticsBtn')?.addEventListener('click', handleExportToRobotics);
+
         // Dashboard: Recent Activity Clicks
         document.getElementById('recentActivityBody')?.addEventListener('click', handleActivityRowClick);
 
@@ -249,7 +252,7 @@ const App = (function() {
         const stats = Storage.getDetailedStats();
         const maklerStats = Storage.getMaklerStats();
         const spartenStats = Storage.getSpartenStats();
-        const recentActivity = Storage.getRecentActivity(50);
+        const recentActivity = Storage.getRecentActivity(26);
         const importExportHistory = Storage.getImportExportHistory();
         const activityFilters = UI.getActivityFilterValues();
 
@@ -848,6 +851,14 @@ const App = (function() {
         }
 
         UI.openExportModal(exportReadyCases.length);
+    }
+
+    /**
+     * Export nach Robotics (Hover-Button) - stoppt Event-Propagation
+     */
+    function handleExportToRobotics(e) {
+        e.stopPropagation(); // Verhindert dass exportReadyBtn auch getriggert wird
+        handleExportReady();
     }
 
     /**
