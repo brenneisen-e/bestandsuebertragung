@@ -6,24 +6,24 @@
 const UI = (function() {
     'use strict';
 
-    // Status-Icon Mapping
+    // Status-Icon Mapping (Workflow-basiert)
     const STATUS_ICONS = {
-        'neu': '○',
-        'angefragt': '◐',
-        'in-bearbeitung': '◑',
-        'bestaetigt': '●',
+        'unvollstaendig': '◇',
+        'zu-validieren': '◐',
+        'export-bereit': '●',
+        'abgeschlossen': '✓',
         'abgelehnt': '✕',
-        'unvollstaendig': '◇'
+        'wiedervorlage': '⟳'
     };
 
-    // Status-Labels
+    // Status-Labels (Workflow-basiert)
     const STATUS_LABELS = {
-        'neu': 'Neu',
-        'angefragt': 'Angefragt',
-        'in-bearbeitung': 'In Bearbeitung',
-        'bestaetigt': 'Bestätigt',
+        'unvollstaendig': 'Unvollständig',
+        'zu-validieren': 'Zu Validieren',
+        'export-bereit': 'Export-Bereit',
+        'abgeschlossen': 'Abgeschlossen',
         'abgelehnt': 'Abgelehnt',
-        'unvollstaendig': 'Unvollständig'
+        'wiedervorlage': 'Wiedervorlage'
     };
 
     // Cache für DOM-Elemente
@@ -382,8 +382,8 @@ const UI = (function() {
 
         if (elements.vorgaengeEmpty) elements.vorgaengeEmpty.style.display = 'none';
 
-        // Nach Status gruppieren (in definierter Reihenfolge)
-        const STATUS_ORDER = ['unvollstaendig', 'neu', 'angefragt', 'in-bearbeitung', 'bestaetigt', 'abgelehnt'];
+        // Nach Status gruppieren (in definierter Reihenfolge im Workflow)
+        const STATUS_ORDER = ['unvollstaendig', 'zu-validieren', 'export-bereit', 'abgeschlossen', 'abgelehnt', 'wiedervorlage'];
         const grouped = {};
 
         STATUS_ORDER.forEach(status => {

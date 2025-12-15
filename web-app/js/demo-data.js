@@ -60,7 +60,7 @@ const DemoData = (function() {
             kunde: { name: "Müller, Hans", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-7823456", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.01.2026", source: "auto", confidence: 0.95 },
-            status: 'bestaetigt',
+            status: 'abgeschlossen',
             sparte: 'KFZ',
             makler: MAKLER[0],
             notes: "",
@@ -110,8 +110,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(45).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(35).split('T')[0], from: 'angefragt', to: 'bestaetigt', note: 'Bestätigt durch ERGO' }
+                { date: daysAgo(45).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(35).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Bestätigt durch ERGO' }
             ]
         };
 
@@ -125,7 +125,7 @@ ERGO Maklerservice`
             kunde: { name: "Weber, Christine", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-4512378", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.92 },
-            status: 'bestaetigt',
+            status: 'abgeschlossen',
             sparte: 'Leben',
             makler: MAKLER[1],
             notes: "",
@@ -174,13 +174,13 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(60).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(45).split('T')[0], from: 'angefragt', to: 'bestaetigt', note: 'Bestätigt durch ERGO' }
+                { date: daysAgo(60).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(45).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Bestätigt durch ERGO' }
             ]
         };
 
         // ============================================
-        // FALL 3: Bestätigt - nicht exportiert - Hausrat
+        // FALL 3: Export-Bereit - nicht exportiert - Hausrat
         // ============================================
         cases['case-003'] = {
             id: 'case-003',
@@ -189,7 +189,7 @@ ERGO Maklerservice`
             kunde: { name: "Fischer, Maria", source: "auto", confidence: 0.96 },
             versicherungsnummer: { value: "ERG-9087654", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "15.01.2026", source: "auto", confidence: 0.90 },
-            status: 'bestaetigt',
+            status: 'export-bereit',
             sparte: 'Hausrat',
             makler: MAKLER[2],
             notes: "",
@@ -235,8 +235,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(25).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(12).split('T')[0], from: 'angefragt', to: 'bestaetigt', note: 'Bestätigt durch ERGO' }
+                { date: daysAgo(25).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(12).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Bestätigt durch ERGO' }
             ]
         };
 
@@ -301,8 +301,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(50).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(38).split('T')[0], from: 'angefragt', to: 'abgelehnt', note: 'Abgelehnt - Vollmacht fehlerhaft' }
+                { date: daysAgo(50).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(38).split('T')[0], from: 'zu-validieren', to: 'abgelehnt', note: 'Abgelehnt - Vollmacht fehlerhaft' }
             ]
         };
 
@@ -364,8 +364,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(20).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(10).split('T')[0], from: 'angefragt', to: 'abgelehnt', note: 'Abgelehnt - keine Vollmacht' }
+                { date: daysAgo(20).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(10).split('T')[0], from: 'zu-validieren', to: 'abgelehnt', note: 'Abgelehnt - keine Vollmacht' }
             ]
         };
 
@@ -379,7 +379,7 @@ ERGO Maklerservice`
             kunde: { name: "Klein, Thomas", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-2234567", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.93 },
-            status: 'in-bearbeitung',
+            status: 'wiedervorlage',
             sparte: 'Rechtsschutz',
             makler: MAKLER[5],
             notes: "Rückfrage zu Vollmachtsdatum",
@@ -426,8 +426,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(15).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(7).split('T')[0], from: 'angefragt', to: 'in-bearbeitung', note: 'Rückfrage ERGO' }
+                { date: daysAgo(15).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(7).split('T')[0], from: 'zu-validieren', to: 'wiedervorlage', note: 'Rückfrage ERGO' }
             ]
         };
 
@@ -441,7 +441,7 @@ ERGO Maklerservice`
             kunde: { name: "Hoffmann, Laura", source: "auto", confidence: 0.96 },
             versicherungsnummer: { value: "ERG-8876543", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.05.2026", source: "auto", confidence: 0.94 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'BU',
             makler: MAKLER[6],
             notes: "",
@@ -473,7 +473,7 @@ Versicherungsmakler`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(10).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' }
+                { date: daysAgo(10).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
             ]
         };
 
@@ -487,7 +487,7 @@ Versicherungsmakler`
             kunde: { name: "Berger, Thorsten", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-1123456", source: "auto", confidence: 0.97 },
             gueltigkeitsdatum: { value: "01.03.2026", source: "auto", confidence: 0.92 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Wohngebäude',
             makler: MAKLER[7],
             notes: "",
@@ -517,7 +517,7 @@ Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(8).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' }
+                { date: daysAgo(8).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
             ]
         };
 
@@ -531,7 +531,7 @@ Versicherungsmaklerin`
             kunde: { name: "Lorenz, Simone", source: "auto", confidence: 0.95 },
             versicherungsnummer: { value: "ERG-5543210", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.90 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Unfall',
             makler: MAKLER[8],
             notes: "",
@@ -561,7 +561,7 @@ Versicherungsmakler`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(6).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' }
+                { date: daysAgo(6).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
             ]
         };
 
@@ -575,7 +575,7 @@ Versicherungsmakler`
             kunde: { name: "Werner, Patrick", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-7765432", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.04.2026", source: "auto", confidence: 0.93 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Rente',
             makler: MAKLER[9],
             notes: "",
@@ -606,7 +606,7 @@ Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(5).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' }
+                { date: daysAgo(5).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
             ]
         };
 
@@ -620,7 +620,7 @@ Versicherungsmaklerin`
             kunde: { name: "Franke, Birgit", source: "auto", confidence: 0.95 },
             versicherungsnummer: { value: "ERG-4432109", source: "auto", confidence: 0.97 },
             gueltigkeitsdatum: { value: "01.06.2026", source: "auto", confidence: 0.92 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'KFZ',
             makler: MAKLER[10],
             notes: "Vollmacht noch nicht unterschrieben - Rückfrage nötig",
@@ -649,7 +649,7 @@ Stefan Zimmermann`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(2).split('T')[0], from: null, to: 'angefragt', note: 'KI-Erkennung erfolgreich' }
+                { date: daysAgo(2).split('T')[0], from: null, to: 'zu-validieren', note: 'KI-Erkennung erfolgreich' }
             ]
         };
 
@@ -698,7 +698,7 @@ Versicherungsmaklerin`
         };
 
         // ============================================
-        // FALL 13: Bestätigt - Kranken
+        // FALL 13: Export-Bereit - Kranken
         // ============================================
         cases['case-013'] = {
             id: 'case-013',
@@ -707,7 +707,7 @@ Versicherungsmaklerin`
             kunde: { name: "Koch, Martina", source: "auto", confidence: 0.96 },
             versicherungsnummer: { value: "ERG-6678901", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "01.01.2026", source: "auto", confidence: 0.95 },
-            status: 'bestaetigt',
+            status: 'export-bereit',
             sparte: 'Kranken',
             makler: MAKLER[12],
             notes: "",
@@ -751,8 +751,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(35).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(22).split('T')[0], from: 'angefragt', to: 'bestaetigt', note: 'Bestätigt durch ERGO' }
+                { date: daysAgo(35).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(22).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Bestätigt durch ERGO' }
             ]
         };
 
@@ -766,7 +766,7 @@ ERGO Maklerservice`
             kunde: { name: "Krüger, Nicole", source: "auto", confidence: 0.94 },
             versicherungsnummer: { value: "ERG-3321098", source: "auto", confidence: 0.97 },
             gueltigkeitsdatum: { value: "01.03.2026", source: "auto", confidence: 0.91 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'KFZ',
             makler: MAKLER[13],
             notes: "",
@@ -795,7 +795,7 @@ Versicherungsmakler`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(4).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' }
+                { date: daysAgo(4).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
             ]
         };
 
@@ -809,7 +809,7 @@ Versicherungsmakler`
             kunde: { name: "Roth, Alexander", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-2210987", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.01.2026", source: "auto", confidence: 0.94 },
-            status: 'in-bearbeitung',
+            status: 'wiedervorlage',
             sparte: 'Hausrat',
             makler: MAKLER[14],
             notes: "Prüfung der Vollmacht läuft",
@@ -854,13 +854,13 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(18).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(8).split('T')[0], from: 'angefragt', to: 'in-bearbeitung', note: 'In Prüfung' }
+                { date: daysAgo(18).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(8).split('T')[0], from: 'zu-validieren', to: 'wiedervorlage', note: 'In Prüfung' }
             ]
         };
 
         // ============================================
-        // FALL 16: Bestätigt - Haftpflicht
+        // FALL 16: Abgeschlossen - Haftpflicht
         // ============================================
         cases['case-016'] = {
             id: 'case-016',
@@ -869,7 +869,7 @@ ERGO Maklerservice`
             kunde: { name: "Schenk, Oliver", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-8809876", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.12.2025", source: "auto", confidence: 0.96 },
-            status: 'bestaetigt',
+            status: 'abgeschlossen',
             sparte: 'Haftpflicht',
             makler: MAKLER[15],
             notes: "",
@@ -917,8 +917,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(40).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(28).split('T')[0], from: 'angefragt', to: 'bestaetigt', note: 'Bestätigt durch ERGO' }
+                { date: daysAgo(40).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(28).split('T')[0], from: 'zu-validieren', to: 'export-bereit', note: 'Bestätigt durch ERGO' }
             ]
         };
 
@@ -932,7 +932,7 @@ ERGO Maklerservice`
             kunde: { name: "Bauer, Christian", source: "auto", confidence: 0.95 },
             versicherungsnummer: { value: "ERG-1198765", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "01.05.2026", source: "auto", confidence: 0.92 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Leben',
             makler: MAKLER[16],
             notes: "",
@@ -961,7 +961,7 @@ Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(3).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' }
+                { date: daysAgo(3).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
             ]
         };
 
@@ -1020,8 +1020,8 @@ ERGO Maklerservice`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(30).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' },
-                { date: daysAgo(18).split('T')[0], from: 'angefragt', to: 'abgelehnt', note: 'Storniert durch Kunde' }
+                { date: daysAgo(30).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' },
+                { date: daysAgo(18).split('T')[0], from: 'zu-validieren', to: 'abgelehnt', note: 'Storniert durch Kunde' }
             ]
         };
 
@@ -1035,7 +1035,7 @@ ERGO Maklerservice`
             kunde: { name: "Engel, Tanja", source: "auto", confidence: 0.94 },
             versicherungsnummer: { value: "ERG-7776543", source: "auto", confidence: 0.96 },
             gueltigkeitsdatum: { value: "01.08.2026", source: "auto", confidence: 0.91 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Rechtsschutz',
             makler: MAKLER[18],
             notes: "Vollmacht wird per Post erwartet",
@@ -1066,7 +1066,7 @@ Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(1).split('T')[0], from: null, to: 'angefragt', note: 'KI-Erkennung erfolgreich' }
+                { date: daysAgo(1).split('T')[0], from: null, to: 'zu-validieren', note: 'KI-Erkennung erfolgreich' }
             ]
         };
 
@@ -1080,7 +1080,7 @@ Versicherungsmaklerin`
             kunde: { name: "Vogt, Elisabeth", source: "auto", confidence: 0.96 },
             versicherungsnummer: { value: "ERG-5565432", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.04.2026", source: "auto", confidence: 0.93 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Wohngebäude',
             makler: MAKLER[19],
             notes: "",
@@ -1111,7 +1111,7 @@ Versicherungsmakler`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(7).split('T')[0], from: null, to: 'angefragt', note: 'Anfrage erstellt' }
+                { date: daysAgo(7).split('T')[0], from: null, to: 'zu-validieren', note: 'Anfrage erstellt' }
             ]
         };
 
@@ -1160,7 +1160,7 @@ Versicherungsmakler`
             kunde: { name: "Bergmann, Anna", source: "auto", confidence: 0.96 },
             versicherungsnummer: { value: "ERG-1111111", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.95 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'KFZ',
             makler: MAKLER[0],
             notes: "",
@@ -1173,7 +1173,7 @@ Versicherungsmakler`
             },
             messages: [sammelmail1],
             statusHistory: [
-                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'zu-validieren', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
@@ -1185,7 +1185,7 @@ Versicherungsmakler`
             kunde: { name: "Dietrich, Klaus", source: "auto", confidence: 0.97 },
             versicherungsnummer: { value: "ERG-2222222", source: "auto", confidence: 0.98 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.94 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Hausrat',
             makler: MAKLER[0],
             notes: "",
@@ -1198,7 +1198,7 @@ Versicherungsmakler`
             },
             messages: [sammelmail1],
             statusHistory: [
-                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'zu-validieren', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
@@ -1210,7 +1210,7 @@ Versicherungsmakler`
             kunde: { name: "Eckert, Monika", source: "auto", confidence: 0.95 },
             versicherungsnummer: { value: "ERG-3333333", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "01.02.2026", source: "auto", confidence: 0.93 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Haftpflicht',
             makler: MAKLER[0],
             notes: "",
@@ -1223,7 +1223,7 @@ Versicherungsmakler`
             },
             messages: [sammelmail1],
             statusHistory: [
-                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'zu-validieren', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
@@ -1269,7 +1269,7 @@ Versicherungsmaklerin`
             kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-4444444", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'KFZ',
             makler: MAKLER[1],
             notes: "",
@@ -1282,7 +1282,7 @@ Versicherungsmaklerin`
             },
             messages: [sammelmail2],
             statusHistory: [
-                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'zu-validieren', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
@@ -1294,7 +1294,7 @@ Versicherungsmaklerin`
             kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-5555555", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Hausrat',
             makler: MAKLER[1],
             notes: "",
@@ -1307,7 +1307,7 @@ Versicherungsmaklerin`
             },
             messages: [sammelmail2],
             statusHistory: [
-                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'zu-validieren', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 
@@ -1319,7 +1319,7 @@ Versicherungsmaklerin`
             kunde: { name: "Huber, Franz", source: "auto", confidence: 0.98 },
             versicherungsnummer: { value: "ERG-6666666", source: "auto", confidence: 0.99 },
             gueltigkeitsdatum: { value: "15.02.2026", source: "auto", confidence: 0.96 },
-            status: 'angefragt',
+            status: 'zu-validieren',
             sparte: 'Wohngebäude',
             makler: MAKLER[1],
             notes: "",
@@ -1332,7 +1332,7 @@ Versicherungsmaklerin`
             },
             messages: [sammelmail2],
             statusHistory: [
-                { date: daysAgo(0).split('T')[0], from: null, to: 'angefragt', note: 'Aus Sammelanfrage erstellt' }
+                { date: daysAgo(0).split('T')[0], from: null, to: 'zu-validieren', note: 'Aus Sammelanfrage erstellt' }
             ]
         };
 

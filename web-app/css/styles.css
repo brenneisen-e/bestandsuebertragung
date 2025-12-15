@@ -14,14 +14,13 @@
     --secondary: #1D1D1B;
     --secondary-light: #333331;
 
-    /* Status Farben */
-    --status-neu: #64748b;
-    --status-angefragt: #3b82f6;
-    --status-bearbeitung: #f59e0b;
-    --status-bestaetigt: #22c55e;
-    --status-abgelehnt: #ef4444;
-    --status-exportiert: #8b5cf6;
+    /* Status Farben (Workflow-basiert) */
     --status-unvollstaendig: #f97316;
+    --status-zu-validieren: #3b82f6;
+    --status-export-bereit: #22c55e;
+    --status-abgeschlossen: #8b5cf6;
+    --status-abgelehnt: #ef4444;
+    --status-wiedervorlage: #f59e0b;
 
     /* Grautöne */
     --gray-50: #f9fafb;
@@ -767,24 +766,24 @@ body {
     white-space: nowrap;
 }
 
-.status-badge.status-neu {
-    background: #f1f5f9;
-    color: var(--status-neu);
+.status-badge.status-unvollstaendig {
+    background: #ffedd5;
+    color: #c2410c;
 }
 
-.status-badge.status-angefragt {
+.status-badge.status-zu-validieren {
     background: #dbeafe;
-    color: var(--status-angefragt);
+    color: var(--status-zu-validieren);
 }
 
-.status-badge.status-in-bearbeitung {
-    background: #fef3c7;
-    color: #b45309;
-}
-
-.status-badge.status-bestaetigt {
+.status-badge.status-export-bereit {
     background: #dcfce7;
     color: #166534;
+}
+
+.status-badge.status-abgeschlossen {
+    background: #ede9fe;
+    color: #6d28d9;
 }
 
 .status-badge.status-abgelehnt {
@@ -792,9 +791,9 @@ body {
     color: #b91c1c;
 }
 
-.status-badge.status-unvollstaendig {
-    background: #ffedd5;
-    color: #c2410c;
+.status-badge.status-wiedervorlage {
+    background: #fef3c7;
+    color: #b45309;
 }
 
 /* Export Badge */
@@ -1454,19 +1453,20 @@ body {
 .status-group-unvollstaendig .status-group-header { background: #fff7ed; }
 .status-group-unvollstaendig .status-group-count { background: #fed7aa; color: #9a3412; }
 
-.status-group-neu .status-group-header { background: var(--gray-50); }
+.status-group-zu-validieren .status-group-header { background: #eff6ff; }
+.status-group-zu-validieren .status-group-count { background: #bfdbfe; color: #1e40af; }
 
-.status-group-angefragt .status-group-header { background: #eff6ff; }
-.status-group-angefragt .status-group-count { background: #bfdbfe; color: #1e40af; }
+.status-group-export-bereit .status-group-header { background: #f0fdf4; }
+.status-group-export-bereit .status-group-count { background: #bbf7d0; color: #166534; }
 
-.status-group-in-bearbeitung .status-group-header { background: #fefce8; }
-.status-group-in-bearbeitung .status-group-count { background: #fde68a; color: #92400e; }
-
-.status-group-bestaetigt .status-group-header { background: #f0fdf4; }
-.status-group-bestaetigt .status-group-count { background: #bbf7d0; color: #166534; }
+.status-group-abgeschlossen .status-group-header { background: #f5f3ff; }
+.status-group-abgeschlossen .status-group-count { background: #ddd6fe; color: #6d28d9; }
 
 .status-group-abgelehnt .status-group-header { background: #fef2f2; }
 .status-group-abgelehnt .status-group-count { background: #fecaca; color: #b91c1c; }
+
+.status-group-wiedervorlage .status-group-header { background: #fefce8; }
+.status-group-wiedervorlage .status-group-count { background: #fde68a; color: #92400e; }
 
 .status-group-list {
     padding: 0;

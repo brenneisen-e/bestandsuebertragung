@@ -629,15 +629,15 @@ const App = (function() {
             caseData.makler = formData.makler;
             caseData.notes = formData.notes;
 
-            // Auto-Promotion: Wenn unvollständig und jetzt vollständig -> angefragt
+            // Auto-Promotion: Wenn unvollständig und jetzt vollständig -> zu-validieren
             if (oldStatus === 'unvollstaendig' && formData.status === 'unvollstaendig') {
                 // Prüfen ob jetzt alle Pflichtdaten vorhanden
                 const hasKunde = formData.kunde && formData.kunde.name && formData.kunde.name.trim();
                 const hasVsNr = formData.versicherungsnummer && formData.versicherungsnummer.value && formData.versicherungsnummer.value.trim();
 
                 if (hasKunde && hasVsNr) {
-                    caseData.status = 'angefragt';
-                    UI.showToast('Daten vollständig - Status auf "Angefragt" geändert', 'success');
+                    caseData.status = 'zu-validieren';
+                    UI.showToast('Daten vollständig - Status auf "Zu Validieren" geändert', 'success');
                 }
             }
 
@@ -785,14 +785,25 @@ const App = (function() {
             if (!currentCase.makler) currentCase.makler = {};
             currentCase.makler.name = formData.makler;
 
-            // Wiedervorlage setzen
-            currentCase.wiedervorlage = formData.wiedervorlage || null;
-
-            // Status bleibt oder wird angefragt wenn vorher unvollständig
-            if (currentCase.status === 'unvollstaendig') {
-                currentCase.status = 'angefragt';
+            // Wiedervorlage setzen (wenn Datum gesetzt → Status wiedervorlage)
+            if (formData.wiedervorlage) {
+                currentCase.wiedervorlage = formData.wiedervorlage;
+                currentCase.status = 'wiedervorlage';
+            } else {
+                currentCase.wiedervorlage = null;
+                // Nach Validierung → Export-Bereit
+                currentCase.status = 'export-bereit';
             }
             currentCase.updatedAt = new Date().toISOString();
+
+            // Status-History
+            if (!currentCase.statusHistory) currentCase.statusHistory = [];
+            currentCase.statusHistory.push({
+                date: new Date().toISOString().split('T')[0],
+                from: 'zu-validieren',
+                to: currentCase.status,
+                note: currentCase.status === 'wiedervorlage' ? 'PV-Validierung: Wiedervorlage' : 'PV-Validierung abgeschlossen'
+            });
 
             // Workflow-Änderung protokollieren
             if (!currentCase.validationHistory) currentCase.validationHistory = [];
