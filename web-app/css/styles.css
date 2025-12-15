@@ -1709,3 +1709,407 @@ body {
         flex: 0 0 calc(50% - var(--spacing-sm));
     }
 }
+
+/* ========================================
+   ARCHITEKTUR VIEW
+   ======================================== */
+.architecture-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.architecture-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: var(--spacing-sm);
+}
+
+.architecture-intro {
+    font-size: 1rem;
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-xl);
+}
+
+.architecture-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    border-left: 4px solid var(--gray-400);
+}
+
+.architecture-card-ai {
+    border-left-color: var(--primary);
+}
+
+.architecture-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.architecture-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--gray-100);
+    border-radius: 50%;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-600);
+}
+
+.architecture-card-ai .architecture-number {
+    background: var(--primary);
+    color: white;
+}
+
+.architecture-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+    flex: 1;
+}
+
+.architecture-badge {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-simple {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+
+.badge-advanced {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.architecture-description {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.6;
+}
+
+/* Architecture Flow Diagram */
+.architecture-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+    overflow-x: auto;
+}
+
+.architecture-flow-small {
+    padding: var(--spacing-md);
+}
+
+.architecture-flow-small .flow-step {
+    min-width: 80px;
+    padding: var(--spacing-sm);
+}
+
+.architecture-flow-small .flow-icon {
+    font-size: 1.25rem;
+    width: 40px;
+    height: 40px;
+}
+
+.architecture-flow-small .flow-label {
+    font-size: 0.75rem;
+}
+
+.architecture-flow-small .flow-detail {
+    font-size: 0.65rem;
+}
+
+.flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 100px;
+    padding: var(--spacing-md);
+    background: white;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--gray-200);
+    transition: all 0.2s;
+}
+
+.flow-step-highlight {
+    border-color: var(--primary);
+    background: #fef2f2;
+}
+
+.flow-step-deloitte {
+    border-color: #86efac;
+    background: #f0fdf4;
+}
+
+.flow-step-transfer {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+
+.flow-icon {
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-100);
+    border-radius: 50%;
+    margin-bottom: var(--spacing-sm);
+    color: var(--gray-600);
+}
+
+.flow-step-highlight .flow-icon {
+    background: var(--primary);
+    color: white;
+}
+
+.flow-step-deloitte .flow-icon {
+    background: #22c55e;
+    color: white;
+}
+
+.flow-step-transfer .flow-icon {
+    background: #3b82f6;
+    color: white;
+}
+
+.flow-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 2px;
+}
+
+.flow-detail {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.flow-arrow {
+    font-size: 1.5rem;
+    color: var(--gray-400);
+    flex-shrink: 0;
+}
+
+/* Pros/Cons */
+.architecture-pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--gray-100);
+}
+
+.architecture-pros-cons h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.pros h4 {
+    color: #166534;
+}
+
+.cons h4 {
+    color: #b91c1c;
+}
+
+.architecture-pros-cons ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.architecture-pros-cons li {
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    padding: var(--spacing-xs) 0;
+    padding-left: var(--spacing-md);
+    position: relative;
+}
+
+.pros li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+}
+
+.cons li::before {
+    content: "✕";
+    position: absolute;
+    left: 0;
+    color: #ef4444;
+}
+
+/* Sub-options */
+.architecture-suboption {
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    border-left: 3px solid var(--gray-300);
+}
+
+.suboption-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.suboption-letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.suboption-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+.suboption-description {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-md);
+}
+
+.suboption-requirement {
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    background: #fef3c7;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid #f59e0b;
+}
+
+/* Variants */
+.architecture-variant {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.architecture-variant h5 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0 0 var(--spacing-sm) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.variant-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.variant-note {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin: var(--spacing-sm) 0 0 0;
+    font-style: italic;
+}
+
+/* Recommendation Box */
+.architecture-recommendation {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    border-left: 4px solid #f59e0b;
+}
+
+.architecture-recommendation h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #92400e;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.architecture-recommendation p {
+    font-size: 0.95rem;
+    color: #78350f;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .architecture-flow {
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    .flow-arrow {
+        display: none;
+    }
+
+    .flow-step {
+        flex: 0 0 calc(50% - var(--spacing-md));
+    }
+
+    .architecture-pros-cons {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .architecture-header {
+        flex-wrap: wrap;
+    }
+
+    .architecture-badge {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .flow-step {
+        flex: 0 0 100%;
+    }
+}

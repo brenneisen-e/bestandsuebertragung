@@ -46,6 +46,9 @@
             E-Mails
             <span class="nav-count" id="emailsNavCount">0</span>
         </button>
+        <button class="nav-btn" data-view="architektur">
+            Architektur
+        </button>
     </nav>
 
     <!-- ============================================ -->
@@ -256,6 +259,223 @@
             </table>
             <div class="empty-state" id="emailsEmpty" style="display: none;">
                 <p>Keine E-Mails gefunden</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- VIEW: Architektur -->
+    <!-- ============================================ -->
+    <section class="view" id="view-architektur">
+        <div class="architecture-container">
+            <h2 class="architecture-title">Lösungsarchitektur Bestandsübertragung</h2>
+            <p class="architecture-intro">Übersicht der verschiedenen Implementierungsoptionen für die automatisierte Bestandsübertragung.</p>
+
+            <!-- Option 1: Ohne KI -->
+            <div class="architecture-card">
+                <div class="architecture-header">
+                    <span class="architecture-number">1</span>
+                    <h3>Ohne KI (Stichwortbasiert)</h3>
+                    <span class="architecture-badge badge-simple">Einfachste Lösung</span>
+                </div>
+                <p class="architecture-description">
+                    Rein regelbasierte Extraktion mittels Stichwortverzeichnis. Keine KI-Komponente erforderlich.
+                </p>
+                <div class="architecture-flow">
+                    <div class="flow-step">
+                        <div class="flow-icon">✉</div>
+                        <div class="flow-label">Outlook</div>
+                        <div class="flow-detail">E-Mail Export Tool</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">⌕</div>
+                        <div class="flow-label">Web-Tool</div>
+                        <div class="flow-detail">Stichwortverzeichnis</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">✓</div>
+                        <div class="flow-label">PV Validierung</div>
+                        <div class="flow-detail">Manuelle Prüfung</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">⚙</div>
+                        <div class="flow-label">Robotics</div>
+                        <div class="flow-detail">JSON Export</div>
+                    </div>
+                </div>
+                <div class="architecture-pros-cons">
+                    <div class="pros">
+                        <h4>✓ Vorteile</h4>
+                        <ul>
+                            <li>Keine zusätzliche Infrastruktur</li>
+                            <li>Sofort einsetzbar</li>
+                            <li>Geringe Kosten</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>✕ Nachteile</h4>
+                        <ul>
+                            <li>Höherer manueller Aufwand</li>
+                            <li>Begrenzte Erkennungsqualität</li>
+                            <li>Kein Lernen aus Fehlern</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Option 2: Mit KI -->
+            <div class="architecture-card architecture-card-ai">
+                <div class="architecture-header">
+                    <span class="architecture-number">2</span>
+                    <h3>Mit KI (Agent-basiert)</h3>
+                    <span class="architecture-badge badge-advanced">Empfohlen</span>
+                </div>
+                <p class="architecture-description">
+                    KI-Agent extrahiert strukturierte Daten aus E-Mails. Höhere Erkennungsrate und kontinuierliche Verbesserung.
+                </p>
+
+                <!-- Sub-Option 2a: ERGO Lösung -->
+                <div class="architecture-suboption">
+                    <div class="suboption-header">
+                        <span class="suboption-letter">A</span>
+                        <h4>ERGO-Lösung (Interne Agent-Plattform)</h4>
+                    </div>
+                    <p class="suboption-description">
+                        Agent wird auf ERGO-eigener Plattform gehostet. Volle Kontrolle über Daten und Infrastruktur.
+                    </p>
+                    <div class="architecture-flow">
+                        <div class="flow-step">
+                            <div class="flow-icon">✉</div>
+                            <div class="flow-label">Outlook</div>
+                            <div class="flow-detail">E-Mail Export</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step flow-step-highlight">
+                            <div class="flow-icon">◈</div>
+                            <div class="flow-label">ERGO Agent</div>
+                            <div class="flow-detail">Interne Plattform</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="flow-icon">⌕</div>
+                            <div class="flow-label">Web-Tool</div>
+                            <div class="flow-detail">+ PV Validierung</div>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                            <div class="flow-icon">⚙</div>
+                            <div class="flow-label">Robotics</div>
+                            <div class="flow-detail">JSON Export</div>
+                        </div>
+                    </div>
+                    <div class="suboption-requirement">
+                        <strong>Voraussetzung:</strong> ERGO Agent-Plattform für Hosting des KI-Agenten
+                    </div>
+                </div>
+
+                <!-- Sub-Option 2b: Deloitte Lösung -->
+                <div class="architecture-suboption">
+                    <div class="suboption-header">
+                        <span class="suboption-letter">B</span>
+                        <h4>Deloitte-Lösung (Externe Agent-API)</h4>
+                    </div>
+                    <p class="suboption-description">
+                        Deloitte stellt den Agenten als Service bereit. Zwei Varianten für den Datenaustausch:
+                    </p>
+
+                    <!-- Variante B1: Direkte API -->
+                    <div class="architecture-variant">
+                        <h5><span class="variant-badge">B1</span> Direkte API-Verbindung</h5>
+                        <div class="architecture-flow architecture-flow-small">
+                            <div class="flow-step">
+                                <div class="flow-icon">✉</div>
+                                <div class="flow-label">E-Mails</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step flow-step-deloitte">
+                                <div class="flow-icon">◈</div>
+                                <div class="flow-label">Deloitte API</div>
+                                <div class="flow-detail">Echtzeit</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon">⌕</div>
+                                <div class="flow-label">Web-Tool</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon">⚙</div>
+                                <div class="flow-label">Robotics</div>
+                            </div>
+                        </div>
+                        <p class="variant-note">Direkte Verbindung zum Agenten - Antwort in Echtzeit. Aufwändigere Integration.</p>
+                    </div>
+
+                    <!-- Variante B2: Batch-Austausch -->
+                    <div class="architecture-variant">
+                        <h5><span class="variant-badge">B2</span> Sicherer Batch-Datenaustausch</h5>
+                        <div class="architecture-flow architecture-flow-small">
+                            <div class="flow-step">
+                                <div class="flow-icon">✉</div>
+                                <div class="flow-label">E-Mails</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step flow-step-transfer">
+                                <div class="flow-icon">↔</div>
+                                <div class="flow-label">Sicherer Transfer</div>
+                                <div class="flow-detail">z.B. 1x/Woche</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step flow-step-deloitte">
+                                <div class="flow-icon">◈</div>
+                                <div class="flow-label">Deloitte Agent</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step flow-step-transfer">
+                                <div class="flow-icon">↔</div>
+                                <div class="flow-label">Rücktransfer</div>
+                            </div>
+                            <div class="flow-arrow">→</div>
+                            <div class="flow-step">
+                                <div class="flow-icon">⌕</div>
+                                <div class="flow-label">Web-Tool</div>
+                            </div>
+                        </div>
+                        <p class="variant-note">Periodischer Datenaustausch über sichere Kanäle. Einfachere Integration, aber zeitversetzt.</p>
+                    </div>
+                </div>
+
+                <div class="architecture-pros-cons">
+                    <div class="pros">
+                        <h4>✓ Vorteile KI-Lösung</h4>
+                        <ul>
+                            <li>Höhere Erkennungsqualität (>95%)</li>
+                            <li>Weniger manuelle Nacharbeit</li>
+                            <li>Kontinuierliches Lernen</li>
+                            <li>Skalierbar</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>✕ Nachteile</h4>
+                        <ul>
+                            <li>Zusätzliche Infrastruktur/Kosten</li>
+                            <li>Datenschutz-Anforderungen</li>
+                            <li>Längere Implementierungszeit</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empfehlung -->
+            <div class="architecture-recommendation">
+                <h3>💡 Empfehlung</h3>
+                <p>
+                    <strong>Kurzfristig:</strong> Start mit Lösung 1 (Stichwortbasiert) für schnellen Go-Live.<br>
+                    <strong>Mittelfristig:</strong> Migration zu Lösung 2A (ERGO Agent-Plattform) für optimale Kontrolle und Datenhoheit.
+                </p>
             </div>
         </div>
     </section>
