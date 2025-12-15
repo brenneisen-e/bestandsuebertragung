@@ -765,29 +765,30 @@ body {
     padding: var(--spacing-sm) var(--spacing-md);
 }
 
-/* New Activity Animation (Blinking for imported emails) */
+/* New Activity Animation (Blinking for imported emails) - GRÜN */
 .data-table tbody tr.new-activity {
     animation: newActivityBlink 1.5s ease-in-out 3;
-    background: #fef2f2;
+    background: #f0fdf4;
 }
 
-.data-table tbody tr.new-activity td {
+.data-table tbody tr.new-activity td:first-child {
     position: relative;
 }
 
-.data-table tbody tr.new-activity::before {
+.data-table tbody tr.new-activity td:first-child::before {
     content: "NEU";
     position: absolute;
-    left: 5px;
+    left: 4px;
     top: 50%;
     transform: translateY(-50%);
-    background: var(--primary);
+    background: #22c55e;
     color: white;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
-    padding: 2px 6px;
+    padding: 2px 5px;
     border-radius: 3px;
     animation: newBadgePulse 1s ease-in-out infinite;
+    z-index: 1;
 }
 
 @keyframes newActivityBlink {
@@ -795,7 +796,7 @@ body {
         background: white;
     }
     50% {
-        background: #fef2f2;
+        background: #f0fdf4;
     }
 }
 
@@ -805,8 +806,8 @@ body {
         transform: translateY(-50%) scale(1);
     }
     50% {
-        opacity: 0.7;
-        transform: translateY(-50%) scale(1.1);
+        opacity: 0.8;
+        transform: translateY(-50%) scale(1.05);
     }
 }
 
