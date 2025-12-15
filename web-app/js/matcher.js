@@ -502,16 +502,16 @@ const Matcher = (function() {
 
     /**
      * Neuen Vorgang aus E-Mail erstellen
-     * Prüft zuerst, ob bereits ein Vorgang mit gleicher VS-Nr existiert
+     * Prüft mehrere Kriterien um Duplikate zu verhindern
      */
     function createCaseFromEmail(email, conversationMessages) {
         const messages = conversationMessages || [email];
         const extracted = Extractor.extractFromConversation(messages);
+        const existingCases = Storage.getCasesArray();
 
-        // Duplikat-Prüfung: Existiert bereits ein Vorgang mit dieser VS-Nr?
+        // Duplikat-Prüfung 1: Existiert bereits ein Vorgang mit dieser VS-Nr?
         const vsNr = extracted.versicherungsnummer?.value;
         if (vsNr) {
-            const existingCases = Storage.getCasesArray();
             const existingCase = existingCases.find(c => {
                 const caseVsNr = c.versicherungsnummer?.value;
                 if (!caseVsNr) return false;
@@ -519,11 +519,52 @@ const Matcher = (function() {
             });
 
             if (existingCase) {
-                // Vorgang existiert bereits - E-Mail hinzufügen statt neuen Fall erstellen
-                console.log(`Duplikat verhindert: VS-Nr ${vsNr} existiert bereits in Vorgang ${existingCase.id}`);
+                console.log(`Duplikat verhindert (VS-Nr): ${vsNr} existiert bereits in Vorgang ${existingCase.id}`);
                 Storage.addMessagesToCase(existingCase.id, messages);
                 Storage.markMessagesProcessed(messages.map(m => m.entryID));
-                return null; // Kein neuer Fall erstellt
+                return null;
+            }
+        }
+
+        // Duplikat-Prüfung 2: Existiert bereits ein Vorgang mit gleichem Kunden + Makler?
+        const kundeName = extracted.kunde?.name;
+        const maklerEmail = extracted.makler?.email || extractEmailAddress(email.senderEmail || email.from || '');
+
+        if (kundeName && maklerEmail) {
+            const normalizedKunde = normalizeKunde(kundeName);
+            const normalizedMakler = maklerEmail.toLowerCase();
+
+            const existingCase = existingCases.find(c => {
+                if (!c.kunde?.name || !c.makler?.email) return false;
+                const caseKunde = normalizeKunde(c.kunde.name);
+                const caseMakler = c.makler.email.toLowerCase();
+                return caseKunde === normalizedKunde && caseMakler === normalizedMakler;
+            });
+
+            if (existingCase) {
+                console.log(`Duplikat verhindert (Kunde+Makler): ${kundeName} / ${maklerEmail} existiert bereits in Vorgang ${existingCase.id}`);
+                Storage.addMessagesToCase(existingCase.id, messages);
+                Storage.markMessagesProcessed(messages.map(m => m.entryID));
+                return null;
+            }
+        }
+
+        // Duplikat-Prüfung 3: Existiert bereits ein Vorgang mit gleichem Kunden + Versicherer?
+        const versicherer = extracted.versicherer?.name;
+        if (kundeName && versicherer) {
+            const normalizedKunde = normalizeKunde(kundeName);
+
+            const existingCase = existingCases.find(c => {
+                if (!c.kunde?.name || !c.versicherer?.name) return false;
+                const caseKunde = normalizeKunde(c.kunde.name);
+                return caseKunde === normalizedKunde && c.versicherer.name === versicherer;
+            });
+
+            if (existingCase) {
+                console.log(`Duplikat verhindert (Kunde+Versicherer): ${kundeName} / ${versicherer} existiert bereits in Vorgang ${existingCase.id}`);
+                Storage.addMessagesToCase(existingCase.id, messages);
+                Storage.markMessagesProcessed(messages.map(m => m.entryID));
+                return null;
             }
         }
 
