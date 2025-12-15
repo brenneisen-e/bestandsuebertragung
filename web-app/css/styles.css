@@ -254,14 +254,9 @@ body {
     grid-column: span 4;
 }
 
-.dashboard-card.card-highlight {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-}
-
 .dashboard-card.card-highlight h3 {
-    color: white;
-    border-color: rgba(255,255,255,0.2);
+    color: var(--gray-700);
+    border-color: var(--gray-100);
 }
 
 .card-description {
@@ -278,26 +273,30 @@ body {
 }
 
 /* Validation Card */
-.dashboard-card.card-validation {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
-
 .dashboard-card.card-validation h3 {
-    color: white;
-    border-color: rgba(255,255,255,0.2);
+    color: var(--gray-700);
+    border-color: var(--gray-100);
 }
 
 .validation-count,
-.incomplete-count {
+.incomplete-count,
+.export-ready-count {
     font-size: 3rem;
     font-weight: 700;
     text-align: center;
     margin: var(--spacing-md) 0;
 }
 
+.validation-count {
+    color: #d97706;
+}
+
 .incomplete-count {
     color: var(--status-unvollstaendig);
+}
+
+.export-ready-count {
+    color: var(--primary);
 }
 
 /* Status Bars */

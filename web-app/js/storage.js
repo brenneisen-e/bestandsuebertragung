@@ -285,8 +285,8 @@ const Storage = (function() {
                 stats.exportiert++;
             }
 
-            // Export-bereit: bestätigt oder abgelehnt, aber noch nicht exportiert
-            if ((c.status === 'bestaetigt' || c.status === 'abgelehnt') && (!c.exported || !c.exported.date)) {
+            // Export-bereit: PV validiert, aber noch nicht exportiert
+            if (c.workflow && c.workflow.pvValidated && (!c.exported || !c.exported.date)) {
                 stats.exportReady++;
             }
 
@@ -304,12 +304,12 @@ const Storage = (function() {
     }
 
     /**
-     * Vorgänge die für Export bereit sind (bestätigt/abgelehnt, nicht exportiert)
+     * Vorgänge die für Export bereit sind (PV validiert, nicht exportiert)
      */
     function getExportReadyCases() {
         const cases = getCasesArray();
         return cases.filter(c =>
-            (c.status === 'bestaetigt' || c.status === 'abgelehnt') &&
+            c.workflow && c.workflow.pvValidated &&
             (!c.exported || !c.exported.date)
         );
     }
