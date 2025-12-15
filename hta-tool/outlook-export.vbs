@@ -8,7 +8,6 @@ Option Explicit
 ' Konfiguration
 Const MAX_EMAILS = 5000
 Const MAX_BODY_LENGTH = 10000
-Const TARGET_MAILBOX = "ebrenneisen@deloitte.de"
 Const SUBJECT_FILTER = "[EXT] Demo Bestandsübertragung"
 Const DAYS_BACK = 90
 
@@ -36,29 +35,19 @@ Sub Main()
         WScript.Quit
     End If
 
-    ' Postfach finden
-    Dim mailbox
-    Set mailbox = FindMailbox(TARGET_MAILBOX)
-
-    If mailbox Is Nothing Then
-        MsgBox "Fehler: Postfach '" & TARGET_MAILBOX & "' nicht gefunden." & vbCrLf & vbCrLf & _
-            "Bitte prüfen Sie, ob das Postfach in Outlook eingerichtet ist.", _
-            vbCritical, "Postfach nicht gefunden"
-        WScript.Quit
-    End If
-
     ' Speicherort festlegen (Desktop)
     outputPath = GetSavePath()
 
-    ' E-Mails exportieren
-    If ExportEmails(mailbox) Then
+    ' E-Mails exportieren (nutzt Standard-Ordner)
+    If ExportEmailsFromDefaultFolders() Then
         MsgBox "Export erfolgreich!" & vbCrLf & vbCrLf & _
             "Exportierte E-Mails: " & emailCount & vbCrLf & _
             "Datei: " & outputPath & vbCrLf & vbCrLf & _
             "Sie koennen diese Datei nun in der Web-App importieren.", _
             vbInformation, "Export abgeschlossen"
     Else
-        MsgBox "Export fehlgeschlagen oder keine E-Mails gefunden.", _
+        MsgBox "Export fehlgeschlagen oder keine E-Mails gefunden." & vbCrLf & vbCrLf & _
+            "Betreff-Filter: " & SUBJECT_FILTER, _
             vbExclamation, "Exportergebnis"
     End If
 End Sub
@@ -84,71 +73,14 @@ Function ConnectOutlook()
     On Error GoTo 0
 End Function
 
-' Postfach nach Name finden (flexibel: exakt, teilweise, oder erstes Postfach)
-Function FindMailbox(mailboxName)
-    Dim folders, folder, i, searchTerm
-
-    Set FindMailbox = Nothing
-    Set folders = objNamespace.Folders
-
-    ' Suchbegriff extrahieren (aus E-Mail: "ebrenneisen@..." wird "ebrenneisen")
-    searchTerm = LCase(mailboxName)
-    If InStr(searchTerm, "@") > 0 Then
-        searchTerm = Left(searchTerm, InStr(searchTerm, "@") - 1)
-    End If
-
-    ' 1. Versuch: Exakte Übereinstimmung
-    For i = 1 To folders.Count
-        Set folder = folders.Item(i)
-        If LCase(folder.Name) = LCase(mailboxName) Then
-            Set FindMailbox = folder
-            Exit Function
-        End If
-    Next
-
-    ' 2. Versuch: Teilweise Übereinstimmung (Name enthält Suchbegriff)
-    For i = 1 To folders.Count
-        Set folder = folders.Item(i)
-        If InStr(1, LCase(folder.Name), searchTerm, vbTextCompare) > 0 Then
-            Set FindMailbox = folder
-            Exit Function
-        End If
-    Next
-
-    ' 3. Versuch: Erstes verfügbares Postfach (nicht "Öffentliche Ordner")
-    For i = 1 To folders.Count
-        Set folder = folders.Item(i)
-        If InStr(1, LCase(folder.Name), "öffentlich", vbTextCompare) = 0 And _
-           InStr(1, LCase(folder.Name), "public", vbTextCompare) = 0 Then
-            Set FindMailbox = folder
-            Exit Function
-        End If
-    Next
-End Function
-
-' Speicherort festlegen (Downloads-Ordner)
-Function GetSavePath()
-    Dim shell, downloadsPath, filename
-
-    Set shell = CreateObject("WScript.Shell")
-
-    ' Downloads-Ordner ermitteln
-    downloadsPath = shell.ExpandEnvironmentStrings("%USERPROFILE%") & "\Downloads"
-
-    filename = "bestandsuebertragung-export-" & _
-        Year(Date) & "-" & Right("0" & Month(Date), 2) & "-" & Right("0" & Day(Date), 2) & ".json"
-
-    GetSavePath = downloadsPath & "\" & filename
-
-    Set shell = Nothing
-End Function
-
-' E-Mails exportieren
-Function ExportEmails(mailbox)
+' E-Mails aus Standard-Ordnern exportieren (GetDefaultFolder)
+' Diese Methode findet automatisch die richtigen Ordner unabhängig vom Postfach
+Function ExportEmailsFromDefaultFolders()
     Dim inbox, sentFolder
     Dim inboxEmails, sentEmails
-    Dim jsonContent, i
+    Dim jsonContent
     Dim dateFrom, dateTo
+    Dim mailboxName
 
     On Error Resume Next
 
@@ -157,11 +89,28 @@ Function ExportEmails(mailbox)
     dateFrom = DateAdd("d", -DAYS_BACK, Date)
     dateTo = Date
 
-    ' Posteingang finden
-    Set inbox = FindFolder(mailbox, Array("Posteingang", "Inbox"))
+    ' Standard-Posteingang holen (olFolderInbox = 6)
+    Set inbox = objNamespace.GetDefaultFolder(6)
+    If Err.Number <> 0 Then
+        Err.Clear
+        Set inbox = Nothing
+    End If
 
-    ' Gesendete finden
-    Set sentFolder = FindFolder(mailbox, Array("Gesendete Elemente", "Sent Items", "Gesendet"))
+    ' Standard-Gesendete holen (olFolderSentMail = 5)
+    Set sentFolder = objNamespace.GetDefaultFolder(5)
+    If Err.Number <> 0 Then
+        Err.Clear
+        Set sentFolder = Nothing
+    End If
+
+    ' Postfach-Name aus Inbox ermitteln
+    If Not inbox Is Nothing Then
+        mailboxName = inbox.Parent.Name
+    ElseIf Not sentFolder Is Nothing Then
+        mailboxName = sentFolder.Parent.Name
+    Else
+        mailboxName = "Unbekannt"
+    End If
 
     ' E-Mails sammeln
     emailCount = 0
@@ -178,12 +127,12 @@ Function ExportEmails(mailbox)
 
     ' Pruefen ob E-Mails gefunden
     If emailCount = 0 Then
-        ExportEmails = False
+        ExportEmailsFromDefaultFolders = False
         Exit Function
     End If
 
     ' JSON erstellen und speichern
-    jsonContent = BuildJsonOutput(inboxEmails, sentEmails, TARGET_MAILBOX, dateFrom, dateTo)
+    jsonContent = BuildJsonOutput(inboxEmails, sentEmails, mailboxName, dateFrom, dateTo)
 
     ' UTF-8 ohne BOM schreiben (ADODB.Stream)
     Dim stream
@@ -211,28 +160,28 @@ Function ExportEmails(mailbox)
     Set binaryStream = Nothing
     Set stream = Nothing
 
-    ExportEmails = True
+    ExportEmailsFromDefaultFolders = True
 
     On Error GoTo 0
 End Function
 
-' Ordner finden
-Function FindFolder(mailbox, folderNames)
-    Dim folders, folder, i, j
+' Speicherort festlegen (Downloads-Ordner)
+Function GetSavePath()
+    Dim shell, downloadsPath, filename
 
-    Set FindFolder = Nothing
-    Set folders = mailbox.Folders
+    Set shell = CreateObject("WScript.Shell")
 
-    For i = 1 To folders.Count
-        Set folder = folders.Item(i)
-        For j = 0 To UBound(folderNames)
-            If LCase(folder.Name) = LCase(folderNames(j)) Then
-                Set FindFolder = folder
-                Exit Function
-            End If
-        Next
-    Next
+    ' Downloads-Ordner ermitteln
+    downloadsPath = shell.ExpandEnvironmentStrings("%USERPROFILE%") & "\Downloads"
+
+    filename = "bestandsuebertragung-export-" & _
+        Year(Date) & "-" & Right("0" & Month(Date), 2) & "-" & Right("0" & Day(Date), 2) & ".json"
+
+    GetSavePath = downloadsPath & "\" & filename
+
+    Set shell = Nothing
 End Function
+
 
 ' E-Mails aus Ordner holen (nur mit Betreff-Filter)
 Function GetEmailsFromFolder(folder, dateFrom, dateTo, folderType)
