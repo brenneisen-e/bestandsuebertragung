@@ -118,6 +118,7 @@ const App = (function() {
         document.getElementById('validationModalClose')?.addEventListener('click', () => UI.closeValidationModal());
         document.getElementById('validationSkip')?.addEventListener('click', handleValidationSkip);
         document.getElementById('validationConfirm')?.addEventListener('click', handleValidationConfirm);
+        document.getElementById('validationReject')?.addEventListener('click', handleValidationReject);
 
         // Email Templates Modal
         document.getElementById('emailTemplatesBtn')?.addEventListener('click', openEmailTemplatesModal);
@@ -754,8 +755,8 @@ const App = (function() {
             if (formData.makler !== (currentCase.makler?.name || '')) {
                 changes.push('Makler');
             }
-            if (formData.status !== (currentCase.status || 'angefragt')) {
-                changes.push('Status');
+            if (formData.wiedervorlage) {
+                changes.push('Wiedervorlage');
             }
 
             // Änderungen anwenden
@@ -773,7 +774,13 @@ const App = (function() {
             if (!currentCase.makler) currentCase.makler = {};
             currentCase.makler.name = formData.makler;
 
-            currentCase.status = formData.status;
+            // Wiedervorlage setzen
+            currentCase.wiedervorlage = formData.wiedervorlage || null;
+
+            // Status bleibt oder wird angefragt wenn vorher unvollständig
+            if (currentCase.status === 'unvollstaendig') {
+                currentCase.status = 'angefragt';
+            }
             currentCase.updatedAt = new Date().toISOString();
 
             // Workflow-Änderung protokollieren
@@ -796,6 +803,85 @@ const App = (function() {
         } else {
             UI.closeValidationModal();
             UI.showToast('Alle Vorgänge validiert', 'success');
+            refreshData();
+        }
+    }
+
+    /**
+     * Validation Modal: Ablehnen
+     */
+    function handleValidationReject() {
+        const currentCase = UI.getCurrentValidationCase();
+
+        // Wenn Reject-Section noch nicht sichtbar, erst anzeigen
+        const rejectSection = document.getElementById('valRejectSection');
+        if (rejectSection && rejectSection.style.display === 'none') {
+            UI.toggleRejectSection(true);
+            return;
+        }
+
+        // Prüfen ob Grund eingegeben wurde
+        if (!UI.hasRejectReason()) {
+            UI.showToast('Bitte Ablehnungsgrund angeben', 'warning');
+            return;
+        }
+
+        if (currentCase) {
+            const formData = UI.getValidationFormData();
+
+            // Alle Formularänderungen anwenden (falls geändert)
+            if (!currentCase.kunde) currentCase.kunde = {};
+            currentCase.kunde.name = formData.kunde;
+
+            if (!currentCase.versicherungsnummer) currentCase.versicherungsnummer = {};
+            currentCase.versicherungsnummer.value = formData.vsNr;
+
+            currentCase.sparte = formData.sparte;
+
+            if (!currentCase.gueltigkeitsdatum) currentCase.gueltigkeitsdatum = {};
+            currentCase.gueltigkeitsdatum.value = formData.datum;
+
+            if (!currentCase.makler) currentCase.makler = {};
+            currentCase.makler.name = formData.makler;
+
+            // Status auf abgelehnt setzen
+            currentCase.status = 'abgelehnt';
+            currentCase.rejectReason = formData.rejectReason;
+            currentCase.updatedAt = new Date().toISOString();
+
+            // Als validiert markieren (Workflow-Schritt)
+            if (!currentCase.workflow) currentCase.workflow = {};
+            currentCase.workflow.pvValidated = new Date().toISOString();
+
+            // History protokollieren
+            if (!currentCase.validationHistory) currentCase.validationHistory = [];
+            currentCase.validationHistory.push({
+                date: new Date().toISOString(),
+                user: 'PV-Bearbeiter',
+                action: 'abgelehnt',
+                reason: formData.rejectReason
+            });
+
+            if (!currentCase.statusHistory) currentCase.statusHistory = [];
+            currentCase.statusHistory.push({
+                date: new Date().toISOString().split('T')[0],
+                from: currentCase.status,
+                to: 'abgelehnt',
+                note: 'Abgelehnt: ' + formData.rejectReason
+            });
+
+            // Speichern
+            Storage.saveCase(currentCase);
+        }
+
+        UI.toggleRejectSection(false);
+
+        if (UI.hasMoreValidationCases()) {
+            UI.nextValidationCase();
+            UI.showToast('Vorgang abgelehnt', 'info');
+        } else {
+            UI.closeValidationModal();
+            UI.showToast('Validierung abgeschlossen', 'success');
             refreshData();
         }
     }

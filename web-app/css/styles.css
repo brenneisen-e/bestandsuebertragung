@@ -652,6 +652,15 @@ body {
     background: #ea580c;
 }
 
+.btn-danger {
+    background: var(--status-abgelehnt);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
 .btn-large {
     padding: var(--spacing-md) var(--spacing-xl);
     font-size: 1rem;
@@ -948,11 +957,46 @@ body {
 }
 
 .validation-footer {
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
 }
 
 .validation-footer .btn {
     flex: 1;
+}
+
+/* Validation Reject Section */
+.validation-reject-section {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-md);
+}
+
+.validation-reject-section .field-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--status-abgelehnt);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-xs);
+    display: block;
+}
+
+.validation-reject-section textarea {
+    width: 100%;
+    padding: var(--spacing-sm);
+    font-size: 0.9rem;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-sm);
+    resize: vertical;
+    min-height: 60px;
+}
+
+.validation-reject-section textarea:focus {
+    outline: none;
+    border-color: var(--status-abgelehnt);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 /* Email Template Cards */

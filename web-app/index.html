@@ -873,27 +873,29 @@ ERGO Maklerservice</div>
                         <input type="text" class="field-input" id="valMakler" placeholder="-">
                     </div>
                     <div class="validation-field">
-                        <label class="field-label">Status</label>
-                        <select class="field-input" id="valStatus">
-                            <option value="neu">○ Neu</option>
-                            <option value="angefragt">◐ Angefragt</option>
-                            <option value="in-bearbeitung">◑ In Bearbeitung</option>
-                            <option value="bestaetigt">● Bestätigt</option>
-                            <option value="abgelehnt">✕ Abgelehnt</option>
-                        </select>
+                        <label class="field-label">Wiedervorlage</label>
+                        <input type="date" class="field-input" id="valWiedervorlage">
                     </div>
                 </div>
                 <div class="validation-email-preview">
                     <h4>E-Mail Auszug <span class="highlight-hint">(Stichworte markiert)</span></h4>
                     <div class="email-preview-content" id="valEmailPreview">-</div>
                 </div>
+                <!-- Ablehnungsgrund (zunächst versteckt) -->
+                <div class="validation-reject-section" id="valRejectSection" style="display: none;">
+                    <label class="field-label">Ablehnungsgrund</label>
+                    <textarea class="field-input" id="valRejectReason" rows="3" placeholder="Bitte Grund für Ablehnung angeben..."></textarea>
+                </div>
             </div>
             <div class="modal-footer validation-footer">
                 <button class="btn btn-secondary" id="validationSkip">
                     Überspringen →
                 </button>
+                <button class="btn btn-danger" id="validationReject">
+                    <span class="icon">✕</span> Ablehnen
+                </button>
                 <button class="btn btn-primary" id="validationConfirm">
-                    <span class="icon">✓</span> Als validiert markieren
+                    <span class="icon">✓</span> Validieren
                 </button>
             </div>
         </div>

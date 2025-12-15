@@ -147,7 +147,9 @@ const UI = (function() {
             valSparte: document.getElementById('valSparte'),
             valDatum: document.getElementById('valDatum'),
             valMakler: document.getElementById('valMakler'),
-            valStatus: document.getElementById('valStatus'),
+            valWiedervorlage: document.getElementById('valWiedervorlage'),
+            valRejectSection: document.getElementById('valRejectSection'),
+            valRejectReason: document.getElementById('valRejectReason'),
             valEmailPreview: document.getElementById('valEmailPreview')
         };
     }
@@ -961,6 +963,14 @@ const UI = (function() {
         // Progress aktualisieren
         elements.validationCurrent.textContent = validationState.currentIndex + 1;
 
+        // Reject-Section zurücksetzen
+        if (elements.valRejectSection) {
+            elements.valRejectSection.style.display = 'none';
+        }
+        if (elements.valRejectReason) {
+            elements.valRejectReason.value = '';
+        }
+
         // Extrahierte Werte für Highlighting sammeln
         const extractedValues = [];
 
@@ -983,10 +993,12 @@ const UI = (function() {
             if (sparte) extractedValues.push(sparte);
         }
 
-        const datum = caseData.gueltigkeitsdatum?.value || '';
+        // Datum: DD.MM.YYYY → YYYY-MM-DD für HTML date input
+        const datumRaw = caseData.gueltigkeitsdatum?.value || '';
         if (elements.valDatum) {
-            elements.valDatum.value = datum;
-            if (datum) extractedValues.push(datum);
+            const datumISO = convertGermanDateToISO(datumRaw);
+            elements.valDatum.value = datumISO;
+            if (datumRaw) extractedValues.push(datumRaw);
         }
 
         const maklerName = caseData.makler?.name || '';
@@ -995,8 +1007,10 @@ const UI = (function() {
             if (maklerName) extractedValues.push(maklerName);
         }
 
-        if (elements.valStatus) {
-            elements.valStatus.value = caseData.status || 'angefragt';
+        // Wiedervorlage zurücksetzen (oder aus caseData laden falls vorhanden)
+        if (elements.valWiedervorlage) {
+            const wiedervorlageRaw = caseData.wiedervorlage || '';
+            elements.valWiedervorlage.value = convertGermanDateToISO(wiedervorlageRaw);
         }
 
         // E-Mail Preview mit Keyword-Highlighting
@@ -1013,6 +1027,36 @@ const UI = (function() {
         } else {
             elements.valEmailPreview.innerHTML = '<span class="text-muted">Keine E-Mail vorhanden</span>';
         }
+    }
+
+    /**
+     * Deutsches Datum (DD.MM.YYYY) zu ISO (YYYY-MM-DD) konvertieren
+     */
+    function convertGermanDateToISO(dateStr) {
+        if (!dateStr) return '';
+        // Prüfen ob bereits ISO-Format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        // DD.MM.YYYY konvertieren
+        const match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+        if (match) {
+            const day = match[1].padStart(2, '0');
+            const month = match[2].padStart(2, '0');
+            const year = match[3];
+            return `${year}-${month}-${day}`;
+        }
+        return '';
+    }
+
+    /**
+     * ISO-Datum (YYYY-MM-DD) zu deutschem Format (DD.MM.YYYY) konvertieren
+     */
+    function convertISOToGermanDate(dateStr) {
+        if (!dateStr) return '';
+        const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (match) {
+            return `${match[3]}.${match[2]}.${match[1]}`;
+        }
+        return dateStr;
     }
 
     /**
@@ -1048,8 +1092,28 @@ const UI = (function() {
             sparte: elements.valSparte?.value || '',
             datum: elements.valDatum?.value || '',
             makler: elements.valMakler?.value?.trim() || '',
-            status: elements.valStatus?.value || 'angefragt'
+            wiedervorlage: elements.valWiedervorlage?.value || '',
+            rejectReason: elements.valRejectReason?.value?.trim() || ''
         };
+    }
+
+    /**
+     * Ablehnungs-Bereich ein-/ausblenden
+     */
+    function toggleRejectSection(show) {
+        if (elements.valRejectSection) {
+            elements.valRejectSection.style.display = show ? 'block' : 'none';
+            if (show && elements.valRejectReason) {
+                elements.valRejectReason.focus();
+            }
+        }
+    }
+
+    /**
+     * Prüfen ob Ablehnungsgrund eingegeben wurde
+     */
+    function hasRejectReason() {
+        return (elements.valRejectReason?.value?.trim() || '').length > 0;
     }
 
     /**
@@ -1266,6 +1330,8 @@ const UI = (function() {
         getCurrentValidationCase,
         hasMoreValidationCases,
         getValidationFormData,
+        toggleRejectSection,
+        hasRejectReason,
 
         // Notifications
         showToast,
