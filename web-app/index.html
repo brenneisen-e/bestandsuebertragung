@@ -80,6 +80,13 @@
                     <div class="kpi-percent" id="kpiPvValidatedPct">0%</div>
                 </div>
             </div>
+            <div class="kpi-card kpi-export-ready">
+                <div class="kpi-icon">↑</div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiExportReady">0</div>
+                    <div class="kpi-label">Export-Bereit</div>
+                </div>
+            </div>
             <div class="kpi-card kpi-exportiert">
                 <div class="kpi-icon">↗</div>
                 <div class="kpi-content">
@@ -112,10 +119,9 @@
                     <span class="icon">✓</span> Offene validieren
                 </button>
             </div>
-            <div class="dashboard-card card-highlight">
-                <h3>Export-Bereit</h3>
-                <p class="card-description">Vorgänge mit Status "Bestätigt" oder "Abgelehnt" die noch nicht exportiert wurden.</p>
-                <div class="export-ready-count" id="exportReadyCount">0</div>
+            <div class="dashboard-card">
+                <h3>Robotics Export</h3>
+                <p class="card-description">Export-bereite Vorgänge für Robotics herunterladen.</p>
                 <button class="btn btn-primary btn-large" id="exportReadyBtn">
                     <span class="icon">↑</span> Für Robotics exportieren
                 </button>

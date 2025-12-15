@@ -60,6 +60,7 @@ const UI = (function() {
             kpiKiRecognizedPct: document.getElementById('kpiKiRecognizedPct'),
             kpiPvValidated: document.getElementById('kpiPvValidated'),
             kpiPvValidatedPct: document.getElementById('kpiPvValidatedPct'),
+            kpiExportReady: document.getElementById('kpiExportReady'),
             kpiExportiert: document.getElementById('kpiExportiert'),
             kpiExportiertPct: document.getElementById('kpiExportiertPct'),
 
@@ -67,7 +68,6 @@ const UI = (function() {
             spartenList: document.getElementById('spartenList'),
             incompleteCount: document.getElementById('incompleteCount'),
             validationPendingCount: document.getElementById('validationPendingCount'),
-            exportReadyCount: document.getElementById('exportReadyCount'),
             recentActivityBody: document.getElementById('recentActivityBody'),
 
             // Vorgänge Tab (jetzt Kachel-Ansicht)
@@ -156,6 +156,7 @@ const UI = (function() {
         if (elements.kpiTotal) elements.kpiTotal.textContent = total;
         if (elements.kpiKiRecognized) elements.kpiKiRecognized.textContent = wf.kiRecognized || 0;
         if (elements.kpiPvValidated) elements.kpiPvValidated.textContent = wf.pvValidated || 0;
+        if (elements.kpiExportReady) elements.kpiExportReady.textContent = stats.exportReady || 0;
         if (elements.kpiExportiert) elements.kpiExportiert.textContent = wf.exported || 0;
 
         // Prozente
@@ -163,11 +164,6 @@ const UI = (function() {
             if (elements.kpiKiRecognizedPct) elements.kpiKiRecognizedPct.textContent = Math.round((wf.kiRecognized || 0) / total * 100) + '%';
             if (elements.kpiPvValidatedPct) elements.kpiPvValidatedPct.textContent = Math.round((wf.pvValidated || 0) / total * 100) + '%';
             if (elements.kpiExportiertPct) elements.kpiExportiertPct.textContent = Math.round((wf.exported || 0) / total * 100) + '%';
-        }
-
-        // Export-bereit Count
-        if (elements.exportReadyCount) {
-            elements.exportReadyCount.textContent = stats.exportReady || 0;
         }
 
         // Validation-pending Count (KI erkannt aber nicht validiert, ohne unvollständige)

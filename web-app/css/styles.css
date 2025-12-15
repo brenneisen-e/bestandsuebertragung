@@ -203,6 +203,7 @@ body {
 .kpi-mail-received .kpi-icon { background: #dbeafe; color: #2563eb; }
 .kpi-ki-recognized .kpi-icon { background: #fef3c7; color: #d97706; }
 .kpi-pv-validated .kpi-icon { background: #dcfce7; color: var(--status-bestaetigt); }
+.kpi-export-ready .kpi-icon { background: #fef2f2; color: var(--primary); }
 .kpi-exportiert .kpi-icon { background: #ede9fe; color: var(--status-exportiert); }
 
 .kpi-value {
