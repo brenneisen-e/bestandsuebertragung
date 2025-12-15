@@ -502,10 +502,30 @@ const Matcher = (function() {
 
     /**
      * Neuen Vorgang aus E-Mail erstellen
+     * Prüft zuerst, ob bereits ein Vorgang mit gleicher VS-Nr existiert
      */
     function createCaseFromEmail(email, conversationMessages) {
         const messages = conversationMessages || [email];
         const extracted = Extractor.extractFromConversation(messages);
+
+        // Duplikat-Prüfung: Existiert bereits ein Vorgang mit dieser VS-Nr?
+        const vsNr = extracted.versicherungsnummer?.value;
+        if (vsNr) {
+            const existingCases = Storage.getCasesArray();
+            const existingCase = existingCases.find(c => {
+                const caseVsNr = c.versicherungsnummer?.value;
+                if (!caseVsNr) return false;
+                return normalizeVsNr(caseVsNr) === normalizeVsNr(vsNr);
+            });
+
+            if (existingCase) {
+                // Vorgang existiert bereits - E-Mail hinzufügen statt neuen Fall erstellen
+                console.log(`Duplikat verhindert: VS-Nr ${vsNr} existiert bereits in Vorgang ${existingCase.id}`);
+                Storage.addMessagesToCase(existingCase.id, messages);
+                Storage.markMessagesProcessed(messages.map(m => m.entryID));
+                return null; // Kein neuer Fall erstellt
+            }
+        }
 
         const newCase = {
             kunde: extracted.kunde || { name: '', confidence: 0, source: 'manual' },
