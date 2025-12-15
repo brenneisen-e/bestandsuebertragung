@@ -155,31 +155,12 @@ Function ExportEmailsFromMailbox(mailbox)
     ' JSON erstellen und speichern
     jsonContent = BuildJsonOutputSimple(allEmails, mailboxName, dateFrom, dateTo)
 
-    ' UTF-8 ohne BOM schreiben (ADODB.Stream)
-    Dim stream
-    Set stream = CreateObject("ADODB.Stream")
-    stream.Type = 2 ' Text
-    stream.Charset = "UTF-8"
-    stream.Open
-    stream.WriteText jsonContent
-
-    ' BOM entfernen durch Kopieren ab Position 3
-    stream.Position = 0
-    stream.Type = 1 ' Binary
-    stream.Position = 3 ' Skip UTF-8 BOM
-
-    Dim binaryStream
-    Set binaryStream = CreateObject("ADODB.Stream")
-    binaryStream.Type = 1 ' Binary
-    binaryStream.Open
-    stream.CopyTo binaryStream
-
-    binaryStream.SaveToFile outputPath, 2 ' Overwrite
-
-    binaryStream.Close
-    stream.Close
-    Set binaryStream = Nothing
-    Set stream = Nothing
+    ' Einfach mit FSO schreiben (ANSI, aber JSON ist ASCII-kompatibel)
+    Dim textFile
+    Set textFile = fso.CreateTextFile(outputPath, True, False)
+    textFile.Write jsonContent
+    textFile.Close
+    Set textFile = Nothing
 
     ExportEmailsFromMailbox = True
 
