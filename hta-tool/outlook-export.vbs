@@ -35,10 +35,10 @@ Sub Main()
         WScript.Quit
     End If
 
-    ' Postfach auswaehlen lassen
-    Set selectedMailbox = SelectMailbox()
+    ' Postfach #9 direkt verwenden (ebrenneisen@deloitte.de)
+    Set selectedMailbox = objNamespace.Folders.Item(9)
     If selectedMailbox Is Nothing Then
-        MsgBox "Abgebrochen.", vbInformation, "Export"
+        MsgBox "Fehler: Postfach #9 nicht gefunden.", vbCritical, "Export"
         WScript.Quit
     End If
 
