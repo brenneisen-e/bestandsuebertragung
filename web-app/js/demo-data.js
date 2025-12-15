@@ -611,22 +611,23 @@ Versicherungsmaklerin`
         };
 
         // ============================================
-        // FALL 11: Neu - KFZ (importiert, KI noch nicht erkannt)
+        // FALL 11: Angefragt - KFZ (KI hat alles erkannt)
         // ============================================
         cases['case-011'] = {
             id: 'case-011',
             createdAt: daysAgo(2),
             updatedAt: daysAgo(2),
-            kunde: { name: "Franke, Birgit", source: "auto", confidence: 0.75 },
-            versicherungsnummer: { value: "ERG-4432109", source: "auto", confidence: 0.80 },
-            gueltigkeitsdatum: { value: "01.06.2026", source: "auto", confidence: 0.70 },
-            status: 'neu',
+            kunde: { name: "Franke, Birgit", source: "auto", confidence: 0.95 },
+            versicherungsnummer: { value: "ERG-4432109", source: "auto", confidence: 0.97 },
+            gueltigkeitsdatum: { value: "01.06.2026", source: "auto", confidence: 0.92 },
+            status: 'angefragt',
             sparte: 'KFZ',
             makler: MAKLER[10],
             notes: "Vollmacht noch nicht unterschrieben - Rückfrage nötig",
             workflow: {
                 mailReceived: daysAgo(2),
-                mailUploaded: daysAgo(2)
+                mailUploaded: daysAgo(2),
+                kiRecognized: daysAgo(2)
             },
             messages: [
                 {
@@ -648,7 +649,7 @@ Stefan Zimmermann`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(2).split('T')[0], from: null, to: 'neu', note: 'Importiert - KI-Erkennung ausstehend' }
+                { date: daysAgo(2).split('T')[0], from: null, to: 'angefragt', note: 'KI-Erkennung erfolgreich' }
             ]
         };
 
@@ -1025,22 +1026,23 @@ ERGO Maklerservice`
         };
 
         // ============================================
-        // FALL 19: Neu - Rechtsschutz (importiert, KI noch nicht erkannt)
+        // FALL 19: Angefragt - Rechtsschutz (KI hat alles erkannt)
         // ============================================
         cases['case-019'] = {
             id: 'case-019',
             createdAt: daysAgo(1),
             updatedAt: daysAgo(1),
-            kunde: { name: "Engel, Tanja", source: "auto", confidence: 0.68 },
-            versicherungsnummer: { value: "ERG-7776543", source: "auto", confidence: 0.74 },
-            gueltigkeitsdatum: { value: "01.08.2026", source: "auto", confidence: 0.60 },
-            status: 'neu',
+            kunde: { name: "Engel, Tanja", source: "auto", confidence: 0.94 },
+            versicherungsnummer: { value: "ERG-7776543", source: "auto", confidence: 0.96 },
+            gueltigkeitsdatum: { value: "01.08.2026", source: "auto", confidence: 0.91 },
+            status: 'angefragt',
             sparte: 'Rechtsschutz',
             makler: MAKLER[18],
             notes: "Vollmacht wird per Post erwartet",
             workflow: {
                 mailReceived: daysAgo(1),
-                mailUploaded: daysAgo(1)
+                mailUploaded: daysAgo(1),
+                kiRecognized: daysAgo(1)
             },
             messages: [
                 {
@@ -1064,7 +1066,7 @@ Versicherungsmaklerin`
                 }
             ],
             statusHistory: [
-                { date: daysAgo(1).split('T')[0], from: null, to: 'neu', note: 'Importiert - KI-Erkennung ausstehend' }
+                { date: daysAgo(1).split('T')[0], from: null, to: 'angefragt', note: 'KI-Erkennung erfolgreich' }
             ]
         };
 
