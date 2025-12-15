@@ -123,7 +123,7 @@ Sub CollectEmails(folder, emails)
                         entryId = "" & item.EntryID
                         convId = GetConvID(item)
                         sender = GetSender(item)
-                        body = TruncBody(item.Body)
+                        body = TruncBody(item)
                         folderName = "" & folder.Name
                         recTime = FormatDateTime(receivedTime, vbGeneralDate)
 
@@ -163,32 +163,63 @@ End Function
 
 ' Sender E-Mail holen
 Function GetSender(item)
-    Dim email
+    Dim email, senderType, senderAddr
     email = ""
 
     On Error Resume Next
-    If item.SenderEmailType = "EX" Then
+
+    ' Erst SenderEmailType pruefen
+    senderType = "" & item.SenderEmailType
+    senderAddr = "" & item.SenderEmailAddress
+
+    ' Bei Exchange-Adressen die SMTP-Adresse holen
+    If senderType = "EX" Then
         If Not item.Sender Is Nothing Then
             Dim exchUser
             Set exchUser = item.Sender.GetExchangeUser()
             If Not exchUser Is Nothing Then
-                email = exchUser.PrimarySmtpAddress
+                email = "" & exchUser.PrimarySmtpAddress
+                Set exchUser = Nothing
             End If
         End If
     End If
 
+    ' Fallback: SenderEmailAddress direkt verwenden
     If email = "" Then
-        email = "" & item.SenderEmailAddress
+        email = senderAddr
     End If
+
+    ' Wenn immer noch leer, versuche PropertyAccessor
+    If email = "" Then
+        Dim propEmail
+        propEmail = item.PropertyAccessor.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x5D01001F")
+        If Err.Number = 0 Then
+            email = "" & propEmail
+        End If
+        Err.Clear
+    End If
+
     On Error GoTo 0
 
     GetSender = email
 End Function
 
-' Body kuerzen
-Function TruncBody(body)
+' Body sicher holen und kuerzen
+Function TruncBody(item)
     Dim b
-    b = "" & body
+    b = ""
+
+    On Error Resume Next
+    b = item.Body
+    If Err.Number <> 0 Then
+        Err.Clear
+        b = ""
+    End If
+    On Error GoTo 0
+
+    If IsNull(b) Or IsEmpty(b) Then b = ""
+    b = "" & b
+
     If Len(b) > MAX_BODY_LENGTH Then
         TruncBody = Left(b, MAX_BODY_LENGTH) & " [...]"
     Else
