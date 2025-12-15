@@ -64,15 +64,18 @@ const App = (function() {
         // Dashboard: Recent Activity Clicks
         document.getElementById('recentActivityBody')?.addEventListener('click', handleActivityRowClick);
 
+        // Dashboard: Live Search
+        document.getElementById('dashboardSearch')?.addEventListener('input', debounce(handleDashboardSearch, 300));
+        document.getElementById('dashboardSearchResults')?.addEventListener('click', handleDashboardSearchClick);
+
         // Vorgänge View
         document.getElementById('newCaseBtn')?.addEventListener('click', () => openCaseModal(null));
         document.getElementById('vorgaengeSearch')?.addEventListener('input', debounce(refreshVorgaengeView, 300));
-        document.getElementById('filterStatus')?.addEventListener('change', refreshVorgaengeView);
         document.getElementById('filterSparte')?.addEventListener('change', refreshVorgaengeView);
         document.getElementById('filterExport')?.addEventListener('change', refreshVorgaengeView);
 
-        // Vorgänge-Kacheln Klick
-        document.getElementById('caseTilesContainer')?.addEventListener('click', handleTileClick);
+        // Vorgänge-Liste Klick
+        document.getElementById('casesGroupedContainer')?.addEventListener('click', handleListItemClick);
 
         // Makler View
         document.getElementById('maklerSearch')?.addEventListener('input', debounce(refreshMaklerView, 300));
@@ -287,11 +290,6 @@ const App = (function() {
                 }
             }
 
-            // Status
-            if (filters.status && c.status !== filters.status) {
-                return false;
-            }
-
             // Sparte
             if (filters.sparte && c.sparte !== filters.sparte) {
                 return false;
@@ -454,13 +452,59 @@ const App = (function() {
     }
 
     /**
+     * Dashboard Live-Suche
+     */
+    function handleDashboardSearch(e) {
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+            UI.renderDashboardSearchResults([], query);
+            return;
+        }
+
+        const allCases = Storage.getAllCases();
+        const queryLower = query.toLowerCase();
+
+        const matches = allCases.filter(c => {
+            const kundeName = (c.kunde?.name || '').toLowerCase();
+            const vsNr = (c.versicherungsnummer?.value || '').toLowerCase();
+            const maklerName = (c.makler?.name || '').toLowerCase();
+            const maklerEmail = (c.makler?.email || '').toLowerCase();
+            const sparte = (c.sparte || '').toLowerCase();
+
+            return kundeName.includes(queryLower) ||
+                   vsNr.includes(queryLower) ||
+                   maklerName.includes(queryLower) ||
+                   maklerEmail.includes(queryLower) ||
+                   sparte.includes(queryLower);
+        });
+
+        UI.renderDashboardSearchResults(matches, query);
+    }
+
+    /**
+     * Dashboard Suchergebnis-Klick
+     */
+    function handleDashboardSearchClick(e) {
+        const item = e.target.closest('.search-result-item');
+        if (!item) return;
+
+        const caseId = item.dataset.caseId;
+        const caseData = Storage.getCase(caseId);
+
+        if (caseData) {
+            openCaseModal(caseData);
+        }
+    }
+
+    /**
      * Klick auf Vorgänge-Kachel
      */
-    function handleTileClick(e) {
-        const tile = e.target.closest('.case-tile');
-        if (!tile) return;
+    function handleListItemClick(e) {
+        const item = e.target.closest('.case-list-item');
+        if (!item) return;
 
-        const caseId = tile.dataset.caseId;
+        const caseId = item.dataset.caseId;
         const caseData = Storage.getCase(caseId);
 
         if (caseData) {

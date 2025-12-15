@@ -49,6 +49,9 @@
         <button class="nav-btn" data-view="architektur">
             Architektur
         </button>
+        <button class="nav-btn" data-view="vorlagen">
+            E-Mail Vorlagen
+        </button>
     </nav>
 
     <!-- ============================================ -->
@@ -80,11 +83,12 @@
                     <div class="kpi-percent" id="kpiPvValidatedPct">0%</div>
                 </div>
             </div>
-            <div class="kpi-card kpi-export-ready">
+            <div class="kpi-card kpi-export-ready kpi-card-clickable" id="exportReadyBtn">
                 <div class="kpi-icon">↑</div>
                 <div class="kpi-content">
                     <div class="kpi-value" id="kpiExportReady">0</div>
                     <div class="kpi-label">Export-Bereit</div>
+                    <div class="kpi-percent" id="kpiExportReadyPct">0%</div>
                 </div>
             </div>
             <div class="kpi-card kpi-exportiert">
@@ -99,10 +103,6 @@
 
         <!-- Dashboard Grid -->
         <div class="dashboard-grid">
-            <div class="dashboard-card">
-                <h3>Nach Sparte</h3>
-                <div class="sparten-list" id="spartenList"></div>
-            </div>
             <div class="dashboard-card card-incomplete">
                 <h3>Vorgänge ergänzen</h3>
                 <p class="card-description">Unvollständige Vorgänge mit fehlenden Daten.</p>
@@ -119,22 +119,16 @@
                     <span class="icon">✓</span> Offene validieren
                 </button>
             </div>
-            <div class="dashboard-card">
-                <h3>Robotics Export</h3>
-                <p class="card-description">Export-bereite Vorgänge für Robotics herunterladen.</p>
-                <button class="btn btn-primary btn-large" id="exportReadyBtn">
-                    <span class="icon">↑</span> Für Robotics exportieren
-                </button>
-            </div>
         </div>
 
-        <!-- E-Mail Vorlagen -->
-        <div class="dashboard-card">
-            <h3>E-Mail Vorlagen</h3>
-            <p class="card-description">Vorgefertigte Textbausteine für häufige E-Mails.</p>
-            <button class="btn btn-secondary btn-large" id="emailTemplatesBtn">
-                <span class="icon">✉</span> Vorlagen anzeigen
-            </button>
+        <!-- Vorgangssuche mit Live-Ergebnissen -->
+        <div class="dashboard-card dashboard-wide">
+            <h3>Vorgangssuche</h3>
+            <div class="search-box search-box-large">
+                <span class="search-icon">⌕</span>
+                <input type="text" id="dashboardSearch" placeholder="Kunde, VS-Nr oder Makler suchen...">
+            </div>
+            <div id="dashboardSearchResults" class="search-results-live"></div>
         </div>
 
         <!-- Letzte Aktivitäten -->
@@ -156,7 +150,7 @@
     </section>
 
     <!-- ============================================ -->
-    <!-- VIEW: Vorgänge (Kachel-Ansicht) -->
+    <!-- VIEW: Vorgänge (Status-gruppierte Liste) -->
     <!-- ============================================ -->
     <section class="view" id="view-vorgaenge">
         <div class="toolbar">
@@ -164,15 +158,6 @@
                 <span class="search-icon">⌕</span>
                 <input type="text" id="vorgaengeSearch" placeholder="Kunde, VS-Nr oder Makler suchen...">
             </div>
-            <select id="filterStatus">
-                <option value="">Alle Status</option>
-                <option value="neu">○ Neu</option>
-                <option value="unvollstaendig">◇ Unvollständig</option>
-                <option value="angefragt">◐ Angefragt</option>
-                <option value="in-bearbeitung">◑ In Bearbeitung</option>
-                <option value="bestaetigt">● Bestätigt</option>
-                <option value="abgelehnt">✕ Abgelehnt</option>
-            </select>
             <select id="filterSparte">
                 <option value="">Alle Sparten</option>
                 <option value="KFZ">KFZ</option>
@@ -194,8 +179,8 @@
             <button class="btn btn-primary" id="newCaseBtn">+ Neuer Vorgang</button>
         </div>
 
-        <!-- Kachel-Grid -->
-        <div class="case-tiles" id="caseTilesContainer">
+        <!-- Status-gruppierte Liste -->
+        <div class="cases-grouped" id="casesGroupedContainer">
             <!-- Dynamisch gefüllt -->
         </div>
         <div class="empty-state" id="vorgaengeEmpty" style="display: none;">
@@ -482,6 +467,114 @@
                     <strong>Kurzfristig:</strong> Start mit Lösung 1 (Stichwortbasiert) für schnellen Go-Live.<br>
                     <strong>Mittelfristig:</strong> Migration zu Lösung 2A (ERGO Agent-Plattform) für optimale Kontrolle und Datenhoheit.
                 </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- VIEW: E-Mail Vorlagen -->
+    <!-- ============================================ -->
+    <section class="view" id="view-vorlagen">
+        <div class="vorlagen-container">
+            <h2>E-Mail Vorlagen</h2>
+            <p class="text-muted" style="margin-bottom: 1.5rem;">Klicken Sie auf "Kopieren" um den Text in die Zwischenablage zu kopieren.</p>
+
+            <div class="vorlagen-grid">
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>1. Bestandsübertragung anfragen</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="tpl1">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="tpl1">Sehr geehrte Damen und Herren,
+
+hiermit beantragen wir die Bestandsübertragung für unseren Kunden Hans Müller.
+
+Versicherungsnummer: ERG-7823456
+Sparte: KFZ
+Gewünschter Übertragungstermin: 01.01.2026
+
+Die unterschriebene Maklervollmacht liegt diesem Schreiben bei.
+
+Mit freundlichen Grüßen
+Thomas Meier
+Versicherungsmakler</div>
+                </div>
+
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>2. Rückfrage fehlende Versicherungsnummer</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="tpl2">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="tpl2">Sehr geehrte Damen und Herren,
+
+bezugnehmend auf unseren Antrag zur Bestandsübertragung für Ralf Seidel bitten wir um Mitteilung der korrekten Versicherungsnummer.
+
+In den uns vorliegenden Unterlagen konnte die VS-Nr nicht eindeutig identifiziert werden.
+
+Vielen Dank für Ihre Rückmeldung.
+
+Mit freundlichen Grüßen
+Martina Koch
+Versicherungsmaklerin</div>
+                </div>
+
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>3. Nachreichung Maklervollmacht</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="tpl3">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="tpl3">Sehr geehrte Damen und Herren,
+
+in der Anlage übersende ich Ihnen die nachgeforderte Maklervollmacht für die Kundin Birgit Franke.
+
+Versicherungsnummer: ERG-4432109
+
+Ich bitte um Fortsetzung der Bestandsübertragung.
+
+Mit freundlichen Grüßen
+Stefan Zimmermann
+Versicherungsmakler</div>
+                </div>
+
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>4. Statusanfrage laufende Übertragung</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="tpl4">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="tpl4">Sehr geehrte Damen und Herren,
+
+ich erlaube mir, nach dem Stand unserer Bestandsübertragung zu fragen.
+
+Kunde: Christine Weber
+Versicherungsnummer: ERG-4512378
+Antragsdatum: 15.10.2024
+
+Über eine zeitnahe Rückmeldung würde ich mich freuen.
+
+Mit freundlichen Grüßen
+Sandra Schmidt
+Versicherungsmaklerin</div>
+                </div>
+
+                <div class="email-template-card">
+                    <div class="template-header">
+                        <h4>5. Bestätigung an Makler weiterleiten</h4>
+                        <button class="btn btn-secondary btn-copy" data-template="tpl5">Kopieren</button>
+                    </div>
+                    <div class="template-content" id="tpl5">Sehr geehrter Herr Meier,
+
+wir freuen uns, Ihnen mitteilen zu können, dass die Bestandsübertragung für Ihren Kunden Hans Müller bestätigt wurde.
+
+Versicherungsnummer: ERG-7823456
+Wirksam ab: 01.01.2026
+
+Sie sind nun als betreuender Makler für diesen Vertrag hinterlegt.
+
+Bei Fragen stehen wir Ihnen gerne zur Verfügung.
+
+Mit freundlichen Grüßen
+ERGO Maklerservice</div>
+                </div>
             </div>
         </div>
     </section>

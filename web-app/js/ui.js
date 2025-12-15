@@ -61,6 +61,7 @@ const UI = (function() {
             kpiPvValidated: document.getElementById('kpiPvValidated'),
             kpiPvValidatedPct: document.getElementById('kpiPvValidatedPct'),
             kpiExportReady: document.getElementById('kpiExportReady'),
+            kpiExportReadyPct: document.getElementById('kpiExportReadyPct'),
             kpiExportiert: document.getElementById('kpiExportiert'),
             kpiExportiertPct: document.getElementById('kpiExportiertPct'),
 
@@ -70,12 +71,15 @@ const UI = (function() {
             validationPendingCount: document.getElementById('validationPendingCount'),
             recentActivityBody: document.getElementById('recentActivityBody'),
 
-            // Vorgänge Tab (jetzt Kachel-Ansicht)
+            // Dashboard Search
+            dashboardSearch: document.getElementById('dashboardSearch'),
+            dashboardSearchResults: document.getElementById('dashboardSearchResults'),
+
+            // Vorgänge Tab (Status-gruppierte Liste)
             vorgaengeSearch: document.getElementById('vorgaengeSearch'),
-            filterStatus: document.getElementById('filterStatus'),
             filterSparte: document.getElementById('filterSparte'),
             filterExport: document.getElementById('filterExport'),
-            caseTilesContainer: document.getElementById('caseTilesContainer'),
+            casesGroupedContainer: document.getElementById('casesGroupedContainer'),
             vorgaengeEmpty: document.getElementById('vorgaengeEmpty'),
 
             // Makler Tab
@@ -163,6 +167,7 @@ const UI = (function() {
         if (total > 0) {
             if (elements.kpiKiRecognizedPct) elements.kpiKiRecognizedPct.textContent = Math.round((wf.kiRecognized || 0) / total * 100) + '%';
             if (elements.kpiPvValidatedPct) elements.kpiPvValidatedPct.textContent = Math.round((wf.pvValidated || 0) / total * 100) + '%';
+            if (elements.kpiExportReadyPct) elements.kpiExportReadyPct.textContent = Math.round((stats.exportReady || 0) / total * 100) + '%';
             if (elements.kpiExportiertPct) elements.kpiExportiertPct.textContent = Math.round((wf.exported || 0) / total * 100) + '%';
         }
 
@@ -227,6 +232,54 @@ const UI = (function() {
     }
 
     /**
+     * Dashboard-Suche: Live-Ergebnisse rendern
+     */
+    function renderDashboardSearchResults(cases, query) {
+        if (!elements.dashboardSearchResults) return;
+
+        // Keine Suche aktiv
+        if (!query || query.trim().length < 2) {
+            elements.dashboardSearchResults.innerHTML = '';
+            elements.dashboardSearchResults.classList.remove('has-results');
+            return;
+        }
+
+        elements.dashboardSearchResults.classList.add('has-results');
+
+        if (!cases || cases.length === 0) {
+            elements.dashboardSearchResults.innerHTML = '';
+            return;
+        }
+
+        // Maximal 10 Ergebnisse anzeigen
+        const limited = cases.slice(0, 10);
+
+        elements.dashboardSearchResults.innerHTML = limited.map(c => {
+            const kundeName = c.kunde?.name || 'Unbekannt';
+            const vsNr = c.versicherungsnummer?.value || '-';
+            const sparte = c.sparte || '-';
+            const maklerName = c.makler?.name || '-';
+
+            return `
+                <div class="search-result-item" data-case-id="${c.id}">
+                    <div class="search-result-info">
+                        <div class="search-result-kunde">${escapeHtml(kundeName)}</div>
+                        <div class="search-result-details">VS-Nr: ${escapeHtml(vsNr)} | ${escapeHtml(sparte)} | Makler: ${escapeHtml(maklerName)}</div>
+                    </div>
+                    <span class="status-badge status-${c.status}">${STATUS_ICONS[c.status] || ''} ${STATUS_LABELS[c.status] || c.status}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Info wenn mehr Ergebnisse vorhanden
+        if (cases.length > 10) {
+            elements.dashboardSearchResults.innerHTML += `
+                <div class="search-result-more">...und ${cases.length - 10} weitere Ergebnisse</div>
+            `;
+        }
+    }
+
+    /**
      * Navigation Counts aktualisieren
      */
     function updateNavCounts(vorgaenge, makler, emails) {
@@ -236,70 +289,84 @@ const UI = (function() {
     }
 
     /**
-     * Vorgänge als Kacheln rendern
+     * Vorgänge als Status-gruppierte Liste rendern
      */
     function renderCaseTiles(cases) {
-        if (!elements.caseTilesContainer) return;
+        if (!elements.casesGroupedContainer) return;
 
         if (!cases || cases.length === 0) {
-            elements.caseTilesContainer.innerHTML = '';
+            elements.casesGroupedContainer.innerHTML = '';
             if (elements.vorgaengeEmpty) elements.vorgaengeEmpty.style.display = 'block';
             return;
         }
 
         if (elements.vorgaengeEmpty) elements.vorgaengeEmpty.style.display = 'none';
 
-        elements.caseTilesContainer.innerHTML = cases.map(c => {
-            const kunde = c.kunde?.name || 'Unbekannt';
-            const vsNr = c.versicherungsnummer?.value || '-';
-            const sparte = c.sparte || '-';
-            const makler = c.makler?.name || '-';
-            const updatedAt = formatDate(c.updatedAt);
+        // Nach Status gruppieren (in definierter Reihenfolge)
+        const STATUS_ORDER = ['unvollstaendig', 'neu', 'angefragt', 'in-bearbeitung', 'bestaetigt', 'abgelehnt'];
+        const grouped = {};
 
-            // Export Badge
-            const exportBadge = (c.exported && c.exported.date)
-                ? `<span class="tile-export-badge">Exportiert</span>`
-                : '';
+        STATUS_ORDER.forEach(status => {
+            grouped[status] = cases.filter(c => c.status === status);
+        });
 
-            // Workflow Progress Dots
-            const workflow = c.workflow || {};
-            const workflowDots = WORKFLOW_STEPS.map(step => {
-                let dotClass = 'workflow-dot';
-                if (workflow[step.key]) {
-                    dotClass += ' completed';
-                } else if (getActiveWorkflowStep(workflow) === step.key) {
-                    dotClass += ' active';
-                }
-                return `<div class="${dotClass}" title="${step.label}"></div>`;
-            }).join('');
+        // HTML für jede Gruppe generieren
+        let html = '';
+        STATUS_ORDER.forEach(status => {
+            const group = grouped[status];
+            if (group.length === 0) return;
 
-            return `
-                <div class="case-tile status-${c.status}" data-case-id="${c.id}">
-                    ${exportBadge}
-                    <div class="tile-header">
-                        <div>
-                            <h3 class="tile-kunde">${escapeHtml(kunde)}</h3>
-                            <div class="tile-vsnr">${escapeHtml(vsNr)}</div>
-                        </div>
-                        <span class="status-badge status-${c.status}">${STATUS_ICONS[c.status] || '○'}</span>
+            const statusLabel = STATUS_LABELS[status] || status;
+            const statusIcon = STATUS_ICONS[status] || '○';
+
+            html += `
+                <div class="status-group status-group-${status}">
+                    <div class="status-group-header">
+                        <span class="status-badge status-${status}">${statusIcon}</span>
+                        <h3>${statusLabel}</h3>
+                        <span class="status-group-count">${group.length}</span>
                     </div>
-                    <div class="tile-body">
-                        <div class="tile-row">
-                            <span class="label">Sparte</span>
-                            <span>${escapeHtml(sparte)}</span>
-                        </div>
-                        <div class="tile-row">
-                            <span class="label">Aktualisiert</span>
-                            <span>${updatedAt}</span>
-                        </div>
-                    </div>
-                    <div class="tile-makler" title="${escapeHtml(makler)}">${escapeHtml(makler)}</div>
-                    <div class="tile-workflow">
-                        ${workflowDots}
+                    <div class="status-group-list">
+                        ${group.map(c => renderCaseListItem(c)).join('')}
                     </div>
                 </div>
             `;
-        }).join('');
+        });
+
+        elements.casesGroupedContainer.innerHTML = html;
+    }
+
+    /**
+     * Einzelnes Listenelement rendern
+     */
+    function renderCaseListItem(c) {
+        const kunde = c.kunde?.name || 'Unbekannt';
+        const vsNr = c.versicherungsnummer?.value || '-';
+        const sparte = c.sparte || '-';
+        const makler = c.makler?.name || '-';
+        const updatedAt = formatDate(c.updatedAt);
+
+        // Export Badge
+        const exportBadge = (c.exported && c.exported.date)
+            ? `<span class="list-export-badge">Exportiert</span>`
+            : '';
+
+        return `
+            <div class="case-list-item" data-case-id="${c.id}">
+                <div class="case-list-main">
+                    <div class="case-list-kunde">${escapeHtml(kunde)}</div>
+                    <div class="case-list-details">
+                        <span class="case-list-vsnr">VS-Nr: ${escapeHtml(vsNr)}</span>
+                        <span class="case-list-sparte">${escapeHtml(sparte)}</span>
+                        <span class="case-list-makler">Makler: ${escapeHtml(makler)}</span>
+                    </div>
+                </div>
+                <div class="case-list-meta">
+                    ${exportBadge}
+                    <span class="case-list-date">${updatedAt}</span>
+                </div>
+            </div>
+        `;
     }
 
     /**
@@ -964,7 +1031,6 @@ const UI = (function() {
     function getVorgaengeFilterValues() {
         return {
             search: elements.vorgaengeSearch?.value.trim().toLowerCase() || '',
-            status: elements.filterStatus?.value || '',
             sparte: elements.filterSparte?.value || '',
             exportFilter: elements.filterExport?.value || ''
         };
@@ -1051,6 +1117,7 @@ const UI = (function() {
         renderDashboardKPIs,
         renderSpartenList,
         renderRecentActivity,
+        renderDashboardSearchResults,
 
         // Navigation
         updateNavCounts,
