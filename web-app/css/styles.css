@@ -1457,6 +1457,24 @@ body {
     box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.1);
 }
 
+/* Fehlende Pflichtfelder bei unvollständigen Vorgängen */
+.stammdaten-item.field-missing input,
+.stammdaten-item.field-missing select {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
+}
+
+.stammdaten-item.field-missing label {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.stammdaten-item.field-missing label::after {
+    content: " (fehlt)";
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
 /* Keywords Card */
 .keywords-card {
     background: white;

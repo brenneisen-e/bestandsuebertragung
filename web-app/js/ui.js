@@ -434,16 +434,50 @@ const UI = (function() {
 
             // E-Mail Timeline mit Highlighting rendern
             renderEmailTimelineWithHighlights(caseData.messages || [], caseData);
+
+            // Bei unvollständigen Vorgängen: fehlende Felder markieren
+            highlightMissingFields(caseData);
         } else {
             elements.caseId.value = '';
             renderWorkflowTimeline({});
             renderKeywords(null);
             renderLinkedCases(null);
             renderEmailTimelineWithHighlights([], null);
+            clearMissingFieldHighlights();
         }
 
         // Modal anzeigen
         elements.caseModal.style.display = 'flex';
+    }
+
+    /**
+     * Fehlende Pflichtfelder bei unvollständigen Vorgängen hervorheben
+     */
+    function highlightMissingFields(caseData) {
+        // Erst alle Markierungen entfernen
+        clearMissingFieldHighlights();
+
+        // Nur bei Status "unvollständig" markieren
+        if (!caseData || caseData.status !== 'unvollstaendig') return;
+
+        // Kunde prüfen
+        if (!caseData.kunde?.name || !caseData.kunde.name.trim()) {
+            elements.caseKunde?.closest('.stammdaten-item')?.classList.add('field-missing');
+        }
+
+        // VS-Nr prüfen
+        if (!caseData.versicherungsnummer?.value || !caseData.versicherungsnummer.value.trim()) {
+            elements.caseVsNr?.closest('.stammdaten-item')?.classList.add('field-missing');
+        }
+    }
+
+    /**
+     * Markierungen für fehlende Felder entfernen
+     */
+    function clearMissingFieldHighlights() {
+        document.querySelectorAll('.stammdaten-item.field-missing').forEach(el => {
+            el.classList.remove('field-missing');
+        });
     }
 
     /**
