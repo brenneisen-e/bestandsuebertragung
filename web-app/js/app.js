@@ -59,6 +59,9 @@ const App = (function() {
         // Dashboard: Validate All Button
         document.getElementById('validateAllBtn')?.addEventListener('click', handleValidateAll);
 
+        // Dashboard: Mass Validate Button (high confidence)
+        document.getElementById('massValidateBtn')?.addEventListener('click', handleMassValidate);
+
         // Dashboard: Export Ready Button
         document.getElementById('exportReadyBtn')?.addEventListener('click', handleExportReady);
 
@@ -740,6 +743,71 @@ const App = (function() {
 
         // Step-by-Step Validation Modal öffnen
         UI.openValidationModal(pendingCases);
+    }
+
+    /**
+     * Massenvalidierung für Vorgänge mit hoher Konfidenz
+     * Validiert bis zu 400 Vorgänge auf einmal
+     */
+    function handleMassValidate() {
+        const pendingCases = Storage.getPendingValidationCases();
+
+        if (pendingCases.length === 0) {
+            UI.showToast('Keine Vorgänge zur Validierung', 'info');
+            return;
+        }
+
+        // Filtere nur Vorgänge mit hoher Konfidenz (Kunde UND VS-Nr mit >= 0.7)
+        const highConfidenceCases = pendingCases.filter(c => {
+            const kundeConf = c.kunde?.confidence || 0;
+            const vsNrConf = c.versicherungsnummer?.confidence || 0;
+            return kundeConf >= 0.7 && vsNrConf >= 0.7;
+        });
+
+        if (highConfidenceCases.length === 0) {
+            UI.showToast('Keine Vorgänge mit hoher Konfidenz gefunden', 'info');
+            return;
+        }
+
+        // Maximal 400 Vorgänge validieren
+        const toValidate = highConfidenceCases.slice(0, 400);
+
+        const confirmed = confirm(
+            `Massenvalidierung: ${toValidate.length} Vorgänge mit hoher KI-Konfidenz werden als "Export-Bereit" markiert.\n\n` +
+            `Fortfahren?`
+        );
+
+        if (!confirmed) return;
+
+        // Alle Vorgänge validieren
+        let successCount = 0;
+        const now = new Date().toISOString();
+
+        toValidate.forEach(caseData => {
+            try {
+                const oldStatus = caseData.status;
+                caseData.status = 'export-bereit';
+                caseData.workflow = caseData.workflow || {};
+                caseData.workflow.pvValidated = now;
+
+                // StatusHistory aktualisieren
+                caseData.statusHistory = caseData.statusHistory || [];
+                caseData.statusHistory.push({
+                    date: now,
+                    from: oldStatus,
+                    to: 'export-bereit',
+                    note: 'Massenvalidierung (hohe Konfidenz)'
+                });
+
+                Storage.saveCase(caseData);
+                successCount++;
+            } catch (e) {
+                console.error(`Fehler bei Validierung von ${caseData.id}:`, e);
+            }
+        });
+
+        UI.showToast(`${successCount} Vorgänge erfolgreich validiert`, 'success');
+        refreshDashboard();
     }
 
     /**
