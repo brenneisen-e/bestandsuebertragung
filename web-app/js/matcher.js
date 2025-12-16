@@ -586,6 +586,16 @@ const Matcher = (function() {
         const isComplete = hasKunde && hasVsNr;
         const initialStatus = isComplete ? 'zu-validieren' : 'unvollstaendig';
 
+        // Mail-Empfangsdatum parsen (Format: DD.MM.YYYY HH:MM:SS)
+        let mailReceivedDate = null;
+        if (email.receivedTime) {
+            const parts = email.receivedTime.match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+            if (parts) {
+                mailReceivedDate = new Date(parts[3], parts[2] - 1, parts[1], parts[4], parts[5], parts[6]).toISOString();
+            }
+        }
+        const now = new Date().toISOString();
+
         const newCase = {
             kunde: extracted.kunde || { name: '', confidence: 0, source: 'manual' },
             versicherungsnummer: extracted.versicherungsnummer || { value: '', confidence: 0, source: 'manual' },
@@ -599,6 +609,13 @@ const Matcher = (function() {
             conversationIds: email.conversationID ? [email.conversationID] : [],
             messageIds: messages.map(m => m.entryID),
             messages: messages,
+            workflow: {
+                mailReceived: mailReceivedDate || now,
+                mailUploaded: now,
+                kiRecognized: isComplete ? now : null,
+                pvValidated: null,
+                exported: null
+            },
             statusHistory: [
                 { date: new Date().toISOString(), from: null, to: initialStatus, note: 'Aus E-Mail erstellt', isNew: true }
             ]
