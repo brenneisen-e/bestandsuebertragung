@@ -1375,9 +1375,240 @@ Versicherungsmaklerin`
         return true;
     }
 
+    // Deutsche Vornamen und Nachnamen für Generator
+    const VORNAMEN = [
+        "Thomas", "Michael", "Andreas", "Stefan", "Christian", "Martin", "Peter", "Wolfgang", "Klaus", "Jürgen",
+        "Frank", "Markus", "Uwe", "Bernd", "Ralf", "Dieter", "Holger", "Matthias", "Torsten", "Dirk",
+        "Sabine", "Petra", "Monika", "Claudia", "Andrea", "Susanne", "Martina", "Birgit", "Heike", "Karin",
+        "Nicole", "Stefanie", "Julia", "Christina", "Marion", "Gabriele", "Silke", "Anja", "Melanie", "Sandra",
+        "Hans", "Werner", "Helmut", "Heinz", "Gerhard", "Manfred", "Karl", "Walter", "Wilhelm", "Heinrich",
+        "Anna", "Maria", "Elisabeth", "Ursula", "Renate", "Helga", "Ingrid", "Erika", "Brigitte", "Gisela"
+    ];
+
+    const NACHNAMEN = [
+        "Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz", "Hoffmann",
+        "Schäfer", "Koch", "Bauer", "Richter", "Klein", "Wolf", "Schröder", "Neumann", "Schwarz", "Zimmermann",
+        "Braun", "Krüger", "Hofmann", "Hartmann", "Lange", "Schmitt", "Werner", "Schmitz", "Krause", "Meier",
+        "Lehmann", "Schmid", "Schulze", "Maier", "Köhler", "Herrmann", "König", "Walter", "Mayer", "Huber",
+        "Kaiser", "Fuchs", "Peters", "Lang", "Scholz", "Möller", "Weiß", "Jung", "Hahn", "Schubert",
+        "Vogel", "Friedrich", "Keller", "Günther", "Frank", "Berger", "Winkler", "Roth", "Beck", "Lorenz"
+    ];
+
+    /**
+     * 1000 Demo-E-Mails generieren für Massentest
+     * ~800 neue Vorgänge, ~200 Reminder, ~100 unvollständig
+     */
+    function generateDemoExportJSON() {
+        const now = new Date();
+        const emails = [];
+        const usedVsNrs = new Map(); // VS-Nr -> Array von Email-Indizes für Reminder
+
+        function randomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateVsNr() {
+            return `ERG-${randomInt(1000000, 9999999)}`;
+        }
+
+        function generateName() {
+            return `${randomElement(VORNAMEN)} ${randomElement(NACHNAMEN)}`;
+        }
+
+        function formatDateGerman(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            const h = date.getHours().toString().padStart(2, '0');
+            const min = date.getMinutes().toString().padStart(2, '0');
+            const s = date.getSeconds().toString().padStart(2, '0');
+            return `${d}.${m}.${y} ${h}:${min}:${s}`;
+        }
+
+        function formatDateOnlyGerman(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}.${m}.${y}`;
+        }
+
+        function daysAgo(days) {
+            const date = new Date(now);
+            date.setDate(date.getDate() - days);
+            date.setHours(randomInt(7, 18), randomInt(0, 59), randomInt(0, 59));
+            return date;
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16).toUpperCase();
+            });
+        }
+
+        function generateEntryID() {
+            let result = '';
+            for (let i = 0; i < 144; i++) {
+                result += '0123456789ABCDEF'[Math.floor(Math.random() * 16)];
+            }
+            return result;
+        }
+
+        // E-Mail-Vorlagen
+        function generateNewRequestEmail(kunde, vsNr, sparte, makler, datum, includeVsNr, includeKunde, includeDatum) {
+            const vsNrText = includeVsNr ? `Versicherungsnummer: ${vsNr}\n` : '';
+            const kundeText = includeKunde ? `für unseren Kunden ${kunde}` : 'für den beigefügten Kunden';
+            const datumText = includeDatum ? `Gewünschter Übertragungstermin: ${datum}\n` : '';
+            const sparteText = sparte ? `Sparte: ${sparte}\n` : '';
+
+            return `Sehr geehrte Damen und Herren,
+
+hiermit beantragen wir die Bestandsübertragung ${kundeText}.
+
+${vsNrText}${sparteText}${datumText}
+Die unterschriebene Maklervollmacht liegt diesem Schreiben bei.
+
+Mit freundlichen Grüßen
+${makler.name}
+Versicherungsmakler`;
+        }
+
+        function generateReminderEmail(kunde, vsNr, makler) {
+            return `Sehr geehrte Damen und Herren,
+
+ich erlaube mir, nach dem Stand unserer Bestandsübertragung zu fragen.
+
+Kunde: ${kunde}
+Versicherungsnummer: ${vsNr}
+
+Über eine zeitnahe Rückmeldung würde ich mich freuen.
+
+Mit freundlichen Grüßen
+${makler.name}
+Versicherungsmakler`;
+        }
+
+        // Schritt 1: ~800 neue Anfragen generieren (davon ~100 unvollständig)
+        const newCasesCount = 800;
+        const incompleteCount = 100;
+
+        for (let i = 0; i < newCasesCount; i++) {
+            const vsNr = generateVsNr();
+            const kunde = generateName();
+            const makler = randomElement(MAKLER);
+            const sparte = randomElement(SPARTEN);
+            const receivedDate = daysAgo(randomInt(1, 90));
+            const transferDate = new Date(now);
+            transferDate.setMonth(transferDate.getMonth() + randomInt(1, 6));
+            const transferDateStr = formatDateOnlyGerman(transferDate);
+
+            // Ist diese E-Mail unvollständig?
+            const isIncomplete = i < incompleteCount;
+            let includeVsNr = true;
+            let includeKunde = true;
+            let includeDatum = true;
+
+            if (isIncomplete) {
+                // Zufällig ein oder mehrere Felder weglassen
+                const missingField = randomInt(1, 3);
+                if (missingField === 1) includeVsNr = false;
+                else if (missingField === 2) includeKunde = false;
+                else includeDatum = false;
+            }
+
+            const subject = includeVsNr
+                ? `Bestandsübertragung ${kunde.split(' ')[1]} ${sparte} - ${vsNr}`
+                : `Bestandsübertragung ${sparte}`;
+
+            const email = {
+                entryID: generateEntryID(),
+                conversationID: generateUUID(),
+                subject: subject,
+                senderEmail: makler.email,
+                receivedTime: formatDateGerman(receivedDate),
+                bodyPlain: generateNewRequestEmail(kunde, vsNr, sparte, makler, transferDateStr, includeVsNr, includeKunde, includeDatum),
+                folder: 'Inbox'
+            };
+
+            emails.push(email);
+
+            // Für Reminder merken (nur vollständige)
+            if (includeVsNr && Math.random() < 0.3) {
+                usedVsNrs.set(vsNr, { kunde, makler, conversationID: email.conversationID });
+            }
+        }
+
+        // Schritt 2: ~200 Reminder-E-Mails für bestehende Vorgänge
+        const reminderCount = 200;
+        const vsNrsForReminder = Array.from(usedVsNrs.entries()).slice(0, reminderCount);
+
+        for (const [vsNr, data] of vsNrsForReminder) {
+            const receivedDate = daysAgo(randomInt(1, 30));
+
+            const email = {
+                entryID: generateEntryID(),
+                conversationID: data.conversationID, // Gleiche Konversation
+                subject: `AW: Bestandsübertragung - ${vsNr}`,
+                senderEmail: data.makler.email,
+                receivedTime: formatDateGerman(receivedDate),
+                bodyPlain: generateReminderEmail(data.kunde, vsNr, data.makler),
+                folder: 'Inbox'
+            };
+
+            emails.push(email);
+        }
+
+        // E-Mails nach Datum sortieren (neueste zuerst)
+        emails.sort((a, b) => {
+            const dateA = parseGermanDateTime(a.receivedTime);
+            const dateB = parseGermanDateTime(b.receivedTime);
+            return dateB - dateA;
+        });
+
+        function parseGermanDateTime(str) {
+            const [datePart, timePart] = str.split(' ');
+            const [d, m, y] = datePart.split('.');
+            const [h, min, s] = timePart.split(':');
+            return new Date(y, m - 1, d, h, min, s);
+        }
+
+        return {
+            exportDate: formatDateGerman(now),
+            mailbox: "demo@ergo-maklerservice.de",
+            subjectFilter: "Bestandsübertragung",
+            totalEmails: emails.length,
+            emails: emails
+        };
+    }
+
+    /**
+     * Demo-JSON herunterladen
+     */
+    function downloadDemoExportJSON() {
+        const data = generateDemoExportJSON();
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `demo_outlook_export_${data.totalEmails}_emails.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return data.totalEmails;
+    }
+
     // Öffentliche API
     return {
         loadDemoData,
+        generateDemoExportJSON,
+        downloadDemoExportJSON,
         MAKLER,
         SPARTEN
     };

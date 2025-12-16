@@ -42,6 +42,7 @@ const App = (function() {
         // Header Buttons
         document.getElementById('fileInput')?.addEventListener('change', handleFileImport);
         document.getElementById('resetDemoBtn')?.addEventListener('click', handleResetDemo);
+        document.getElementById('downloadDemoBtn')?.addEventListener('click', handleDownloadDemo);
 
         // Main Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -1111,6 +1112,14 @@ const App = (function() {
         UI.closeExportModal();
         UI.showToast(`${count} Vorgänge exportiert und als "exportiert" markiert`, 'success');
         refreshData();
+    }
+
+    /**
+     * Demo-JSON mit 1000 E-Mails herunterladen
+     */
+    function handleDownloadDemo() {
+        const count = DemoData.downloadDemoExportJSON();
+        UI.showToast(`Demo-JSON mit ${count} E-Mails heruntergeladen`, 'success');
     }
 
     /**
