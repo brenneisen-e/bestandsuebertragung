@@ -204,6 +204,7 @@ const Storage = (function() {
         localStorage.removeItem(KEYS.CASES);
         localStorage.removeItem(KEYS.PROCESSED);
         localStorage.removeItem(KEYS.UNASSIGNED);
+        localStorage.removeItem('importExportHistory');
         // Settings behalten, aber demoLoaded zurücksetzen
         const settings = getSettings();
         settings.demoLoaded = false;
