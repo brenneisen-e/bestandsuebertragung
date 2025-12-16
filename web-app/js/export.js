@@ -240,19 +240,16 @@ const Export = (function() {
      */
     function fixMojibake(text) {
         if (!text) return text;
-        // Häufige UTF-8 Mojibake-Muster
-        const replacements = {
-            'Ã¼': 'ü', 'Ã¶': 'ö', 'Ã¤': 'ä', 'ÃŸ': 'ß',
-            'Ãœ': 'Ü', 'Ã–': 'Ö', 'Ã„': 'Ä',
-            'Ã©': 'é', 'Ã¨': 'è', 'Ã ': 'à', 'Ã¢': 'â',
-            'Ã®': 'î', 'Ã´': 'ô', 'Ã»': 'û', 'Ã§': 'ç',
-            'â€"': '–', 'â€"': '—', 'â€˜': ''', 'â€™': ''',
-            'â€œ': '"', 'â€': '"', 'â€¢': '•', 'â€¦': '…',
-            'Â ': ' ', 'Â§': '§', 'Â©': '©', 'Â®': '®',
-            'â‚¬': '€'
-        };
+        // Häufige UTF-8 Mojibake-Muster (als Array um Duplikate zu vermeiden)
+        const replacements = [
+            ['Ã¼', 'ü'], ['Ã¶', 'ö'], ['Ã¤', 'ä'], ['ÃŸ', 'ß'],
+            ['Ãœ', 'Ü'], ['Ã–', 'Ö'], ['Ã„', 'Ä'],
+            ['Ã©', 'é'], ['Ã¨', 'è'], ['Ã¢', 'â'],
+            ['Ã®', 'î'], ['Ã´', 'ô'], ['Ã»', 'û'], ['Ã§', 'ç'],
+            ['Â§', '§'], ['Â©', '©'], ['Â®', '®']
+        ];
         let result = text;
-        for (const [bad, good] of Object.entries(replacements)) {
+        for (const [bad, good] of replacements) {
             result = result.split(bad).join(good);
         }
         return result;
