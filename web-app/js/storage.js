@@ -379,10 +379,13 @@ const Storage = (function() {
     function markCasesExported(caseIds, exporterName) {
         const cases = getCases();
         const exportDate = new Date().toISOString();
+        const exportDateShort = exportDate.split('T')[0];
         let count = 0;
 
         caseIds.forEach(id => {
             if (cases[id]) {
+                const previousStatus = cases[id].status;
+
                 // Export-Info setzen
                 cases[id].exported = {
                     date: exportDate,
@@ -395,6 +398,15 @@ const Storage = (function() {
                 // Workflow-Schritt setzen
                 if (!cases[id].workflow) cases[id].workflow = {};
                 cases[id].workflow.exported = exportDate;
+
+                // Status-History Eintrag hinzufügen
+                if (!cases[id].statusHistory) cases[id].statusHistory = [];
+                cases[id].statusHistory.push({
+                    date: exportDateShort,
+                    from: previousStatus,
+                    to: 'abgeschlossen',
+                    note: `Exportiert von ${exporterName}`
+                });
 
                 cases[id].updatedAt = exportDate;
                 count++;
