@@ -580,13 +580,19 @@ const Matcher = (function() {
             maklerInfo.email = extractEmailAddress(email.senderEmail) || email.senderEmail;
         }
 
+        // Status basierend auf Vollständigkeit der Daten bestimmen
+        const hasKunde = extracted.kunde && extracted.kunde.name && extracted.kunde.name.trim().length > 0;
+        const hasVsNr = extracted.versicherungsnummer && extracted.versicherungsnummer.value && extracted.versicherungsnummer.value.trim().length > 0;
+        const isComplete = hasKunde && hasVsNr;
+        const initialStatus = isComplete ? 'zu-validieren' : 'unvollstaendig';
+
         const newCase = {
             kunde: extracted.kunde || { name: '', confidence: 0, source: 'manual' },
             versicherungsnummer: extracted.versicherungsnummer || { value: '', confidence: 0, source: 'manual' },
             versicherer: extracted.versicherer || { name: '', confidence: 0, source: 'manual' },
             gueltigkeitsdatum: extracted.gueltigkeitsdatum || null,
             makler: maklerInfo,
-            status: 'unvollstaendig',
+            status: initialStatus,
             sparte: extracted.sparte || '',
             notes: '',
             flagged: false,
@@ -594,7 +600,7 @@ const Matcher = (function() {
             messageIds: messages.map(m => m.entryID),
             messages: messages,
             statusHistory: [
-                { date: new Date().toISOString(), from: null, to: 'unvollstaendig', note: 'Aus E-Mail erstellt', isNew: true }
+                { date: new Date().toISOString(), from: null, to: initialStatus, note: 'Aus E-Mail erstellt', isNew: true }
             ]
         };
 
