@@ -22,11 +22,13 @@ const Extractor = (function() {
 
         // Kundennamen
         kundenname: [
-            // Mit Label
-            /(?:VN|Versicherungsnehmer|Kunde|Vertragspartner)[\s:]+([A-ZÄÖÜß][a-zäöüß]+(?:[,\s]+[A-ZÄÖÜß][a-zäöüß]+)+)/gi,
+            // Mit Label (Kunde/Kunden/Kundin)
+            /(?:VN|Versicherungsnehmer|Kunden?|Kundin|Vertragspartner)[\s:]+([A-ZÄÖÜß][a-zäöüß]+(?:[,\s]+[A-ZÄÖÜß][a-zäöüß]+)+)/gi,
+            // "für unseren Kunden Vorname Nachname"
+            /für\s+(?:unsere[n]?\s+)?(?:Kunde[n]?|Kundin)\s+([A-ZÄÖÜß][a-zäöüß]+\s+[A-ZÄÖÜß][a-zäöüß]+)/gi,
             // Anrede + Name
-            /(?:Herr|Frau|Herrn)\s+([A-ZÄÖÜß][a-zäöüß]+(?:\s+[A-ZÄÖÜß][a-zäöüß]+){1,3})/gi,
-            // Format: Nachname, Vorname
+            /(?:Herr[n]?|Frau)\s+([A-ZÄÖÜß][a-zäöüß]+(?:\s+[A-ZÄÖÜß][a-zäöüß]+){1,3})/gi,
+            // Format: Nachname, Vorname nach für/betr/bzgl
             /(?:für|betr(?:\.?|ifft)|bzgl\.?|betrifft)\s+([A-ZÄÖÜß][a-zäöüß]+,\s*[A-ZÄÖÜß][a-zäöüß]+)/gi
         ],
 
