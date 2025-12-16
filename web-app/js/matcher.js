@@ -568,11 +568,24 @@ const Matcher = (function() {
             }
         }
 
+        // Makler-Info zusammenstellen
+        const maklerInfo = extracted.makler || {
+            name: '',
+            email: extractEmailAddress(email.senderEmail || email.from || '') || '',
+            confidence: 0.5,
+            source: 'sender'
+        };
+        // Falls kein Name aber E-Mail vorhanden, E-Mail als Fallback verwenden
+        if (!maklerInfo.email && email.senderEmail) {
+            maklerInfo.email = extractEmailAddress(email.senderEmail) || email.senderEmail;
+        }
+
         const newCase = {
             kunde: extracted.kunde || { name: '', confidence: 0, source: 'manual' },
             versicherungsnummer: extracted.versicherungsnummer || { value: '', confidence: 0, source: 'manual' },
             versicherer: extracted.versicherer || { name: '', confidence: 0, source: 'manual' },
             gueltigkeitsdatum: extracted.gueltigkeitsdatum || null,
+            makler: maklerInfo,
             status: 'unvollstaendig',
             sparte: extracted.sparte || '',
             notes: '',
