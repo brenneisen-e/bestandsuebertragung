@@ -383,10 +383,19 @@ const Storage = (function() {
 
         caseIds.forEach(id => {
             if (cases[id]) {
+                // Export-Info setzen
                 cases[id].exported = {
                     date: exportDate,
                     by: exporterName
                 };
+
+                // Status auf "abgeschlossen" setzen
+                cases[id].status = 'abgeschlossen';
+
+                // Workflow-Schritt setzen
+                if (!cases[id].workflow) cases[id].workflow = {};
+                cases[id].workflow.exported = exportDate;
+
                 cases[id].updatedAt = exportDate;
                 count++;
             }
