@@ -800,25 +800,31 @@ const UI = (function() {
             return dateB - dateA;
         });
 
-        elements.emailTimeline.innerHTML = sorted.map(msg => {
+        elements.emailTimeline.innerHTML = sorted.map((msg, index) => {
             const isSent = msg.folder === 'sent';
             const directionIcon = isSent ? '↑' : '↓';
-            const directionText = isSent ? 'Gesendet' : 'Empfangen';
             const directionClass = isSent ? 'direction-sent' : 'direction-inbox';
 
             // Body mit Highlighting
-            let bodyText = truncateText(msg.bodyPlain || msg.body || '', 500);
+            let bodyText = truncateText(msg.bodyPlain || msg.body || '', 800);
             bodyText = highlightKeywords(bodyText, highlightTerms);
 
+            // Kurze Vorschau für den Bookmark
+            const preview = truncateText(msg.bodyPlain || msg.body || '', 60);
+
             return `
-                <div class="email-item ${msg.folder}">
-                    <div class="email-header">
-                        <span class="email-direction ${directionClass}">${directionIcon} ${directionText}</span>
+                <div class="email-bookmark ${msg.folder}" data-email-index="${index}">
+                    <div class="email-bookmark-header" onclick="UI.toggleEmailBody(this)">
+                        <span class="email-expand-icon">▶</span>
+                        <span class="email-direction ${directionClass}">${directionIcon}</span>
                         <span class="email-date">${formatDateTime(msg.receivedTime)}</span>
+                        <span class="email-subject-short">${escapeHtml(msg.subject || 'Kein Betreff')}</span>
+                        <span class="email-preview">${escapeHtml(preview)}</span>
                     </div>
-                    <div class="email-subject">${escapeHtml(msg.subject || 'Kein Betreff')}</div>
-                    <div class="email-sender">${escapeHtml(msg.senderEmail || '-')}</div>
-                    <div class="email-body">${bodyText}</div>
+                    <div class="email-bookmark-body" style="display: none;">
+                        <div class="email-sender"><strong>Von:</strong> ${escapeHtml(msg.senderEmail || '-')}</div>
+                        <div class="email-body">${bodyText}</div>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -1150,6 +1156,27 @@ const UI = (function() {
     }
 
     /**
+     * E-Mail Body ein-/ausklappen (Bookmark-Style)
+     */
+    function toggleEmailBody(headerElement) {
+        const bookmark = headerElement.closest('.email-bookmark');
+        if (!bookmark) return;
+
+        const body = bookmark.querySelector('.email-bookmark-body');
+        const icon = bookmark.querySelector('.email-expand-icon');
+
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            icon.textContent = '▼';
+            bookmark.classList.add('expanded');
+        } else {
+            body.style.display = 'none';
+            icon.textContent = '▶';
+            bookmark.classList.remove('expanded');
+        }
+    }
+
+    /**
      * Zum nächsten Vorgang in der Validierung springen
      */
     function nextValidationCase() {
@@ -1384,6 +1411,7 @@ const UI = (function() {
         getValidationFormData,
         toggleRejectSection,
         hasRejectReason,
+        toggleEmailBody,
 
         // Notifications
         showToast,
