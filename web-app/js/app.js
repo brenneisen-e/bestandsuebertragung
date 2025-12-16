@@ -267,6 +267,12 @@ const App = (function() {
         UI.renderSpartenList(spartenStats);
         UI.renderRecentActivity(recentActivity, activityFilters.status, activityFilters.sort);
         UI.renderImportExportHistory(importExportHistory);
+
+        // Massenvalidierung-Button nur bei vielen Vorgängen anzeigen (ab 100)
+        const massValidateBtn = document.getElementById('massValidateBtn');
+        if (massValidateBtn) {
+            massValidateBtn.style.display = stats.total >= 100 ? '' : 'none';
+        }
     }
 
     /**
